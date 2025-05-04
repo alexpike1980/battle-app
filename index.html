@@ -4,42 +4,10 @@
   <meta charset="UTF-8" />
   <title>Battle App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    .battle {
-      border: 1px solid #ccc;
-      padding: 16px;
-      margin-top: 20px;
-      border-radius: 8px;
-    }
-
-    .options {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-
-    .option {
-      width: 48%;
-      padding: 10px;
-      background: #f0f0f0;
-      text-align: center;
-      border-radius: 6px;
-    }
-
-    .form-group {
-      margin-bottom: 10px;
-    }
-
-    #createForm {
-      display: none;
-      margin-top: 20px;
-    }
+    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
+    .battle { border: 1px solid #ccc; padding: 16px; margin-top: 20px; border-radius: 8px; }
+    .form-group { margin-bottom: 10px; }
+    #createForm { display: none; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -57,16 +25,18 @@
     <div class="form-group">
       <input type="text" id="option2" placeholder="Option 2" />
     </div>
-    <button onclick="submitBattle()">Submit</button>
+    <button id="submitBtn">Submit</button>
   </div>
 
   <div id="battleContainer"></div>
 
-  <!-- Подключение Supabase -->
+  <!-- Подключаем Supabase и затем инициализируем код -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+
+    // ✅ создаём клиент Supabase ДО всех функций
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function toggleForm() {
@@ -90,10 +60,10 @@
       ]);
 
       if (error) {
-        console.error('Failed to create battle:', error.message);
+        console.error('❌ Error creating battle:', error.message);
         alert('Error: ' + error.message);
       } else {
-        console.log('Battle created:', data);
+        console.log('✅ Battle created:', data);
         loadLatestBattle();
       }
     }
@@ -106,26 +76,26 @@
         .limit(1);
 
       if (error) {
-        console.error('Failed to load battle:', error.message);
+        console.error('❌ Failed to load:', error.message);
         return;
       }
 
       const battle = data[0];
       if (!battle) return;
 
-      const container = document.getElementById('battleContainer');
-      container.innerHTML = `
+      document.getElementById('battleContainer').innerHTML = `
         <div class="battle">
           <h3>${battle.title}</h3>
-          <div class="options">
-            <div class="option">${battle.option1} <br><strong>${battle.votes1} votes</strong></div>
-            <div class="option">${battle.option2} <br><strong>${battle.votes2} votes</strong></div>
-          </div>
+          <p>Option 1: ${battle.option1} — <strong>${battle.votes1}</strong> votes</p>
+          <p>Option 2: ${battle.option2} — <strong>${battle.votes2}</strong> votes</p>
         </div>
       `;
     }
 
-    // Загружаем последний батл при запуске
+    // 🧷 Привязываем кнопку ПОСЛЕ инициализации supabase
+    document.getElementById('submitBtn').addEventListener('click', submitBattle);
+
+    // 🚀 Загружаем последний батл при старте
     loadLatestBattle();
   </script>
 </body>
