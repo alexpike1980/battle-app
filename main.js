@@ -1,41 +1,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'; // сократил для читаемости
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function toggleForm() {
   const form = document.getElementById('createForm');
   form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
-}
-
-async function loadAllBattles() {
-  const { data, error } = await supabase
-    .from('battles')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    alert('Error loading battles.');
-    return;
-  }
-
-  const selector = document.getElementById('battleSelector');
-  selector.innerHTML = data.map(battle => `<option value="${battle.id}">${battle.title}</option>`).join('');
-
-  if (data.length > 0) renderBattle(data[0]);
-}
-
-async function renderBattleById(battleId) {
-  const { data, error } = await supabase
-    .from('battles')
-    .select('*')
-    .eq('id', battleId)
-    .single();
-
-  if (error || !data) return;
-
-  renderBattle(data);
 }
 
 function formatRemainingTime(ms) {
@@ -47,7 +18,34 @@ function formatRemainingTime(ms) {
 
 let countdownInterval;
 
+async function loadBattles() {
+  const { data, error } = await supabase
+    .from('battles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) return alert('Error loading battles.');
+
+  const selector = document.getElementById('battleSelector');
+  selector.innerHTML = data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
+
+  if (data.length > 0) renderBattle(data[0]);
+}
+
+async function renderBattleById(id) {
+  const { data, error } = await supabase
+    .from('battles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) return;
+  renderBattle(data);
+}
+
 function renderBattle(battle) {
+  clearInterval(countdownInterval);
+
   const now = new Date();
   const endsAt = new Date(battle.ends_at);
   const timeLeft = endsAt - now;
@@ -57,52 +55,50 @@ function renderBattle(battle) {
   const percent1 = totalVotes === 0 ? 50 : Math.round((battle.votes1 / totalVotes) * 100);
   const percent2 = 100 - percent1;
 
-  const leftImage = battle.image1 || '';
-  const rightImage = battle.image2 || '';
-
-  clearInterval(countdownInterval);
-
-  document.getElementById('battleContainer').innerHTML = `
-    <h3>${battle.title}</h3>
-    <div id="countdown" style="font-weight:bold;margin-bottom:10px;"></div>
-    <div style="display: flex; justify-content: space-between; gap: 10px;">
-      <div style="flex: 1; text-align: center;">
-        <div><strong>${battle.option1}</strong></div>
-        ${leftImage ? `<img src="${leftImage}" alt="" style="max-width: 100%; max-height: 150px; object-fit: contain;" />` : ''}
-        <div>${battle.votes1} votes</div>
-        <div>${percent1}%</div>
-        <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote</button>
+  const html = `
+    <div class="battle">
+      <h3>${battle.title}</h3>
+      <div id="countdown"></div>
+      <div class="vote-options">
+        <div class="vote-option">
+          <div><strong>${battle.option1}</strong></div>
+          ${battle.option1_img ? `<img src="${battle.option1_img}" class="option-img" />` : ''}
+          <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote</button>
+        </div>
+        <div class="vote-option">
+          <div><strong>${battle.option2}</strong></div>
+          ${battle.option2_img ? `<img src="${battle.option2_img}" class="option-img" />` : ''}
+          <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote</button>
+        </div>
       </div>
-      <div style="flex: 1; text-align: center;">
-        <div><strong>${battle.option2}</strong></div>
-        ${rightImage ? `<img src="${rightImage}" alt="" style="max-width: 100%; max-height: 150px; object-fit: contain;" />` : ''}
-        <div>${battle.votes2} votes</div>
-        <div>${percent2}%</div>
-        <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote</button>
+      <div class="progress-bar">
+        <div class="progress-left" style="width:${percent1}%">
+          ${battle.votes1} votes (${percent1}%)
+        </div>
+        <div class="progress-right" style="width:${percent2}%">
+          ${battle.votes2} votes (${percent2}%)
+        </div>
       </div>
-    </div>
-    <div style="margin-top: 10px; background: #ccc; height: 20px; border-radius: 10px; overflow: hidden;">
-      <div style="height: 100%; background: green; width: ${percent1}%; float: left; transition: width 0.5s;"></div>
-      <div style="height: 100%; background: red; width: ${percent2}%; float: left; transition: width 0.5s;"></div>
     </div>
   `;
 
-  if (!isOver) {
-    const countdownEl = document.getElementById('countdown');
-    countdownEl.textContent = 'Time left: ' + formatRemainingTime(timeLeft);
+  document.getElementById('battleContainer').innerHTML = html;
 
+  const countdownEl = document.getElementById('countdown');
+  if (!isOver) {
+    countdownEl.textContent = 'Time left: ' + formatRemainingTime(timeLeft);
     countdownInterval = setInterval(() => {
-      const newTimeLeft = new Date(battle.ends_at) - new Date();
-      if (newTimeLeft <= 0) {
+      const remaining = new Date(battle.ends_at) - new Date();
+      if (remaining <= 0) {
         countdownEl.textContent = 'Voting ended';
-        document.querySelectorAll('#battleContainer button').forEach(btn => btn.disabled = true);
+        document.querySelectorAll('.vote-option button').forEach(b => b.disabled = true);
         clearInterval(countdownInterval);
       } else {
-        countdownEl.textContent = 'Time left: ' + formatRemainingTime(newTimeLeft);
+        countdownEl.textContent = 'Time left: ' + formatRemainingTime(remaining);
       }
     }, 1000);
   } else {
-    document.getElementById('countdown').textContent = 'Voting ended';
+    countdownEl.textContent = 'Voting ended';
   }
 }
 
@@ -114,22 +110,27 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const image1 = document.getElementById('image1').value.trim();
   const image2 = document.getElementById('image2').value.trim();
 
-  if (!title || !option1 || !option2 || isNaN(duration)) {
-    alert("Please fill in all required fields.");
-    return;
-  }
+  if (!title || !option1 || !option2 || isNaN(duration)) return alert("Please fill in all required fields.");
 
   const endsAt = new Date(Date.now() + duration * 60 * 1000).toISOString();
 
   const { error } = await supabase.from('battles').insert([
-    { title, option1, option2, votes1: 0, votes2: 0, ends_at: endsAt, image1, image2 }
+    {
+      title,
+      option1,
+      option2,
+      votes1: 0,
+      votes2: 0,
+      ends_at: endsAt,
+      option1_img: image1,
+      option2_img: image2
+    }
   ]);
 
-  if (error) {
-    alert('Error creating battle.');
-  } else {
+  if (error) alert('Error creating battle.');
+  else {
     alert('Battle created!');
-    loadAllBattles();
+    loadBattles();
     toggleForm();
   }
 });
@@ -151,20 +152,17 @@ window.voteAndShare = async (battleId, option, platform) => {
   const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { data, error } = await supabase.rpc('increment_vote', {
+  const { error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
 
-  if (error) {
-    alert('Vote failed.');
-    return;
-  }
+  if (error) return alert('Vote failed.');
 
-  await renderBattleById(battleId); // обновляем
+  await renderBattleById(battleId);
+
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
-
   switch (platform) {
     case 'twitter':
       shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${url}`;
@@ -179,7 +177,6 @@ window.voteAndShare = async (battleId, option, platform) => {
       shareUrl = `https://www.reddit.com/submit?url=${url}&title=${shareText}`;
       break;
   }
-
   window.open(shareUrl, '_blank', 'width=600,height=400');
   document.getElementById('socialPopup').style.display = 'none';
 };
@@ -190,6 +187,6 @@ document.getElementById('battleSelector').addEventListener('change', (e) => {
 });
 
 window.toggleForm = toggleForm;
-window.loadAllBattles = loadAllBattles;
+window.loadBattles = loadBattles;
 
-loadAllBattles();
+loadBattles();
