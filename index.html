@@ -5,69 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .battle-block {
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 20px;
-    }
-    .progress-bar {
-      margin-top: 10px;
-      background: #eee;
-      border-radius: 10px;
-      overflow: hidden;
-      height: 30px;
-      position: relative;
-    }
-    .bar-left, .bar-right {
-      height: 100%;
-      float: left;
-      transition: width 0.5s;
-    }
-    .bar-left {
-      background-color: green;
-    }
-    .bar-right {
-      background-color: red;
-    }
-    .progress-label {
-      position: absolute;
-      width: 100%;
-      text-align: center;
-      font-weight: bold;
-      top: 5px;
-    }
-    #socialPopup {
-      position: absolute;
-      display: none;
-      background: #f0f0f0;
-      padding: 10px;
-      border: 1px solid #ccc;
-      z-index: 1000;
-    }
+    body { font-family: sans-serif; margin: 20px; background: #f4f4f4; }
+    .battle { border: 2px solid #333; padding: 15px; margin-bottom: 20px; border-radius: 10px; background: #fff; }
+    .progress-bar { height: 24px; display: flex; overflow: hidden; background: #ddd; border-radius: 12px; margin-top: 10px; position: relative; }
+    .progress-segment { height: 100%; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; }
+    .green { background: green; }
+    .red { background: red; }
+    #createForm input { display: block; margin-bottom: 10px; width: 100%; padding: 5px; }
+    #socialPopup { position: absolute; display: none; background: #fff; border: 1px solid #ccc; padding: 10px; z-index: 10; }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
-  <button onclick="toggleForm()">Create Battle</button>
-  <div id="createForm" style="display:none; margin-top: 20px;">
-    <input id="title" placeholder="Title"><br>
-    <input id="option1" placeholder="Option 1"><br>
-    <input id="option2" placeholder="Option 2"><br>
-    <input id="image1" placeholder="Image URL 1"><br>
-    <input id="image2" placeholder="Image URL 2"><br>
-    <input id="duration" placeholder="Duration in minutes"><br>
+
+  <button onclick="toggleForm()">+ Create Battle</button>
+
+  <div id="createForm" style="display: none; margin-top: 20px;">
+    <input id="title" placeholder="Battle title" />
+    <input id="option1" placeholder="Option 1" />
+    <input id="image1" placeholder="Image URL for Option 1" />
+    <input id="option2" placeholder="Option 2" />
+    <input id="image2" placeholder="Image URL for Option 2" />
+    <input id="duration" placeholder="Duration in minutes" type="number" />
     <button id="submitBtn">Submit</button>
   </div>
-  <div id="tabs" style="margin-top: 20px;">
-    <button onclick="switchTab('active')">Active Battles</button>
-    <button onclick="switchTab('finished')">Finished Battles</button>
-  </div>
-  <div id="battleList" style="margin-top: 20px;"></div>
+
+  <div id="battleContainer" style="margin-top: 30px;"></div>
+
   <div id="socialPopup"></div>
 
   <script type="module" src="main.js"></script>
