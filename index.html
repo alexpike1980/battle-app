@@ -4,6 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
+  <style>
+    .tab-button {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background: #ddd;
+      margin-right: 5px;
+      border-radius: 5px;
+    }
+    .tab-button.active {
+      background: #aaa;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <h1>Battle App</h1>
@@ -22,10 +36,16 @@
     <button id="submitBtn">Submit</button>
   </div>
 
-  <!-- Выпадающий список для выбора батла -->
-  <select id="battleSelector" style="margin-top: 20px;"></select>
+  <!-- Табы -->
+  <div style="margin-top: 20px;">
+    <button id="tab-active" class="tab-button active" onclick="switchTab('active')">Active Battles</button>
+    <button id="tab-finished" class="tab-button" onclick="switchTab('finished')">Finished Battles</button>
+  </div>
 
-  <!-- Контейнер для отображения батла -->
+  <!-- Список батлов -->
+  <div id="battleList" style="margin-top: 20px;"></div>
+
+  <!-- Контейнер для отображения конкретного батла -->
   <div id="battleContainer" style="margin-top: 20px;"></div>
 
   <!-- Попап для соцсетей -->
