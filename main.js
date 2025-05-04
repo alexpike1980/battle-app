@@ -2,6 +2,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'; // обрезано для читаемости
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function toggleForm() {
@@ -9,21 +10,13 @@ function toggleForm() {
   form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
 }
 
-async function loadAllBattles() {
-  const { data, error } = await supabase
-    .from('battles')
-    .select('*')
-    .order('created_at', { ascending: false });
+let countdownInterval;
 
-  if (error) {
-    alert('Error loading battles.');
-    return;
-  }
-
-  const selector = document.getElementById('battleSelector');
-  selector.innerHTML = data.map(battle => `<option value="${battle.id}">${battle.title}</option>`).join('');
-
-  if (data.length > 0) renderBattle(data[0]);
+function formatRemainingTime(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}m ${seconds}s`;
 }
 
 async function renderBattleById(battleId) {
@@ -33,19 +26,9 @@ async function renderBattleById(battleId) {
     .eq('id', battleId)
     .single();
 
-  if (error || !data) return;
-
+  if (!data || error) return;
   renderBattle(data);
 }
-
-function formatRemainingTime(ms) {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}m ${seconds}s`;
-}
-
-let countdownInterval;
 
 function renderBattle(battle) {
   const now = new Date();
@@ -57,9 +40,6 @@ function renderBattle(battle) {
   const percent1 = totalVotes === 0 ? 50 : Math.round((battle.votes1 / totalVotes) * 100);
   const percent2 = 100 - percent1;
 
-  const leftImage = battle.image1 || '';
-  const rightImage = battle.image2 || '';
-
   clearInterval(countdownInterval);
 
   document.getElementById('battleContainer').innerHTML = `
@@ -68,29 +48,28 @@ function renderBattle(battle) {
     <div style="display: flex; justify-content: space-between; gap: 10px;">
       <div style="flex: 1; text-align: center;">
         <div><strong>${battle.option1}</strong></div>
-        ${leftImage ? `<img src="${leftImage}" alt="" style="max-width: 100%; max-height: 150px;" />` : ''}
+        ${battle.image1 ? `<img src="${battle.image1}" style="max-width:100%;max-height:150px;" />` : ''}
         <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote</button>
       </div>
       <div style="flex: 1; text-align: center;">
         <div><strong>${battle.option2}</strong></div>
-        ${rightImage ? `<img src="${rightImage}" alt="" style="max-width: 100%; max-height: 150px;" />` : ''}
+        ${battle.image2 ? `<img src="${battle.image2}" style="max-width:100%;max-height:150px;" />` : ''}
         <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote</button>
       </div>
     </div>
     <div style="margin-top: 10px; background: #ccc; height: 20px; border-radius: 10px; overflow: hidden; position: relative;">
-      <div style="height: 100%; background: green; width: ${percent1}%; float: left; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+      <div style="height: 100%; background: green; width: ${percent1}%; float: left; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
         ${battle.votes1} (${percent1}%)
       </div>
-      <div style="height: 100%; background: red; width: ${percent2}%; float: left; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+      <div style="height: 100%; background: red; width: ${percent2}%; float: left; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
         ${battle.votes2} (${percent2}%)
       </div>
     </div>
   `;
 
+  const countdownEl = document.getElementById('countdown');
   if (!isOver) {
-    const countdownEl = document.getElementById('countdown');
     countdownEl.textContent = 'Time left: ' + formatRemainingTime(timeLeft);
-
     countdownInterval = setInterval(() => {
       const newTimeLeft = new Date(battle.ends_at) - new Date();
       if (newTimeLeft <= 0) {
@@ -102,7 +81,7 @@ function renderBattle(battle) {
       }
     }, 1000);
   } else {
-    document.getElementById('countdown').textContent = 'Voting ended';
+    countdownEl.textContent = 'Voting ended';
   }
 }
 
@@ -129,7 +108,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
     alert('Error creating battle.');
   } else {
     alert('Battle created!');
-    loadAllBattles();
+    switchTab(currentTab); // обновим текущую вкладку
     toggleForm();
   }
 });
@@ -151,7 +130,7 @@ window.voteAndShare = async (battleId, option, platform) => {
   const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { data, error } = await supabase.rpc('increment_vote', {
+  const { error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
@@ -162,6 +141,7 @@ window.voteAndShare = async (battleId, option, platform) => {
   }
 
   await renderBattleById(battleId);
+
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
 
@@ -184,13 +164,45 @@ window.voteAndShare = async (battleId, option, platform) => {
   document.getElementById('socialPopup').style.display = 'none';
 };
 
-document.getElementById('battleSelector').addEventListener('change', (e) => {
-  const battleId = e.target.value;
-  if (battleId) renderBattleById(battleId);
-});
+let currentTab = 'active';
 
-// Экспорт функций в глобальный scope, ничего не удаляя
+async function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-active').classList.toggle('active', tab === 'active');
+  document.getElementById('tab-finished').classList.toggle('active', tab === 'finished');
+
+  const { data, error } = await supabase
+    .from('battles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error || !data) {
+    alert('Error loading battles.');
+    return;
+  }
+
+  const now = new Date();
+
+  const filtered = data.filter(b => {
+    const endsAt = new Date(b.ends_at);
+    return tab === 'active' ? endsAt > now : endsAt <= now;
+  });
+
+  const listContainer = document.getElementById('battleList');
+  listContainer.innerHTML = filtered.length
+    ? filtered.map(b => `
+        <div style="margin-bottom: 10px;">
+          <strong>${b.title}</strong>
+          <button onclick="renderBattleById('${b.id}')">View</button>
+        </div>
+      `).join('')
+    : `<div>No ${tab === 'active' ? 'active' : 'finished'} battles.</div>`;
+}
+
+// Экспорт функций
 window.toggleForm = toggleForm;
-window.loadAllBattles = loadAllBattles;
+window.renderBattleById = renderBattleById;
+window.switchTab = switchTab;
 
-loadAllBattles();
+// Инициализация
+switchTab('active');
