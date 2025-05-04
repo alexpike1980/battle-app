@@ -40,77 +40,58 @@ async function renderBattleById(battleId) {
 }
 
 function renderBattle(battle) {
-  const totalVotes = battle.votes1 + battle.votes2;
-  const percent1 = totalVotes ? Math.round((battle.votes1 / totalVotes) * 100) : 0;
-  const percent2 = totalVotes ? Math.round((battle.votes2 / totalVotes) * 100) : 0;
+  const container = document.getElementById('battleContainer');
+  container.classList.add('fade-out');
 
-  const endsAt = new Date(battle.ends_at);
-  const now = new Date();
-  const isExpired = now >= endsAt;
+  setTimeout(() => {
+    const totalVotes = battle.votes1 + battle.votes2;
+    const percent1 = totalVotes > 0 ? (battle.votes1 / totalVotes) * 100 : 50;
+    const percent2 = totalVotes > 0 ? (battle.votes2 / totalVotes) * 100 : 50;
 
-  document.getElementById('battleContainer').innerHTML = `
-    <div class="battle">
-      <h3>${battle.title}</h3>
-      <p id="countdown"></p>
-
-      <p><strong>${battle.option1}</strong>: <span id="votes1">${battle.votes1}</span> votes</p>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${percent1}%">${percent1}%</div>
+    container.innerHTML = `
+      <div class="battle">
+        <h3>${battle.title}</h3>
+        <div style="display: flex; justify-content: space-between; gap: 10px;">
+          <div style="flex: 1; text-align: center;">
+            <p><strong>${battle.option1}</strong></p>
+            <p class="vote-count"><span id="votes1">${battle.votes1}</span> votes</p>
+            <div class="vote-buttons">
+              <button onclick="showSocialPopup(event, '${battle.id}', 1)">Vote Now</button>
+            </div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <p><strong>${battle.option2}</strong></p>
+            <p class="vote-count"><span id="votes2">${battle.votes2}</span> votes</p>
+            <div class="vote-buttons">
+              <button onclick="showSocialPopup(event, '${battle.id}', 2)">Vote Now</button>
+            </div>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-left" style="background: #e74c3c; width: ${percent1}%;"></div>
+          <div class="progress-right" style="background: #2ecc71; width: ${percent2}%;"></div>
+        </div>
       </div>
-      <div class="vote-buttons">
-        <button ${isExpired ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote Now</button>
-      </div>
+    `;
 
-      <p><strong>${battle.option2}</strong>: <span id="votes2">${battle.votes2}</span> votes</p>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${percent2}%">${percent2}%</div>
-      </div>
-      <div class="vote-buttons">
-        <button ${isExpired ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote Now</button>
-      </div>
-    </div>
-  `;
-
-  // Обновление таймера
-  if (!isExpired) {
-    const countdownEl = document.getElementById('countdown');
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = endsAt - now;
-
-      if (diff <= 0) {
-        clearInterval(interval);
-        countdownEl.textContent = 'Voting has ended.';
-        document.querySelectorAll('.vote-buttons button').forEach(btn => btn.disabled = true);
-        return;
-      }
-
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      countdownEl.textContent = `Time left: ${hours}h ${minutes}m ${seconds}s`;
-    }, 1000);
-  } else {
-    document.getElementById('countdown').textContent = 'Voting has ended.';
-  }
+    container.classList.remove('fade-out');
+    container.classList.add('fade-in');
+    setTimeout(() => container.classList.remove('fade-in'), 400);
+  }, 300);
 }
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const title = document.getElementById('title').value.trim();
   const option1 = document.getElementById('option1').value.trim();
   const option2 = document.getElementById('option2').value.trim();
-  const endsInHours = parseInt(document.getElementById('duration').value.trim());
 
-  if (!title || !option1 || !option2 || isNaN(endsInHours)) {
-    alert("Please fill in all fields, including duration.");
+  if (!title || !option1 || !option2) {
+    alert("Please fill in all fields.");
     return;
   }
 
-  const ends_at = new Date(Date.now() + endsInHours * 3600 * 1000).toISOString();
-
   const { error } = await supabase.from('battles').insert([
-    { title, option1, option2, votes1: 0, votes2: 0, ends_at }
+    { title, option1, option2, votes1: 0, votes2: 0 }
   ]);
 
   if (error) {
@@ -138,7 +119,7 @@ window.voteAndShare = async (battleId, option, platform) => {
   const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { data, error } = await supabase.rpc('increment_vote', {
+  const { error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
@@ -148,8 +129,18 @@ window.voteAndShare = async (battleId, option, platform) => {
     return;
   }
 
-  document.getElementById(`votes${option}`).textContent = 
-    parseInt(document.getElementById(`votes${option}`).textContent) + 1;
+  const span = document.getElementById(`votes${option}`);
+  span.textContent = parseInt(span.textContent) + 1;
+
+  const { data, error: fetchError } = await supabase
+    .from('battles')
+    .select('*')
+    .eq('id', battleId)
+    .single();
+
+  if (!fetchError) {
+    renderBattle(data);
+  }
 
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
@@ -175,9 +166,7 @@ window.voteAndShare = async (battleId, option, platform) => {
 
 document.getElementById('battleSelector').addEventListener('change', (e) => {
   const battleId = e.target.value;
-  if (battleId) {
-    renderBattleById(battleId);
-  }
+  if (battleId) renderBattleById(battleId);
 });
 
 window.toggleForm = toggleForm;
