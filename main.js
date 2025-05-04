@@ -10,6 +10,8 @@ function toggleForm() {
   form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
 }
 
+document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
+
 async function loadAllBattles() {
   const { data, error } = await supabase
     .from('battles')
@@ -17,7 +19,6 @@ async function loadAllBattles() {
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error(error);
     alert('Error loading battles.');
     return;
   }
@@ -35,11 +36,7 @@ async function renderBattleById(battleId) {
     .eq('id', battleId)
     .single();
 
-  if (error || !data) {
-    console.error(error);
-    return;
-  }
-
+  if (error || !data) return;
   renderBattle(data);
 }
 
@@ -49,14 +46,26 @@ function renderBattle(battle) {
       <h3>${battle.title}</h3>
       <p><strong>${battle.option1}</strong>: <span id="votes1">${battle.votes1}</span> votes</p>
       <div class="vote-buttons">
-        <button onclick="showSocialPopup(event, ${battle.id}, 1)">Vote Now</button>
+        <button class="vote-btn" data-id="${battle.id}" data-option="1">Vote Now</button>
       </div>
       <p><strong>${battle.option2}</strong>: <span id="votes2">${battle.votes2}</span> votes</p>
       <div class="vote-buttons">
-        <button onclick="showSocialPopup(event, ${battle.id}, 2)">Vote Now</button>
+        <button class="vote-btn" data-id="${battle.id}" data-option="2">Vote Now</button>
       </div>
     </div>
   `;
+
+  attachVoteListeners();
+}
+
+function attachVoteListeners() {
+  document.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      const battleId = btn.getAttribute('data-id');
+      const option = btn.getAttribute('data-option');
+      showSocialPopup(event, battleId, option);
+    });
+  });
 }
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
@@ -74,7 +83,6 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   ]);
 
   if (error) {
-    console.error(error);
     alert('Error creating battle.');
   } else {
     alert('Battle created!');
@@ -85,33 +93,39 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 function showSocialPopup(event, battleId, option) {
   const popup = document.getElementById('socialPopup');
   popup.innerHTML = `
-    <button onclick="voteAndShare(${battleId}, ${option}, 'twitter')">Twitter</button>
-    <button onclick="voteAndShare(${battleId}, ${option}, 'facebook')">Facebook</button>
-    <button onclick="voteAndShare(${battleId}, ${option}, 'whatsapp')">WhatsApp</button>
-    <button onclick="voteAndShare(${battleId}, ${option}, 'reddit')">Reddit</button>
+    <button data-platform="twitter">Twitter</button>
+    <button data-platform="facebook">Facebook</button>
+    <button data-platform="whatsapp">WhatsApp</button>
+    <button data-platform="reddit">Reddit</button>
   `;
+
+  Array.from(popup.querySelectorAll('button')).forEach(button => {
+    button.addEventListener('click', () => {
+      voteAndShare(battleId, option, button.dataset.platform);
+    });
+  });
+
   popup.style.display = 'block';
-  popup.style.left = event.pageX + 'px';
-  popup.style.top = event.pageY + 'px';
+  popup.style.left = `${event.pageX}px`;
+  popup.style.top = `${event.pageY}px`;
 }
 
 async function voteAndShare(battleId, option, platform) {
-  const column = option === 1 ? 'votes1' : 'votes2';
+  const column = option === "1" ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { error } = await supabase.rpc('increment_vote', {
+  const { data, error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
 
   if (error) {
-    console.error(error);
     alert('Vote failed.');
     return;
   }
 
-  const voteSpan = document.getElementById(`votes${option}`);
-  voteSpan.textContent = parseInt(voteSpan.textContent) + 1;
+  const span = document.getElementById(`votes${option}`);
+  span.textContent = parseInt(span.textContent) + 1;
 
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
@@ -135,11 +149,9 @@ async function voteAndShare(battleId, option, platform) {
   document.getElementById('socialPopup').style.display = 'none';
 }
 
-// Делает функции доступными глобально
-window.toggleForm = toggleForm;
-window.loadAllBattles = loadAllBattles;
-window.showSocialPopup = showSocialPopup;
-window.voteAndShare = voteAndShare;
+document.getElementById('battleSelector').addEventListener('change', (e) => {
+  const battleId = e.target.value;
+  renderBattleById(battleId);
+});
 
-// Запуск загрузки при старте
 loadAllBattles();
