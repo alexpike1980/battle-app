@@ -10,10 +10,6 @@
       padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 20px;
-    }
-
     .tab-button {
       padding: 10px 20px;
       cursor: pointer;
@@ -30,62 +26,87 @@
 
     .battle-block {
       border: 1px solid #ccc;
-      border-radius: 10px;
       padding: 15px;
+      border-radius: 10px;
       margin-bottom: 20px;
+      background: #f9f9f9;
     }
 
     .battle-images {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      margin: 10px 0;
+      margin-top: 10px;
+      margin-bottom: 10px;
     }
 
     .battle-images div {
-      flex: 1;
-      height: 200px;
-      background-size: cover;
-      background-position: center;
+      width: 48%;
+      text-align: center;
+    }
+
+    .battle-images img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
       border-radius: 8px;
     }
 
     button {
-      padding: 10px 15px;
+      padding: 8px 16px;
+      background-color: #3b82f6;
+      color: white;
       border: none;
       border-radius: 5px;
-      background-color: #4285f4;
-      color: white;
       cursor: pointer;
-      margin-top: 5px;
+      margin-top: 8px;
     }
 
     button:disabled {
-      background-color: #888;
+      background-color: #ccc;
+      cursor: not-allowed;
     }
 
     input, select {
-      margin: 5px 0;
       padding: 8px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
+      margin-top: 5px;
+      margin-bottom: 10px;
       width: 100%;
-      box-sizing: border-box;
-    }
-
-    #createForm {
-      margin-top: 20px;
       max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
 
-    #socialPopup button {
-      margin: 5px;
-      padding: 5px 10px;
+    .progress-container {
+      background-color: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 24px;
+      margin-top: 10px;
     }
 
-    .social-icon {
-      width: 16px;
-      height: 16px;
+    .progress-bar {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      transition: width 0.5s;
+    }
+
+    .countdown {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .social-icons button {
+      margin-right: 8px;
+    }
+
+    .social-icons img {
+      width: 20px;
+      height: 20px;
       vertical-align: middle;
       margin-right: 5px;
     }
@@ -98,13 +119,13 @@
   <button onclick="toggleForm()">Create Battle</button>
 
   <!-- Форма создания батла -->
-  <div id="createForm" style="display: none;">
-    <input type="text" id="title" placeholder="Title">
-    <input type="text" id="option1" placeholder="Option 1">
-    <input type="text" id="option2" placeholder="Option 2">
-    <input type="number" id="duration" placeholder="Duration (minutes)">
-    <input type="text" id="image1" placeholder="Image URL 1 (optional)">
-    <input type="text" id="image2" placeholder="Image URL 2 (optional)">
+  <div id="createForm" style="display: none; margin-top: 10px;">
+    <input type="text" id="title" placeholder="Title" /><br/>
+    <input type="text" id="option1" placeholder="Option 1" /><br/>
+    <input type="text" id="option2" placeholder="Option 2" /><br/>
+    <input type="number" id="duration" placeholder="Duration (minutes)" /><br/>
+    <input type="text" id="image1" placeholder="Image URL 1 (optional)" /><br/>
+    <input type="text" id="image2" placeholder="Image URL 2 (optional)" /><br/>
     <button id="submitBtn">Submit</button>
   </div>
 
@@ -116,9 +137,6 @@
 
   <!-- Список батлов -->
   <div id="battleList" style="margin-top: 20px;"></div>
-
-  <!-- Контейнер для отображения конкретного батла -->
-  <div id="battleContainer" style="margin-top: 20px;"></div>
 
   <!-- Попап для соцсетей -->
   <div id="socialPopup" style="position:absolute; display:none; background:white; border:1px solid #ccc; padding:10px; z-index:10;"></div>
