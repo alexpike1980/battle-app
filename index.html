@@ -9,7 +9,6 @@
       padding: 20px;
       max-width: 700px;
       margin: auto;
-      background: #f8f8f8;
     }
     h1 {
       text-align: center;
@@ -23,68 +22,71 @@
       border: 1px solid #ccc;
       padding: 16px;
       border-radius: 8px;
-      background: #fff;
     }
     .battle {
-      border: 1px solid #ccc;
+      border: 2px solid #ccc;
       padding: 16px;
-      border-radius: 8px;
+      border-radius: 12px;
       margin-top: 20px;
-      background: #fff;
-      transition: all 0.3s ease-in-out;
     }
-    .battle-inner {
+    .vote-container {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .vote-option {
+      flex: 1;
+      text-align: center;
+    }
+    .vote-option img {
+      max-width: 100%;
+      border-radius: 8px;
       margin-bottom: 10px;
     }
-    .option {
-      width: 48%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: #f1f1f1;
-    }
-    .vote-buttons {
-      text-align: center;
+    button {
+      padding: 10px 20px;
       margin-top: 10px;
+      cursor: pointer;
     }
     .progress-wrapper {
-      background: #eee;
-      border-radius: 6px;
-      overflow: hidden;
-      height: 20px;
-      margin-top: 10px;
       position: relative;
+      height: 32px;
+      background: #eee;
+      border-radius: 8px;
+      margin-top: 20px;
+      overflow: hidden;
     }
-    .progress-left, .progress-right {
+    .progress-left,
+    .progress-right {
       height: 100%;
-      transition: width 0.5s ease;
+      position: absolute;
+      top: 0;
     }
     .progress-left {
-      background: #e74c3c;
+      background-color: green;
+      left: 0;
     }
     .progress-right {
-      background: #2ecc71;
+      background-color: red;
+      right: 0;
     }
     .progress-label {
       position: absolute;
       top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 12px;
-      color: #333;
+      width: 100%;
+      text-align: center;
+      line-height: 32px;
+      font-weight: bold;
+      color: #fff;
+      text-shadow: 0 0 3px #000;
+      pointer-events: none;
     }
     .countdown {
+      margin-top: 10px;
+      font-style: italic;
       text-align: center;
-      font-size: 14px;
       color: #555;
-    }
-    button {
-      padding: 8px 16px;
-      cursor: pointer;
-      margin-top: 6px;
     }
     .social-popup {
       display: none;
@@ -116,11 +118,17 @@
       <input type="text" id="option1" placeholder="Option 1" />
     </div>
     <div class="form-group">
+      <input type="text" id="option1_img" placeholder="Image URL for Option 1" />
+    </div>
+    <div class="form-group">
       <input type="text" id="option2" placeholder="Option 2" />
     </div>
     <div class="form-group">
-      <label for="endsIn">Ends in (minutes):</label>
-      <input type="number" id="endsIn" min="1" value="60" />
+      <input type="text" id="option2_img" placeholder="Image URL for Option 2" />
+    </div>
+    <div class="form-group">
+      <label>Ends in (minutes):</label>
+      <input type="number" id="duration" placeholder="e.g. 60" />
     </div>
     <button id="submitBtn">Submit</button>
   </div>
@@ -131,6 +139,7 @@
   </div>
 
   <div id="battleContainer"></div>
+
   <div id="socialPopup" class="social-popup"></div>
 
   <script type="module" src="main.js"></script>
