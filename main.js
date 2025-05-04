@@ -4,12 +4,30 @@ const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'; // обрезано для читаемости
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let currentTab = 'active';
+let battles = [];
+let page = 0;
+const pageSize = 10;
+let loading = false;
+
 function toggleForm() {
   const form = document.getElementById('createForm');
   form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
 }
 
-async function loadAllBattles() {
+async function loadBattles(reset = false) {
+  if (loading) return;
+  loading = true;
+
+  if (reset) {
+    page = 0;
+    battles = [];
+    document.getElementById('battleList').innerHTML = '';
+  }
+
+  const now = new Date().toISOString();
+  const isActive = currentTab === 'active';
+
   const { data, error } = await supabase
     .from('battles')
     .select('*')
@@ -20,119 +38,59 @@ async function loadAllBattles() {
     return;
   }
 
-  const selector = document.getElementById('battleSelector');
-  selector.innerHTML = data.map(battle => `<option value="${battle.id}">${battle.title}</option>`).join('');
+  const filtered = data.filter(b =>
+    isActive ? new Date(b.ends_at) > new Date() : new Date(b.ends_at) <= new Date()
+  );
 
-  if (data.length > 0) renderBattle(data[0]);
+  const newBattles = filtered.slice(page * pageSize, (page + 1) * pageSize);
+  battles.push(...newBattles);
+  newBattles.forEach(renderBattleBlock);
+
+  page++;
+  loading = false;
 }
 
-async function renderBattleById(battleId) {
-  const { data, error } = await supabase
-    .from('battles')
-    .select('*')
-    .eq('id', battleId)
-    .single();
-
-  if (error || !data) return;
-
-  renderBattle(data);
-}
-
-function formatRemainingTime(ms) {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}m ${seconds}s`;
-}
-
-let countdownInterval;
-
-function renderBattle(battle) {
-  const now = new Date();
-  const endsAt = new Date(battle.ends_at);
-  const timeLeft = endsAt - now;
-  const isOver = timeLeft <= 0;
+function renderBattleBlock(battle) {
+  const container = document.getElementById('battleList');
 
   const totalVotes = battle.votes1 + battle.votes2;
   const percent1 = totalVotes === 0 ? 50 : Math.round((battle.votes1 / totalVotes) * 100);
   const percent2 = 100 - percent1;
 
-  const leftImage = battle.image1 || '';
-  const rightImage = battle.image2 || '';
-
-  clearInterval(countdownInterval);
-
-  document.getElementById('battleContainer').innerHTML = `
+  const div = document.createElement('div');
+  div.className = 'battle-block';
+  div.innerHTML = `
     <h3>${battle.title}</h3>
-    <div id="countdown" style="font-weight:bold;margin-bottom:10px;"></div>
-    <div style="display: flex; justify-content: space-between; gap: 10px;">
+    <div style="display: flex; gap: 10px;">
       <div style="flex: 1; text-align: center;">
-        <div><strong>${battle.option1}</strong></div>
-        ${leftImage ? `<img src="${leftImage}" alt="" style="max-width: 100%; max-height: 150px;" />` : ''}
-        <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote</button>
+        <strong>${battle.option1}</strong><br>
+        ${battle.image1 ? `<img src="${battle.image1}" style="max-width:100%;max-height:150px;">` : ''}
+        <button onclick="showSocialPopup(event, '${battle.id}', 1)" ${new Date(battle.ends_at) < new Date() ? 'disabled' : ''}>Vote</button>
       </div>
       <div style="flex: 1; text-align: center;">
-        <div><strong>${battle.option2}</strong></div>
-        ${rightImage ? `<img src="${rightImage}" alt="" style="max-width: 100%; max-height: 150px;" />` : ''}
-        <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote</button>
+        <strong>${battle.option2}</strong><br>
+        ${battle.image2 ? `<img src="${battle.image2}" style="max-width:100%;max-height:150px;">` : ''}
+        <button onclick="showSocialPopup(event, '${battle.id}', 2)" ${new Date(battle.ends_at) < new Date() ? 'disabled' : ''}>Vote</button>
       </div>
     </div>
-    <div style="margin-top: 10px; background: #ccc; height: 20px; border-radius: 10px; overflow: hidden; position: relative;">
-      <div style="height: 100%; background: green; width: ${percent1}%; float: left; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+    <div style="margin-top:10px;background:#ccc;height:20px;border-radius:10px;overflow:hidden;position:relative;">
+      <div style="height:100%;background:green;width:${percent1}%;float:left;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">
         ${battle.votes1} (${percent1}%)
       </div>
-      <div style="height: 100%; background: red; width: ${percent2}%; float: left; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">
+      <div style="height:100%;background:red;width:${percent2}%;float:left;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">
         ${battle.votes2} (${percent2}%)
       </div>
     </div>
   `;
-
-  if (!isOver) {
-    const countdownEl = document.getElementById('countdown');
-    countdownEl.textContent = 'Time left: ' + formatRemainingTime(timeLeft);
-
-    countdownInterval = setInterval(() => {
-      const newTimeLeft = new Date(battle.ends_at) - new Date();
-      if (newTimeLeft <= 0) {
-        countdownEl.textContent = 'Voting ended';
-        document.querySelectorAll('#battleContainer button').forEach(btn => btn.disabled = true);
-        clearInterval(countdownInterval);
-      } else {
-        countdownEl.textContent = 'Time left: ' + formatRemainingTime(newTimeLeft);
-      }
-    }, 1000);
-  } else {
-    document.getElementById('countdown').textContent = 'Voting ended';
-  }
+  container.appendChild(div);
 }
 
-document.getElementById('submitBtn').addEventListener('click', async () => {
-  const title = document.getElementById('title').value.trim();
-  const option1 = document.getElementById('option1').value.trim();
-  const option2 = document.getElementById('option2').value.trim();
-  const duration = parseInt(document.getElementById('duration').value.trim());
-  const image1 = document.getElementById('image1').value.trim();
-  const image2 = document.getElementById('image2').value.trim();
-
-  if (!title || !option1 || !option2 || isNaN(duration)) {
-    alert("Please fill in all required fields.");
-    return;
-  }
-
-  const endsAt = new Date(Date.now() + duration * 60 * 1000).toISOString();
-
-  const { error } = await supabase.from('battles').insert([
-    { title, option1, option2, votes1: 0, votes2: 0, ends_at: endsAt, image1, image2 }
-  ]);
-
-  if (error) {
-    alert('Error creating battle.');
-  } else {
-    alert('Battle created!');
-    loadAllBattles();
-    toggleForm();
-  }
-});
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  loadBattles(true);
+}
 
 window.showSocialPopup = (event, battleId, option) => {
   const popup = document.getElementById('socialPopup');
@@ -151,7 +109,7 @@ window.voteAndShare = async (battleId, option, platform) => {
   const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { data, error } = await supabase.rpc('increment_vote', {
+  const { error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
@@ -161,35 +119,58 @@ window.voteAndShare = async (battleId, option, platform) => {
     return;
   }
 
-  await renderBattleById(battleId);
+  alert("Vote counted! Refresh the tab to update results.");
+
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
-
   switch (platform) {
-    case 'twitter':
-      shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${url}`;
-      break;
-    case 'facebook':
-      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-      break;
-    case 'whatsapp':
-      shareUrl = `https://api.whatsapp.com/send?text=${shareText}%20${url}`;
-      break;
-    case 'reddit':
-      shareUrl = `https://www.reddit.com/submit?url=${url}&title=${shareText}`;
-      break;
+    case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${url}`; break;
+    case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
+    case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${shareText}%20${url}`; break;
+    case 'reddit': shareUrl = `https://www.reddit.com/submit?url=${url}&title=${shareText}`; break;
   }
 
   window.open(shareUrl, '_blank', 'width=600,height=400');
   document.getElementById('socialPopup').style.display = 'none';
 };
 
-document.getElementById('battleSelector').addEventListener('change', (e) => {
-  const battleId = e.target.value;
-  if (battleId) renderBattleById(battleId);
+document.getElementById('submitBtn').addEventListener('click', async () => {
+  const title = document.getElementById('title').value.trim();
+  const option1 = document.getElementById('option1').value.trim();
+  const option2 = document.getElementById('option2').value.trim();
+  const duration = parseInt(document.getElementById('duration').value.trim());
+  const image1 = document.getElementById('image1').value.trim();
+  const image2 = document.getElementById('image2').value.trim();
+
+  if (!title || !option1 || !option2 || isNaN(duration)) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  const endsAt = new Date(Date.now() + duration * 60 * 1000).toISOString();
+
+  const { error } = await supabase.from('battles').insert([{
+    title, option1, option2, votes1: 0, votes2: 0, ends_at: endsAt, image1, image2
+  }]);
+
+  if (error) {
+    alert('Error creating battle.');
+  } else {
+    alert('Battle created!');
+    toggleForm();
+    loadBattles(true);
+  }
 });
 
-window.toggleForm = toggleForm;
-window.loadAllBattles = loadAllBattles;
+// Infinite scroll
+window.addEventListener('scroll', () => {
+  if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+    loadBattles();
+  }
+});
 
-loadAllBattles();
+document.getElementById('tab-active').addEventListener('click', () => switchTab('active'));
+document.getElementById('tab-ended').addEventListener('click', () => switchTab('ended'));
+
+window.toggleForm = toggleForm;
+switchTab('active');
