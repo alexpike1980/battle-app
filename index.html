@@ -10,12 +10,58 @@
       max-width: 700px;
       margin: auto;
     }
-    h1 {
+
+    .battle {
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .battle-options {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .option {
+      flex: 1;
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 8px;
       text-align: center;
     }
+
+    .progress-bar {
+      display: flex;
+      height: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .bar {
+      transition: width 0.5s ease;
+    }
+
+    .bar-left {
+      background-color: red;
+    }
+
+    .bar-right {
+      background-color: green;
+    }
+
+    .vote-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+
     .form-group {
       margin-bottom: 10px;
     }
+
     #createForm {
       margin-top: 20px;
       display: none;
@@ -23,20 +69,7 @@
       padding: 16px;
       border-radius: 8px;
     }
-    .battle {
-      border: 1px solid #ccc;
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-    .vote-buttons {
-      margin-top: 10px;
-    }
+
     .social-popup {
       display: none;
       position: absolute;
@@ -47,35 +80,15 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
       z-index: 999;
     }
+
     .social-popup button {
       display: block;
       margin: 5px 0;
       width: 100%;
     }
-    .vote-count {
-      font-size: 18px;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-    .progress-bar {
-      margin-top: 10px;
-      height: 20px;
-      background: #ccc;
-      border-radius: 10px;
-      display: flex;
-      overflow: hidden;
-    }
-    .progress-left,
-    .progress-right {
-      transition: width 0.5s ease;
-    }
-    .fade-out {
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-    .fade-in {
-      opacity: 1;
-      transition: opacity 0.3s ease;
+
+    h1 {
+      text-align: center;
     }
   </style>
 </head>
@@ -93,6 +106,9 @@
     </div>
     <div class="form-group">
       <input type="text" id="option2" placeholder="Option 2" />
+    </div>
+    <div class="form-group">
+      <input type="number" id="duration" placeholder="Duration (hours)" value="1" />
     </div>
     <button id="submitBtn">Submit</button>
   </div>
