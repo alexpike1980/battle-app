@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <title>Батл: Кто круче?</title>
   <style>
     body {
@@ -157,6 +159,65 @@
 
     loadVotes();
   </script>
+<script>
+  const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
+  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  async function loadBattle() {
+    const { data, error } = await supabase
+      .from('battles')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error || !data) {
+      console.error('Ошибка загрузки батла:', error);
+      return;
+    }
+
+    window.currentBattle = data;
+
+    const battleDiv = document.getElementById('battle');
+    battleDiv.innerHTML = `
+      <h2>${data.title}</h2>
+      <div style="display: flex; gap: 40px; justify-content: center;">
+        <div style="text-align:center;">
+          <p><strong>${data.option1}</strong></p>
+          <button onclick="vote(1)">Vote</button>
+          <p id="votes1">${data.votes1} votes</p>
+        </div>
+        <div style="text-align:center;">
+          <p><strong>${data.option2}</strong></p>
+          <button onclick="vote(2)">Vote</button>
+          <p id="votes2">${data.votes2} votes</p>
+        </div>
+      </div>
+    `;
+  }
+
+  async function vote(option) {
+    const field = option === 1 ? 'votes1' : 'votes2';
+    const newCount = (window.currentBattle[field] || 0) + 1;
+
+    const { error } = await supabase
+      .from('battles')
+      .update({ [field]: newCount })
+      .eq('id', window.currentBattle.id);
+
+    if (error) {
+      console.error('Ошибка при голосовании:', error);
+      return;
+    }
+
+    // Обновим данные на экране
+    window.currentBattle[field] = newCount;
+    document.getElementById(`votes${option}`).textContent = `${newCount} votes`;
+  }
+
+  loadBattle();
+</script>
 </body>
 </html>
