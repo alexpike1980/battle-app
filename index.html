@@ -2,114 +2,76 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    .battle {
-      display: flex;
-      justify-content: center;
-      gap: 50px;
-      margin-top: 20px;
-    }
-    .option {
-      border: 1px solid #ccc;
       padding: 20px;
-      border-radius: 10px;
-      width: 200px;
+      max-width: 600px;
+      margin: auto;
     }
-    .popup {
-      display: none;
-      position: fixed;
-      background: #fff;
+
+    .battle {
       border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1000;
-    }
-    .create-form {
-      max-width: 300px;
-      margin: 0 auto;
-      display: none;
-      flex-direction: column;
-      gap: 10px;
+      padding: 16px;
       margin-top: 20px;
+      border-radius: 8px;
     }
-    button {
-      padding: 8px 16px;
-      margin-top: 8px;
-      cursor: pointer;
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
     }
-    a {
-      display: block;
-      margin: 5px 0;
+
+    .option {
+      width: 48%;
+      padding: 10px;
+      background: #f0f0f0;
+      text-align: center;
+      border-radius: 6px;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+
+    #createForm {
+      display: none;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
 
-  <button onclick="toggleCreateForm()">Create Battle</button>
-  <div class="create-form" id="createForm">
-    <input type="text" id="title" placeholder="Battle title" />
-    <input type="text" id="option1" placeholder="Option 1" />
-    <input type="text" id="option2" placeholder="Option 2" />
+  <button onclick="toggleForm()">Create Battle</button>
+
+  <div id="createForm">
+    <div class="form-group">
+      <input type="text" id="title" placeholder="Battle title" />
+    </div>
+    <div class="form-group">
+      <input type="text" id="option1" placeholder="Option 1" />
+    </div>
+    <div class="form-group">
+      <input type="text" id="option2" placeholder="Option 2" />
+    </div>
     <button onclick="submitBattle()">Submit</button>
   </div>
 
-  <div id="battle"></div>
+  <div id="battleContainer"></div>
 
-  <div class="popup" id="sharePopup">
-    <p>Share this vote:</p>
-    <a id="fb" target="_blank">Facebook</a>
-    <a id="tw" target="_blank">Twitter</a>
-    <a id="wa" target="_blank">WhatsApp</a>
-    <a id="rd" target="_blank">Reddit</a>
-    <button onclick="closePopup()">Close</button>
-  </div>
-
+  <!-- Подключение Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentBattle;
-
-    async function loadBattle() {
-      const { data, error } = await supabase
-        .from('battles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (error || !data) return;
-
-      currentBattle = data;
-
-      document.getElementById('battle').innerHTML = `
-        <h2>${data.title}</h2>
-        <div class="battle">
-          <div class="option">
-            <p><strong>${data.option1}</strong></p>
-            <p id="votes1">${data.votes1} votes</p>
-          </div>
-          <div class="option">
-            <p><strong>${data.option2}</strong></p>
-            <p id="votes2">${data.votes2} votes</p>
-          </div>
-        </div>
-        <button onclick="openPopup()">Vote Now</button>
-      `;
+    function toggleForm() {
+      const form = document.getElementById('createForm');
+      form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
 
     async function submitBattle() {
@@ -117,43 +79,54 @@
       const option1 = document.getElementById('option1').value;
       const option2 = document.getElementById('option2').value;
 
-      if (!title || !option1 || !option2) return alert("Please fill in all fields.");
+      const { data, error } = await supabase.from('battles').insert([
+        {
+          title,
+          option1,
+          option2,
+          votes1: 0,
+          votes2: 0,
+        },
+      ]);
 
-      const { error } = await supabase
-        .from('battles')
-        .insert([{ title, option1, option2, votes1: 0, votes2: 0 }]);
-
-      if (!error) {
-        toggleCreateForm();
-        loadBattle();
+      if (error) {
+        console.error('Failed to create battle:', error.message);
+        alert('Error: ' + error.message);
       } else {
-        alert('Error creating battle');
+        console.log('Battle created:', data);
+        loadLatestBattle();
       }
     }
 
-    function toggleCreateForm() {
-      const form = document.getElementById('createForm');
-      form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
-      if (form.style.display === 'flex') {
-        form.style.flexDirection = 'column';
+    async function loadLatestBattle() {
+      const { data, error } = await supabase
+        .from('battles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Failed to load battle:', error.message);
+        return;
       }
+
+      const battle = data[0];
+      if (!battle) return;
+
+      const container = document.getElementById('battleContainer');
+      container.innerHTML = `
+        <div class="battle">
+          <h3>${battle.title}</h3>
+          <div class="options">
+            <div class="option">${battle.option1} <br><strong>${battle.votes1} votes</strong></div>
+            <div class="option">${battle.option2} <br><strong>${battle.votes2} votes</strong></div>
+          </div>
+        </div>
+      `;
     }
 
-    function openPopup() {
-      const shareUrl = window.location.href;
-      const text = encodeURIComponent(`Vote in the battle: ${currentBattle.title}`);
-      document.getElementById('fb').href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
-      document.getElementById('tw').href = `https://twitter.com/intent/tweet?url=${shareUrl}&text=${text}`;
-      document.getElementById('wa').href = `https://api.whatsapp.com/send?text=${text}%20${shareUrl}`;
-      document.getElementById('rd').href = `https://www.reddit.com/submit?url=${shareUrl}&title=${text}`;
-      document.getElementById('sharePopup').style.display = 'block';
-    }
-
-    function closePopup() {
-      document.getElementById('sharePopup').style.display = 'none';
-    }
-
-    loadBattle();
+    // Загружаем последний батл при запуске
+    loadLatestBattle();
   </script>
 </body>
 </html>
