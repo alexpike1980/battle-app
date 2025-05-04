@@ -1,82 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Battle App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f8f8f8;
+      padding: 20px;
+      background: #f7f7f7;
     }
-    .tab {
-      margin-bottom: 10px;
-    }
-    .tab button {
-      padding: 10px 20px;
-      margin-right: 5px;
-      cursor: pointer;
-    }
-    .battle-block {
+
+    #battleContainer {
       border: 2px solid #ccc;
+      padding: 20px;
       border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 15px;
       background: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      max-width: 600px;
+      margin: auto;
     }
-    .progress-container {
-      background: #ccc;
-      height: 20px;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 10px;
-      position: relative;
-    }
-    .progress-left, .progress-right {
-      height: 100%;
-      float: left;
-      transition: width 0.5s;
-    }
-    .progress-left {
-      background-color: green;
-    }
-    .progress-right {
-      background-color: red;
-    }
-    .progress-text {
-      position: absolute;
-      width: 100%;
+
+    .option {
+      flex: 1;
       text-align: center;
+    }
+
+    .option img {
+      max-width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+
+    #progressWrapper {
+      margin-top: 10px;
+      background: #eee;
+      height: 30px;
+      border-radius: 15px;
+      overflow: hidden;
+      position: relative;
       font-weight: bold;
-      color: white;
+    }
+
+    .progress {
+      height: 100%;
+      transition: width 0.5s ease;
+      float: left;
+    }
+
+    .progressText {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      line-height: 30px;
+      z-index: 1;
+      color: black;
+    }
+
+    #socialPopup {
+      position: absolute;
+      display: none;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      z-index: 999;
+    }
+
+    #createForm {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #createForm input {
+      display: block;
+      margin-bottom: 10px;
+      padding: 5px;
+      width: 100%;
+    }
+
+    button {
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
-
   <h2>Battle App</h2>
-
-  <div class="tab">
-    <button id="tabCurrent">Current Battles</button>
-    <button id="tabFinished">Finished Battles</button>
-    <button onclick="toggleForm()">+ Create Battle</button>
-  </div>
-
-  <div id="createForm" style="display:none; margin-bottom: 20px;">
-    <input id="title" placeholder="Title"><br>
-    <input id="option1" placeholder="Option 1"><br>
-    <input id="image1" placeholder="Image URL 1"><br>
-    <input id="option2" placeholder="Option 2"><br>
-    <input id="image2" placeholder="Image URL 2"><br>
-    <input id="duration" type="number" placeholder="Duration (min)"><br>
+  <select id="battleSelector"></select>
+  <button onclick="toggleForm()">Create Battle</button>
+  <div id="createForm">
+    <input id="title" placeholder="Battle title" />
+    <input id="option1" placeholder="Option 1" />
+    <input id="option2" placeholder="Option 2" />
+    <input id="image1" placeholder="Image URL for Option 1" />
+    <input id="image2" placeholder="Image URL for Option 2" />
+    <input id="duration" type="number" placeholder="Duration (minutes)" />
     <button id="submitBtn">Submit</button>
   </div>
 
-  <div id="battlesList"></div>
-  <div id="loadingIndicator" style="text-align:center; margin:10px;">Loading...</div>
-
-  <div id="socialPopup" style="position:absolute; display:none; background:#eee; padding:10px; border:1px solid #aaa;"></div>
+  <div id="battleContainer"></div>
+  <div id="socialPopup"></div>
 
   <script type="module" src="main.js"></script>
 </body>
