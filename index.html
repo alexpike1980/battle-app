@@ -7,7 +7,7 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
     }
     h1 {
@@ -52,27 +52,31 @@
       margin: 5px 0;
       width: 100%;
     }
-    .countdown {
-      margin-top: 10px;
+    .vote-count {
+      font-size: 18px;
       font-weight: bold;
-      color: #d00;
+      transition: all 0.3s ease;
     }
     .progress-bar {
-  background-color: #eee;
-  border-radius: 5px;
-  overflow: hidden;
-  height: 20px;
-  margin-top: 5px;
-}
-.progress-fill {
-  height: 100%;
-  background-color: #4caf50;
-  text-align: center;
-  color: white;
-  line-height: 20px;
-  font-size: 12px;
-}
-
+      margin-top: 10px;
+      height: 20px;
+      background: #ccc;
+      border-radius: 10px;
+      display: flex;
+      overflow: hidden;
+    }
+    .progress-left,
+    .progress-right {
+      transition: width 0.5s ease;
+    }
+    .fade-out {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .fade-in {
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
   </style>
 </head>
 <body>
@@ -89,10 +93,6 @@
     </div>
     <div class="form-group">
       <input type="text" id="option2" placeholder="Option 2" />
-    </div>
-    <div class="form-group">
-      <label>Ends in (minutes):</label>
-      <input type="number" id="duration" placeholder="e.g., 10" min="1" />
     </div>
     <button id="submitBtn">Submit</button>
   </div>
