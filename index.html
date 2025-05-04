@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,32 +7,41 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      max-width: 600px;
+      max-width: 800px;
       margin: auto;
     }
     h1 {
       text-align: center;
+      margin-bottom: 20px;
     }
-    .form-group {
-      margin-bottom: 10px;
-    }
+    /* Форма создания батла */
     #createForm {
-      margin-top: 20px;
+      margin: 20px auto;
+      max-width: 400px;
       display: none;
       border: 1px solid #ccc;
       padding: 16px;
       border-radius: 8px;
     }
-    .battle {
-      border: 1px solid #ccc;
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 20px;
+    .form-group {
+      margin-bottom: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
     }
     button {
       padding: 10px 20px;
       margin-top: 10px;
       cursor: pointer;
+    }
+    /* Основной батл */
+    .battle {
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+      margin: 20px 0;
     }
     .vote-buttons {
       margin-top: 10px;
@@ -53,11 +61,33 @@
       margin: 5px 0;
       width: 100%;
     }
+    /* Секция для списка батлов */
+    #battleList {
+      margin-top: 30px;
+    }
+    #filterControls {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #eee;
+    }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
   <button onclick="toggleForm()">Create Battle</button>
+
   <div id="createForm">
     <div class="form-group">
       <input type="text" id="title" placeholder="Battle title" />
@@ -70,14 +100,28 @@
     </div>
     <button id="submitBtn">Submit</button>
   </div>
+
+  <!-- Основной батл (последняя созданная запись) -->
   <div id="battleContainer"></div>
+
+  <!-- Popup для соцсетей -->
   <div id="socialPopup" class="social-popup"></div>
-  <script>
-    function toggleForm() {
-      const form = document.getElementById('createForm');
-      form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    }
-  </script>
+
+  <!-- Секция со списком всех батлов -->
+  <div id="battleList">
+    <h2>All Battles</h2>
+    <div id="filterControls">
+      <label for="filterSelect">Filter by:</label>
+      <select id="filterSelect" onchange="loadAllBattles()">
+        <option value="all">All Battles</option>
+        <option value="7">Latest 7 Days</option>
+        <option value="30">Latest 30 Days</option>
+      </select>
+    </div>
+    <div id="battleTable"></div>
+  </div>
+
+  <!-- Подключаем модульный JS -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
