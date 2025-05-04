@@ -2,73 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    #createForm {
-      display: none;
-      margin-bottom: 20px;
-    }
-    .battle-block {
-      border: 2px solid #000;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-    }
-    .progress-bar {
-      display: flex;
-      height: 24px;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 10px;
-      background-color: #ccc;
-      font-size: 12px;
-      color: white;
-      font-weight: bold;
-      position: relative;
-    }
-    .progress-left,
-    .progress-right {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: width 0.5s;
-      white-space: nowrap;
-      padding: 0 5px;
-    }
-    .progress-left {
-      background-color: green;
-    }
-    .progress-right {
-      background-color: red;
-    }
-    img {
-      max-width: 100%;
-      max-height: 150px;
-      object-fit: contain;
-      margin-top: 5px;
-    }
-  </style>
 </head>
 <body>
   <h1>Battle App</h1>
+
+  <!-- Кнопка показать/скрыть форму создания -->
   <button onclick="toggleForm()">Create Battle</button>
-  <div id="createForm">
-    <input type="text" id="title" placeholder="Battle Title"><br>
-    <input type="text" id="option1" placeholder="Option 1"><br>
-    <input type="text" id="option2" placeholder="Option 2"><br>
-    <input type="number" id="duration" placeholder="Duration (minutes)"><br>
-    <input type="text" id="image1" placeholder="Image URL Option 1"><br>
-    <input type="text" id="image2" placeholder="Image URL Option 2"><br>
+
+  <!-- Форма создания батла -->
+  <div id="createForm" style="display: none; margin-top: 10px;">
+    <input type="text" id="title" placeholder="Title"><br/>
+    <input type="text" id="option1" placeholder="Option 1"><br/>
+    <input type="text" id="option2" placeholder="Option 2"><br/>
+    <input type="number" id="duration" placeholder="Duration (minutes)"><br/>
+    <input type="text" id="image1" placeholder="Image URL 1 (optional)"><br/>
+    <input type="text" id="image2" placeholder="Image URL 2 (optional)"><br/>
     <button id="submitBtn">Submit</button>
   </div>
 
-  <div id="battleContainer" class="battle-block"></div>
+  <!-- Выпадающий список для выбора батла -->
+  <select id="battleSelector" style="margin-top: 20px;"></select>
 
-  <div id="socialPopup" style="display:none;position:absolute;z-index:10;background:#eee;padding:10px;border:1px solid #ccc;"></div>
+  <!-- Контейнер для отображения батла -->
+  <div id="battleContainer" style="margin-top: 20px;"></div>
+
+  <!-- Попап для соцсетей -->
+  <div id="socialPopup" style="position:absolute; display:none; background:white; border:1px solid #ccc; padding:10px; z-index:10;"></div>
 
   <script type="module" src="main.js"></script>
 </body>
