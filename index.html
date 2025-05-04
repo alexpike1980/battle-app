@@ -2,46 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background: #f0f0f0;
     }
-
-    .battle {
-      border: 2px solid #333;
-      border-radius: 10px;
-      padding: 15px;
-      background: #fff;
-      margin-bottom: 20px;
-    }
-
     #createForm {
       display: none;
       margin-bottom: 20px;
     }
-
-    #battleContainer img {
-      max-width: 100%;
-      max-height: 150px;
-      object-fit: contain;
+    .battle-block {
+      border: 2px solid #000;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 10px;
     }
-
-    #socialPopup {
-      position: absolute;
-      background: white;
-      border: 1px solid #ccc;
-      padding: 10px;
-      display: none;
-      z-index: 1000;
-    }
-
     .progress-bar {
       display: flex;
-      height: 20px;
+      height: 24px;
       border-radius: 10px;
       overflow: hidden;
       margin-top: 10px;
@@ -51,46 +30,45 @@
       font-weight: bold;
       position: relative;
     }
-
     .progress-left,
     .progress-right {
       display: flex;
       align-items: center;
       justify-content: center;
       transition: width 0.5s;
+      white-space: nowrap;
+      padding: 0 5px;
     }
-
     .progress-left {
       background-color: green;
     }
-
     .progress-right {
       background-color: red;
+    }
+    img {
+      max-width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
-
   <button onclick="toggleForm()">Create Battle</button>
-
   <div id="createForm">
-    <input type="text" id="title" placeholder="Battle title" /><br />
-    <input type="text" id="option1" placeholder="Option 1" /><br />
-    <input type="text" id="option2" placeholder="Option 2" /><br />
-    <input type="text" id="image1" placeholder="Image URL for Option 1" /><br />
-    <input type="text" id="image2" placeholder="Image URL for Option 2" /><br />
-    <input type="number" id="duration" placeholder="Duration (minutes)" /><br />
+    <input type="text" id="title" placeholder="Battle Title"><br>
+    <input type="text" id="option1" placeholder="Option 1"><br>
+    <input type="text" id="option2" placeholder="Option 2"><br>
+    <input type="number" id="duration" placeholder="Duration (minutes)"><br>
+    <input type="text" id="image1" placeholder="Image URL Option 1"><br>
+    <input type="text" id="image2" placeholder="Image URL Option 2"><br>
     <button id="submitBtn">Submit</button>
   </div>
 
-  <div id="battleSelectorContainer" style="margin-bottom: 20px;">
-    <select id="battleSelector"></select>
-  </div>
+  <div id="battleContainer" class="battle-block"></div>
 
-  <div id="battleContainer" class="battle"></div>
-
-  <div id="socialPopup"></div>
+  <div id="socialPopup" style="display:none;position:absolute;z-index:10;background:#eee;padding:10px;border:1px solid #ccc;"></div>
 
   <script type="module" src="main.js"></script>
 </body>
