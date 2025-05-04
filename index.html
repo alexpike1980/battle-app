@@ -52,12 +52,17 @@
       margin: 5px 0;
       width: 100%;
     }
+    .countdown {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #d00;
+    }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
 
-  <button id="toggleFormBtn">Create Battle</button>
+  <button onclick="toggleForm()">Create Battle</button>
 
   <div id="createForm">
     <div class="form-group">
@@ -70,9 +75,9 @@
       <input type="text" id="option2" placeholder="Option 2" />
     </div>
     <div class="form-group">
-  <label for="endsAt">Ends at:</label>
-  <input type="datetime-local" id="endsAt" />
-</div>
+      <label>Ends in (minutes):</label>
+      <input type="number" id="duration" placeholder="e.g., 10" min="1" />
+    </div>
     <button id="submitBtn">Submit</button>
   </div>
 
