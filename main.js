@@ -17,6 +17,7 @@ async function loadAllBattles() {
     .order('created_at', { ascending: false });
 
   if (error) {
+    console.error(error);
     alert('Error loading battles.');
     return;
   }
@@ -34,7 +35,10 @@ async function renderBattleById(battleId) {
     .eq('id', battleId)
     .single();
 
-  if (error || !data) return;
+  if (error || !data) {
+    console.error(error);
+    return;
+  }
 
   renderBattle(data);
 }
@@ -70,6 +74,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   ]);
 
   if (error) {
+    console.error(error);
     alert('Error creating battle.');
   } else {
     alert('Battle created!');
@@ -77,7 +82,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   }
 });
 
-window.showSocialPopup = (event, battleId, option) => {
+function showSocialPopup(event, battleId, option) {
   const popup = document.getElementById('socialPopup');
   popup.innerHTML = `
     <button onclick="voteAndShare(${battleId}, ${option}, 'twitter')">Twitter</button>
@@ -88,24 +93,25 @@ window.showSocialPopup = (event, battleId, option) => {
   popup.style.display = 'block';
   popup.style.left = event.pageX + 'px';
   popup.style.top = event.pageY + 'px';
-};
+}
 
-window.voteAndShare = async (battleId, option, platform) => {
+async function voteAndShare(battleId, option, platform) {
   const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { data, error } = await supabase.rpc('increment_vote', {
+  const { error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
 
   if (error) {
+    console.error(error);
     alert('Vote failed.');
     return;
   }
 
-  document.getElementById(`votes${option}`).textContent = 
-    parseInt(document.getElementById(`votes${option}`).textContent) + 1;
+  const voteSpan = document.getElementById(`votes${option}`);
+  voteSpan.textContent = parseInt(voteSpan.textContent) + 1;
 
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
@@ -127,17 +133,13 @@ window.voteAndShare = async (battleId, option, platform) => {
 
   window.open(shareUrl, '_blank', 'width=600,height=400');
   document.getElementById('socialPopup').style.display = 'none';
-};
+}
 
-document.getElementById('battleSelector').addEventListener('change', (e) => {
-  const battleId = parseInt(e.target.value);
-  if (!isNaN(battleId)) {
-    renderBattleById(battleId);
-  }
-});
-
-// Make functions globally available
+// Делает функции доступными глобально
 window.toggleForm = toggleForm;
 window.loadAllBattles = loadAllBattles;
+window.showSocialPopup = showSocialPopup;
+window.voteAndShare = voteAndShare;
 
+// Запуск загрузки при старте
 loadAllBattles();
