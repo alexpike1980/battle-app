@@ -7,41 +7,32 @@
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      max-width: 800px;
+      max-width: 600px;
       margin: auto;
     }
     h1 {
       text-align: center;
-      margin-bottom: 20px;
     }
-    /* Форма создания батла */
+    .form-group {
+      margin-bottom: 10px;
+    }
     #createForm {
-      margin: 20px auto;
-      max-width: 400px;
+      margin-top: 20px;
       display: none;
       border: 1px solid #ccc;
       padding: 16px;
       border-radius: 8px;
     }
-    .form-group {
-      margin-bottom: 10px;
-    }
-    input {
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
+    .battle {
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
     }
     button {
       padding: 10px 20px;
       margin-top: 10px;
       cursor: pointer;
-    }
-    /* Основной батл */
-    .battle {
-      border: 1px solid #ccc;
-      padding: 16px;
-      border-radius: 8px;
-      margin: 20px 0;
     }
     .vote-buttons {
       margin-top: 10px;
@@ -61,31 +52,11 @@
       margin: 5px 0;
       width: 100%;
     }
-    /* Секция для списка батлов */
-    #battleList {
-      margin-top: 30px;
-    }
-    #filterControls {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #eee;
-    }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
+
   <button onclick="toggleForm()">Create Battle</button>
 
   <div id="createForm">
@@ -101,27 +72,15 @@
     <button id="submitBtn">Submit</button>
   </div>
 
-  <!-- Основной батл (последняя созданная запись) -->
-  <div id="battleContainer"></div>
-
-  <!-- Popup для соцсетей -->
-  <div id="socialPopup" class="social-popup"></div>
-
-  <!-- Секция со списком всех батлов -->
-  <div id="battleList">
-    <h2>All Battles</h2>
-    <div id="filterControls">
-      <label for="filterSelect">Filter by:</label>
-      <select id="filterSelect" onchange="loadAllBattles()">
-        <option value="all">All Battles</option>
-        <option value="7">Latest 7 Days</option>
-        <option value="30">Latest 30 Days</option>
-      </select>
-    </div>
-    <div id="battleTable"></div>
+  <div class="form-group" style="margin-top: 20px;">
+    <label for="battleSelector">Choose a battle:</label>
+    <select id="battleSelector"></select>
   </div>
 
-  <!-- Подключаем модульный JS -->
+  <div id="battleContainer"></div>
+
+  <div id="socialPopup" class="social-popup"></div>
+
   <script type="module" src="main.js"></script>
 </body>
 </html>
