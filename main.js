@@ -10,8 +10,6 @@ function toggleForm() {
   form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
 }
 
-document.getElementById('toggleFormBtn').addEventListener('click', toggleForm);
-
 async function loadAllBattles() {
   const { data, error } = await supabase
     .from('battles')
@@ -37,41 +35,42 @@ async function renderBattleById(battleId) {
     .single();
 
   if (error || !data) return;
+
   renderBattle(data);
 }
 
 function renderBattle(battle) {
+  const now = new Date();
+  const endsAt = battle.ends_at ? new Date(battle.ends_at) : null;
+  const isExpired = endsAt && now > endsAt;
+
+  const voteButtonsHtml = isExpired
+    ? `<p><em>Voting has ended.</em></p>`
+    : `
+      <div class="vote-buttons">
+        <button onclick="showSocialPopup(event, '${battle.id}', 1)">Vote Now</button>
+      </div>
+      <div class="vote-buttons">
+        <button onclick="showSocialPopup(event, '${battle.id}', 2)">Vote Now</button>
+      </div>
+    `;
+
   document.getElementById('battleContainer').innerHTML = `
     <div class="battle">
       <h3>${battle.title}</h3>
       <p><strong>${battle.option1}</strong>: <span id="votes1">${battle.votes1}</span> votes</p>
-      <div class="vote-buttons">
-        <button class="vote-btn" data-id="${battle.id}" data-option="1">Vote Now</button>
-      </div>
+      ${voteButtonsHtml}
       <p><strong>${battle.option2}</strong>: <span id="votes2">${battle.votes2}</span> votes</p>
-      <div class="vote-buttons">
-        <button class="vote-btn" data-id="${battle.id}" data-option="2">Vote Now</button>
-      </div>
     </div>
   `;
-
-  attachVoteListeners();
-}
-
-function attachVoteListeners() {
-  document.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.addEventListener('click', (event) => {
-      const battleId = btn.getAttribute('data-id');
-      const option = btn.getAttribute('data-option');
-      showSocialPopup(event, battleId, option);
-    });
-  });
 }
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const title = document.getElementById('title').value.trim();
   const option1 = document.getElementById('option1').value.trim();
   const option2 = document.getElementById('option2').value.trim();
+  const endsAt = document.getElementById('endsAt').value;
+  const endsAtDate = endsAt ? new Date(endsAt).toISOString() : null;
 
   if (!title || !option1 || !option2) {
     alert("Please fill in all fields.");
@@ -79,7 +78,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   }
 
   const { error } = await supabase.from('battles').insert([
-    { title, option1, option2, votes1: 0, votes2: 0 }
+    { title, option1, option2, votes1: 0, votes2: 0, ends_at: endsAtDate }
   ]);
 
   if (error) {
@@ -90,28 +89,21 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   }
 });
 
-function showSocialPopup(event, battleId, option) {
+window.showSocialPopup = (event, battleId, option) => {
   const popup = document.getElementById('socialPopup');
   popup.innerHTML = `
-    <button data-platform="twitter">Twitter</button>
-    <button data-platform="facebook">Facebook</button>
-    <button data-platform="whatsapp">WhatsApp</button>
-    <button data-platform="reddit">Reddit</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'twitter')">Twitter</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'facebook')">Facebook</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'whatsapp')">WhatsApp</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'reddit')">Reddit</button>
   `;
-
-  Array.from(popup.querySelectorAll('button')).forEach(button => {
-    button.addEventListener('click', () => {
-      voteAndShare(battleId, option, button.dataset.platform);
-    });
-  });
-
   popup.style.display = 'block';
-  popup.style.left = `${event.pageX}px`;
-  popup.style.top = `${event.pageY}px`;
-}
+  popup.style.left = event.pageX + 'px';
+  popup.style.top = event.pageY + 'px';
+};
 
-async function voteAndShare(battleId, option, platform) {
-  const column = option === "1" ? 'votes1' : 'votes2';
+window.voteAndShare = async (battleId, option, platform) => {
+  const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
   const { data, error } = await supabase.rpc('increment_vote', {
@@ -124,8 +116,8 @@ async function voteAndShare(battleId, option, platform) {
     return;
   }
 
-  const span = document.getElementById(`votes${option}`);
-  span.textContent = parseInt(span.textContent) + 1;
+  document.getElementById(`votes${option}`).textContent = 
+    parseInt(document.getElementById(`votes${option}`).textContent) + 1;
 
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
@@ -147,11 +139,18 @@ async function voteAndShare(battleId, option, platform) {
 
   window.open(shareUrl, '_blank', 'width=600,height=400');
   document.getElementById('socialPopup').style.display = 'none';
-}
+};
 
 document.getElementById('battleSelector').addEventListener('change', (e) => {
   const battleId = e.target.value;
-  renderBattleById(battleId);
+  if (battleId) {
+    renderBattleById(battleId);
+  }
 });
 
+// Make functions globally available
+window.toggleForm = toggleForm;
+window.loadAllBattles = loadAllBattles;
+
 loadAllBattles();
+
