@@ -5,6 +5,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let countdownInterval = null;
+
 function toggleForm() {
   const form = document.getElementById('createForm');
   form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
@@ -39,79 +41,78 @@ async function renderBattleById(battleId) {
   renderBattle(data);
 }
 
-function renderCountdown(endsAt) {
-  const timerElement = document.getElementById('countdownTimer');
-  const interval = setInterval(() => {
-    const now = new Date().getTime();
-    const end = new Date(endsAt).getTime();
-    const distance = end - now;
-
-    if (distance <= 0) {
-      clearInterval(interval);
-      timerElement.textContent = "Battle ended";
-      disableVoting();
-      return;
-    }
-
-    const hours = Math.floor((distance / (1000 * 60 * 60)));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-    timerElement.textContent = `Time left: ${hours}h ${minutes}m ${seconds}s`;
-  }, 1000);
-}
-
-function disableVoting() {
-  const voteButtons = document.querySelectorAll('.vote-btn');
-  voteButtons.forEach(btn => btn.disabled = true);
-}
-
 function renderBattle(battle) {
   const totalVotes = battle.votes1 + battle.votes2;
-  const percent1 = totalVotes > 0 ? (battle.votes1 / totalVotes) * 100 : 50;
+  const percent1 = totalVotes ? Math.round((battle.votes1 / totalVotes) * 100) : 0;
   const percent2 = 100 - percent1;
+  const now = new Date();
+  const end = new Date(battle.ends_at);
+  const isExpired = now >= end;
+
+  clearInterval(countdownInterval);
 
   document.getElementById('battleContainer').innerHTML = `
     <div class="battle">
       <h3>${battle.title}</h3>
-      <div id="countdownTimer"></div>
-      <div class="battle-options">
+      <div class="vote-section">
         <div class="option">
-          <h4>${battle.option1}</h4>
+          <strong>${battle.option1}</strong>
           <p><span id="votes1">${battle.votes1}</span> votes</p>
-          <button class="vote-btn" onclick="showSocialPopup(event, '${battle.id}', 1)">Vote</button>
+          <button ${isExpired ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote</button>
         </div>
         <div class="option">
-          <h4>${battle.option2}</h4>
+          <strong>${battle.option2}</strong>
           <p><span id="votes2">${battle.votes2}</span> votes</p>
-          <button class="vote-btn" onclick="showSocialPopup(event, '${battle.id}', 2)">Vote</button>
+          <button ${isExpired ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote</button>
         </div>
       </div>
-      <div class="progress-bar">
-        <div class="bar bar-left" style="width: ${percent1}%;"></div>
-        <div class="bar bar-right" style="width: ${percent2}%;"></div>
+      <div class="progress-container">
+        <div class="progress-bar-left" style="width: ${percent1}%;">
+          <span class="progress-label">${percent1}%</span>
+        </div>
+        <div class="progress-bar-right" style="width: ${percent2}%;">
+          <span class="progress-label">${percent2}%</span>
+        </div>
       </div>
+      <div class="countdown" id="countdownTimer"></div>
     </div>
   `;
 
-  renderCountdown(battle.ends_at);
+  updateCountdown(end);
+}
+
+function updateCountdown(endTime) {
+  const countdown = document.getElementById('countdownTimer');
+  function tick() {
+    const now = new Date();
+    const diff = Math.max(0, endTime - now);
+    const seconds = Math.floor(diff / 1000) % 60;
+    const minutes = Math.floor(diff / 60000) % 60;
+    const hours = Math.floor(diff / 3600000) % 24;
+    const days = Math.floor(diff / 86400000);
+
+    countdown.textContent = diff > 0
+      ? `Time left: ${days}d ${hours}h ${minutes}m ${seconds}s`
+      : 'Battle has ended';
+  }
+
+  tick();
+  countdownInterval = setInterval(tick, 1000);
 }
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const title = document.getElementById('title').value.trim();
   const option1 = document.getElementById('option1').value.trim();
   const option2 = document.getElementById('option2').value.trim();
-  const durationHours = parseInt(document.getElementById('duration').value.trim(), 10) || 1;
 
   if (!title || !option1 || !option2) {
     alert("Please fill in all fields.");
     return;
   }
 
-  const endsAt = new Date(Date.now() + durationHours * 60 * 60 * 1000).toISOString();
-
+  const ends_at = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24h
   const { error } = await supabase.from('battles').insert([
-    { title, option1, option2, votes1: 0, votes2: 0, ends_at: endsAt }
+    { title, option1, option2, votes1: 0, votes2: 0, ends_at }
   ]);
 
   if (error) {
@@ -139,7 +140,7 @@ window.voteAndShare = async (battleId, option, platform) => {
   const column = option === 1 ? 'votes1' : 'votes2';
   const url = window.location.href;
 
-  const { error } = await supabase.rpc('increment_vote', {
+  const { data, error } = await supabase.rpc('increment_vote', {
     battle_id_input: battleId,
     column_name_input: column
   });
@@ -149,11 +150,7 @@ window.voteAndShare = async (battleId, option, platform) => {
     return;
   }
 
-  const span = document.getElementById(`votes${option}`);
-  span.textContent = parseInt(span.textContent) + 1;
-
-  // Re-render to update progress bar with animation
-  renderBattleById(battleId);
+  loadAllBattles(); // Re-render entire battle
 
   const shareText = encodeURIComponent("Check out this battle!");
   let shareUrl = '';
@@ -179,9 +176,7 @@ window.voteAndShare = async (battleId, option, platform) => {
 
 document.getElementById('battleSelector').addEventListener('change', (e) => {
   const battleId = e.target.value;
-  if (battleId) {
-    renderBattleById(battleId);
-  }
+  if (battleId) renderBattleById(battleId);
 });
 
 window.toggleForm = toggleForm;
