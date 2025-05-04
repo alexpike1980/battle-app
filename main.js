@@ -1,143 +1,132 @@
-﻿import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const battleSelector = document.getElementById('battleSelector');
+const battleContainer = document.getElementById('battleContainer');
+const submitBtn = document.getElementById('submitBtn');
+
+submitBtn.onclick = async () => {
+  const title = document.getElementById('title').value;
+  const option1 = document.getElementById('option1').value;
+  const option2 = document.getElementById('option2').value;
+  const option1Image = document.getElementById('option1Image').value;
+  const option2Image = document.getElementById('option2Image').value;
+  const duration = parseInt(document.getElementById('duration').value);
+  const ends_at = new Date(Date.now() + duration * 60000).toISOString();
+
+  await supabase.from('battles').insert({
+    title,
+    option1,
+    option2,
+    option1_image: option1Image,
+    option2_image: option2Image,
+    votes1: 0,
+    votes2: 0,
+    ends_at
+  });
+
+  await loadBattles();
+};
+
 function toggleForm() {
   const form = document.getElementById('createForm');
-  form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+async function loadBattles() {
+  const { data: battles } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
+
+  battleSelector.innerHTML = '';
+  battles.forEach(battle => {
+    const option = document.createElement('option');
+    option.value = battle.id;
+    option.textContent = battle.title;
+    battleSelector.appendChild(option);
+  });
+
+  if (battles.length > 0) {
+    loadBattle(battles[0].id);
+  }
+
+  battleSelector.onchange = () => {
+    loadBattle(battleSelector.value);
+  };
 }
 
 function formatRemainingTime(ms) {
-  if (ms <= 0) return 'Battle ended';
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return `${hours}h ${minutes}m ${seconds}s`;
+  const seconds = Math.floor(ms / 1000);
+  if (seconds <= 0) return 'Time\'s up!';
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
 }
 
 let countdownInterval;
 
-async function loadAllBattles() {
-  const { data, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
-  if (error) return alert('Error loading battles.');
-  const selector = document.getElementById('battleSelector');
-  selector.innerHTML = data.map(b => `<option value="${b.id}">${b.title}</option>`).join('');
-  if (data.length > 0) renderBattle(data[0]);
-}
+async function loadBattle(id) {
+  const { data: battle } = await supabase.from('battles').select('*').eq('id', id).single();
 
-async function renderBattleById(battleId) {
-  const { data, error } = await supabase.from('battles').select('*').eq('id', battleId).single();
-  if (error || !data) return;
-  renderBattle(data);
-}
-
-function renderBattle(battle) {
   clearInterval(countdownInterval);
+  battleContainer.innerHTML = '';
+
   const now = new Date();
   const endsAt = new Date(battle.ends_at);
-  const msRemaining = endsAt - now;
-  const totalVotes = battle.votes1 + battle.votes2;
-  const percent1 = totalVotes === 0 ? 50 : Math.round((battle.votes1 / totalVotes) * 100);
-  const percent2 = 100 - percent1;
+  const remaining = endsAt - now;
+  const isExpired = remaining <= 0;
 
-  document.getElementById('battleContainer').innerHTML = `
-    <div class="battle">
-      <h3>${battle.title}</h3>
-      <div class="options">
-        <div class="option left">
-          <img src="${battle.image1 || ''}" alt="Option 1" class="option-img">
-          <p><strong>${battle.option1}</strong></p>
-          <p><span id="votes1">${battle.votes1}</span> votes</p>
-          <button onclick="showSocialPopup(event, '${battle.id}', 1)" ${msRemaining <= 0 ? 'disabled' : ''}>Vote</button>
-        </div>
-        <div class="option right">
-          <img src="${battle.image2 || ''}" alt="Option 2" class="option-img">
-          <p><strong>${battle.option2}</strong></p>
-          <p><span id="votes2">${battle.votes2}</span> votes</p>
-          <button onclick="showSocialPopup(event, '${battle.id}', 2)" ${msRemaining <= 0 ? 'disabled' : ''}>Vote</button>
-        </div>
+  const leftVotes = battle.votes1;
+  const rightVotes = battle.votes2;
+  const total = leftVotes + rightVotes;
+  const leftPercent = total ? Math.round((leftVotes / total) * 100) : 0;
+  const rightPercent = 100 - leftPercent;
+
+  const battleDiv = document.createElement('div');
+  battleDiv.className = 'battle';
+  battleDiv.innerHTML = `
+    <h2>${battle.title}</h2>
+    <div class="battle-content">
+      <div class="option">
+        ${battle.option1_image ? `<img src="${battle.option1_image}" alt="Option 1">` : ''}
+        <div>${battle.option1}</div>
+        <button ${isExpired ? 'disabled' : ''} onclick="vote('${battle.id}', 'votes1')">Vote</button>
       </div>
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="bar left-bar" style="width: ${percent1}%">${percent1}%</div>
-          <div class="bar right-bar" style="width: ${percent2}%">${percent2}%</div>
-        </div>
+      <div class="option">
+        ${battle.option2_image ? `<img src="${battle.option2_image}" alt="Option 2">` : ''}
+        <div>${battle.option2}</div>
+        <button ${isExpired ? 'disabled' : ''} onclick="vote('${battle.id}', 'votes2')">Vote</button>
       </div>
-      <p id="countdown">${formatRemainingTime(msRemaining)}</p>
     </div>
+    <div class="progress-bar-container">
+      <div class="progress-left" style="width: ${leftPercent}%;">${leftPercent}%</div>
+      <div class="progress-right" style="width: ${rightPercent}%;">${rightPercent}%</div>
+    </div>
+    <div class="countdown" id="countdown"></div>
   `;
+  battleContainer.appendChild(battleDiv);
+
+  const countdownEl = document.getElementById('countdown');
+  countdownEl.textContent = formatRemainingTime(remaining);
 
   countdownInterval = setInterval(() => {
-    const newRemaining = new Date(battle.ends_at) - new Date();
-    document.getElementById('countdown').textContent = formatRemainingTime(newRemaining);
-    if (newRemaining <= 0) {
+    const now = new Date();
+    const diff = endsAt - now;
+    if (diff <= 0) {
       clearInterval(countdownInterval);
-      renderBattleById(battle.id);
+      countdownEl.textContent = "Time's up!";
+      document.querySelectorAll('button[onclick^="vote"]').forEach(btn => btn.disabled = true);
+    } else {
+      countdownEl.textContent = formatRemainingTime(diff);
     }
   }, 1000);
 }
 
-document.getElementById('submitBtn').addEventListener('click', async () => {
-  const title = document.getElementById('title').value.trim();
-  const option1 = document.getElementById('option1').value.trim();
-  const option2 = document.getElementById('option2').value.trim();
-  const duration = parseInt(document.getElementById('duration').value);
-  const image1 = document.getElementById('image1').value.trim();
-  const image2 = document.getElementById('image2').value.trim();
-
-  if (!title || !option1 || !option2 || isNaN(duration)) return alert("Fill in all fields.");
-  const ends_at = new Date(Date.now() + duration * 60000).toISOString();
-  const { error } = await supabase.from('battles').insert([{ title, option1, option2, votes1: 0, votes2: 0, ends_at, image1, image2 }]);
-  if (error) return alert('Error creating battle.');
-  alert('Battle created!');
-  loadAllBattles();
-});
-
-window.showSocialPopup = (event, battleId, option) => {
-  const popup = document.getElementById('socialPopup');
-  popup.innerHTML = `
-    <button onclick="voteAndShare('${battleId}', ${option}, 'twitter')">Twitter</button>
-    <button onclick="voteAndShare('${battleId}', ${option}, 'facebook')">Facebook</button>
-    <button onclick="voteAndShare('${battleId}', ${option}, 'whatsapp')">WhatsApp</button>
-    <button onclick="voteAndShare('${battleId}', ${option}, 'reddit')">Reddit</button>
-  `;
-  popup.style.display = 'block';
-  popup.style.left = event.pageX + 'px';
-  popup.style.top = event.pageY + 'px';
+window.vote = async (id, field) => {
+  await supabase.rpc('increment_vote', { row_id: id, field_name: field });
+  loadBattle(id);
 };
 
-window.voteAndShare = async (battleId, option, platform) => {
-  const column = option === 1 ? 'votes1' : 'votes2';
-  const url = window.location.href;
-  const { error } = await supabase.rpc('increment_vote', { battle_id_input: battleId, column_name_input: column });
-  if (error) return alert('Vote failed.');
-
-  const current = parseInt(document.getElementById(`votes${option}`).textContent);
-  document.getElementById(`votes${option}`).textContent = current + 1;
-  renderBattleById(battleId);
-
-  const shareText = encodeURIComponent("Check out this battle!");
-  let shareUrl = '';
-  switch (platform) {
-    case 'twitter': shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${url}`; break;
-    case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`; break;
-    case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${shareText}%20${url}`; break;
-    case 'reddit': shareUrl = `https://www.reddit.com/submit?url=${url}&title=${shareText}`; break;
-  }
-  window.open(shareUrl, '_blank', 'width=600,height=400');
-  document.getElementById('socialPopup').style.display = 'none';
-};
-
-document.getElementById('battleSelector').addEventListener('change', e => {
-  const battleId = e.target.value;
-  if (battleId) renderBattleById(battleId);
-});
-
-window.toggleForm = toggleForm;
-window.loadAllBattles = loadAllBattles;
-loadAllBattles();
-
+loadBattles();
