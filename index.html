@@ -1,223 +1,159 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Battle App</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <title>Батл: Кто круче?</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f5f5f5;
       text-align: center;
-      padding: 20px;
+      padding: 40px;
     }
-
-    h1 {
-      margin-bottom: 30px;
-    }
-
-    .battle-container {
+    .battle {
       display: flex;
       justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
+      gap: 50px;
+      margin-top: 20px;
     }
-
     .option {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid #ccc;
       padding: 20px;
-      width: 280px;
+      border-radius: 10px;
+      width: 200px;
     }
-
-    .option-title {
-      font-size: 20px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .vote-count {
-      font-size: 18px;
-      color: #555;
-      margin-bottom: 15px;
-    }
-
-    .vote-button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    .vote-button:hover {
-      background: #0056b3;
-    }
-
-    .share-options {
+    .popup {
       display: none;
-      margin-top: 10px;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
+      position: fixed;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
     }
-
-    .share-options button {
-      background: #e0e0e0;
-      border: none;
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 14px;
+    .create-form {
+      max-width: 300px;
+      margin: 0 auto;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-top: 8px;
       cursor: pointer;
     }
-
-    .share-options button:hover {
-      background: #ccc;
+    a {
+      display: block;
+      margin: 5px 0;
     }
   </style>
 </head>
 <body>
+  <h1>Battle App</h1>
 
-  <h1>Кто круче?</h1>
+  <button onclick="toggleCreateForm()">Create Battle</button>
+  <div class="create-form" id="createForm">
+    <input type="text" id="title" placeholder="Battle title" />
+    <input type="text" id="option1" placeholder="Option 1" />
+    <input type="text" id="option2" placeholder="Option 2" />
+    <button onclick="submitBattle()">Submit</button>
+  </div>
 
-  <div class="battle-container">
-    <div class="option" id="opt1">
-      <div class="option-title">Кот</div>
-      <div class="vote-count">Голосов: <span id="count1">0</span></div>
-      <button class="vote-button" onclick="showShare(1)">Vote now</button>
-      <div class="share-options" id="share1">
-        <button onclick="shareAndVote(1, 'facebook')">Facebook</button>
-        <button onclick="shareAndVote(1, 'twitter')">Twitter</button>
-        <button onclick="shareAndVote(1, 'whatsapp')">WhatsApp</button>
-        <button onclick="shareAndVote(1, 'reddit')">Reddit</button>
-      </div>
-    </div>
+  <div id="battle"></div>
 
-    <div class="option" id="opt2">
-      <div class="option-title">Собака</div>
-      <div class="vote-count">Голосов: <span id="count2">0</span></div>
-      <button class="vote-button" onclick="showShare(2)">Vote now</button>
-      <div class="share-options" id="share2">
-        <button onclick="shareAndVote(2, 'facebook')">Facebook</button>
-        <button onclick="shareAndVote(2, 'twitter')">Twitter</button>
-        <button onclick="shareAndVote(2, 'whatsapp')">WhatsApp</button>
-        <button onclick="shareAndVote(2, 'reddit')">Reddit</button>
-      </div>
-    </div>
+  <div class="popup" id="sharePopup">
+    <p>Share this vote:</p>
+    <a id="fb" target="_blank">Facebook</a>
+    <a id="tw" target="_blank">Twitter</a>
+    <a id="wa" target="_blank">WhatsApp</a>
+    <a id="rd" target="_blank">Reddit</a>
+    <button onclick="closePopup()">Close</button>
   </div>
 
   <script>
-    // Инициализация голосов
-    if (!localStorage.getItem("votes")) {
-      localStorage.setItem("votes", JSON.stringify({ option1: 0, option2: 0 }));
+    const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentBattle;
+
+    async function loadBattle() {
+      const { data, error } = await supabase
+        .from('battles')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error || !data) return;
+
+      currentBattle = data;
+
+      document.getElementById('battle').innerHTML = `
+        <h2>${data.title}</h2>
+        <div class="battle">
+          <div class="option">
+            <p><strong>${data.option1}</strong></p>
+            <p id="votes1">${data.votes1} votes</p>
+          </div>
+          <div class="option">
+            <p><strong>${data.option2}</strong></p>
+            <p id="votes2">${data.votes2} votes</p>
+          </div>
+        </div>
+        <button onclick="openPopup()">Vote Now</button>
+      `;
     }
 
-    function loadVotes() {
-      const votes = JSON.parse(localStorage.getItem("votes"));
-      document.getElementById("count1").textContent = votes.option1;
-      document.getElementById("count2").textContent = votes.option2;
-    }
+    async function submitBattle() {
+      const title = document.getElementById('title').value;
+      const option1 = document.getElementById('option1').value;
+      const option2 = document.getElementById('option2').value;
 
-    function showShare(option) {
-      document.getElementById("share1").style.display = "none";
-      document.getElementById("share2").style.display = "none";
-      document.getElementById("share" + option).style.display = "flex";
-    }
+      if (!title || !option1 || !option2) return alert("Please fill in all fields.");
 
-    function shareAndVote(option, platform) {
-      const votes = JSON.parse(localStorage.getItem("votes"));
-      if (option === 1) votes.option1++;
-      else votes.option2++;
-      localStorage.setItem("votes", JSON.stringify(votes));
-      loadVotes();
+      const { error } = await supabase
+        .from('battles')
+        .insert([{ title, option1, option2, votes1: 0, votes2: 0 }]);
 
-      const url = encodeURIComponent(window.location.href);
-      const text = encodeURIComponent("Голосуй в батле: Кто круче — Кот или Собака?");
-      let shareUrl = "";
-
-      switch (platform) {
-        case "facebook":
-          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
-          break;
-        case "twitter":
-          shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-          break;
-        case "whatsapp":
-          shareUrl = `https://wa.me/?text=${text}%20${url}`;
-          break;
-        case "reddit":
-          shareUrl = `https://www.reddit.com/submit?url=${url}&title=${text}`;
-          break;
+      if (!error) {
+        toggleCreateForm();
+        loadBattle();
+      } else {
+        alert('Error creating battle');
       }
-
-      window.open(shareUrl, "_blank");
     }
 
-    loadVotes();
+    function toggleCreateForm() {
+      const form = document.getElementById('createForm');
+      form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
+      if (form.style.display === 'flex') {
+        form.style.flexDirection = 'column';
+      }
+    }
+
+    function openPopup() {
+      const shareUrl = window.location.href;
+      const text = encodeURIComponent(`Vote in the battle: ${currentBattle.title}`);
+      document.getElementById('fb').href = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+      document.getElementById('tw').href = `https://twitter.com/intent/tweet?url=${shareUrl}&text=${text}`;
+      document.getElementById('wa').href = `https://api.whatsapp.com/send?text=${text}%20${shareUrl}`;
+      document.getElementById('rd').href = `https://www.reddit.com/submit?url=${shareUrl}&title=${text}`;
+      document.getElementById('sharePopup').style.display = 'block';
+    }
+
+    function closePopup() {
+      document.getElementById('sharePopup').style.display = 'none';
+    }
+
+    loadBattle();
   </script>
-<script>
-  const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-
-  const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  
-  async function loadBattle() {
-    const { data, error } = await supabase
-      .from('battles')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error || !data) {
-      console.error('Ошибка загрузки батла:', error);
-      return;
-    }
-
-    window.currentBattle = data;
-
-    const battleDiv = document.getElementById('battle');
-    battleDiv.innerHTML = `
-      <h2>${data.title}</h2>
-      <div style="display: flex; gap: 40px; justify-content: center;">
-        <div style="text-align:center;">
-          <p><strong>${data.option1}</strong></p>
-          <button onclick="vote(1)">Vote</button>
-          <p id="votes1">${data.votes1} votes</p>
-        </div>
-        <div style="text-align:center;">
-          <p><strong>${data.option2}</strong></p>
-          <button onclick="vote(2)">Vote</button>
-          <p id="votes2">${data.votes2} votes</p>
-        </div>
-      </div>
-    `;
-  }
-
-  async function vote(option) {
-    const field = option === 1 ? 'votes1' : 'votes2';
-    const newCount = (window.currentBattle[field] || 0) + 1;
-
-    const { error } = await supabase
-      .from('battles')
-      .update({ [field]: newCount })
-      .eq('id', window.currentBattle.id);
-
-    if (error) {
-      console.error('Ошибка при голосовании:', error);
-      return;
-    }
-
-    // Обновим данные на экране
-    window.currentBattle[field] = newCount;
-    document.getElementById(`votes${option}`).textContent = `${newCount} votes`;
-  }
-
-  loadBattle();
-</script>
 </body>
 </html>
