@@ -3,157 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <title>Battle App</title>
+  <script type="module" src="main.js" defer></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 700px;
-      margin: auto;
+      font-family: sans-serif;
+      margin: 20px;
     }
-
-    h1 {
-      text-align: center;
+    #createForm input {
+      margin: 5px;
+      padding: 5px;
     }
-
-    .form-group {
-      margin-bottom: 10px;
-    }
-
-    #createForm {
-      margin-top: 20px;
-      display: none;
-      border: 1px solid #ccc;
-      padding: 16px;
-      border-radius: 8px;
-    }
-
-    .battle {
-      border: 1px solid #ccc;
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
-
-    .battle-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .option {
-      flex: 1;
-      text-align: center;
-      padding: 10px;
-    }
-
-    .option img {
-      width: 100%;
-      max-width: 200px;
-      height: auto;
-      border-radius: 10px;
-      margin-bottom: 10px;
-    }
-
-    .vote-buttons {
+    #createForm label {
+      display: block;
       margin-top: 10px;
     }
-
-    .progress-bar-container {
-      position: relative;
-      height: 24px;
-      background-color: #ddd;
-      border-radius: 12px;
-      margin-top: 20px;
-      overflow: hidden;
+    #createForm button {
+      margin-top: 10px;
     }
-
-    .progress-left,
-    .progress-right {
-      height: 100%;
-      transition: width 0.5s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
-    .progress-left {
-      background-color: #e74c3c; /* red */
-      border-top-left-radius: 12px;
-      border-bottom-left-radius: 12px;
-    }
-
-    .progress-right {
-      background-color: #2ecc71; /* green */
-      border-top-right-radius: 12px;
-      border-bottom-right-radius: 12px;
-    }
-
-    .social-popup {
-      display: none;
+    #socialPopup {
       position: absolute;
       background: #fff;
-      border: 1px solid #aaa;
+      border: 1px solid #ccc;
       padding: 10px;
-      border-radius: 6px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 999;
+      display: none;
+      z-index: 10;
     }
-
-    .social-popup button {
-      display: block;
-      margin: 5px 0;
-      width: 100%;
+    button {
+      margin-top: 5px;
+      padding: 5px 10px;
     }
-
-    .countdown {
-      text-align: center;
-      font-size: 18px;
-      margin-top: 10px;
-      color: #555;
-    }
-
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
 
-  <button onclick="toggleForm()">Create Battle</button>
+  <button onclick="toggleForm()">+ New Battle</button>
 
-  <div id="createForm">
-    <div class="form-group">
-      <input type="text" id="title" placeholder="Battle title" />
-    </div>
-    <div class="form-group">
-      <input type="text" id="option1" placeholder="Option 1" />
-    </div>
-    <div class="form-group">
-      <input type="text" id="option1Image" placeholder="Image URL for Option 1" />
-    </div>
-    <div class="form-group">
-      <input type="text" id="option2" placeholder="Option 2" />
-    </div>
-    <div class="form-group">
-      <input type="text" id="option2Image" placeholder="Image URL for Option 2" />
-    </div>
-    <div class="form-group">
-      <label for="duration">Duration (minutes):</label>
-      <input type="number" id="duration" placeholder="Duration in minutes" min="1" />
-    </div>
-    <button id="submitBtn">Submit</button>
+  <div id="createForm" style="display: none; margin-top: 10px;">
+    <label>Title: <input type="text" id="title" /></label>
+    <label>Option 1: <input type="text" id="option1" /></label>
+    <label>Image URL 1: <input type="text" id="image1" /></label>
+    <label>Option 2: <input type="text" id="option2" /></label>
+    <label>Image URL 2: <input type="text" id="image2" /></label>
+    <label>Duration (minutes): <input type="number" id="duration" value="5" /></label>
+    <button id="submitBtn">Create Battle</button>
   </div>
 
-  <div class="form-group" style="margin-top: 20px;">
-    <label for="battleSelector">Choose a battle:</label>
-    <select id="battleSelector"></select>
-  </div>
+  <h2>Choose a Battle</h2>
+  <select id="battleSelector"></select>
 
-  <div id="battleContainer"></div>
+  <div id="battleContainer" style="margin-top: 20px;"></div>
 
-  <div id="socialPopup" class="social-popup"></div>
-
-  <script type="module" src="main.js"></script>
+  <div id="socialPopup"></div>
 </body>
 </html>
