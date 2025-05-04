@@ -4,10 +4,36 @@
   <meta charset="UTF-8" />
   <title>Battle App</title>
   <style>
-    body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
-    .battle { border: 1px solid #ccc; padding: 16px; margin-top: 20px; border-radius: 8px; }
-    .form-group { margin-bottom: 10px; }
-    #createForm { display: none; margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    #createForm {
+      margin-top: 20px;
+      display: none;
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+    }
+    .battle {
+      border: 1px solid #ccc;
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -30,24 +56,31 @@
 
   <div id="battleContainer"></div>
 
-  <!-- Подключаем Supabase и затем инициализируем код -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-
-    // ✅ создаём клиент Supabase ДО всех функций
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     function toggleForm() {
       const form = document.getElementById('createForm');
       form.style.display = form.style.display === 'none' ? 'block' : 'none';
     }
+  </script>
 
-    async function submitBattle() {
-      const title = document.getElementById('title').value;
-      const option1 = document.getElementById('option1').value;
-      const option2 = document.getElementById('option2').value;
+  <!-- Supabase logic: must be a module -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const title = document.getElementById('title').value.trim();
+      const option1 = document.getElementById('option1').value.trim();
+      const option2 = document.getElementById('option2').value.trim();
+
+      if (!title || !option1 || !option2) {
+        alert("Please fill in all fields.");
+        return;
+      }
 
       const { data, error } = await supabase.from('battles').insert([
         {
@@ -55,18 +88,18 @@
           option1,
           option2,
           votes1: 0,
-          votes2: 0,
-        },
+          votes2: 0
+        }
       ]);
 
       if (error) {
-        console.error('❌ Error creating battle:', error.message);
-        alert('Error: ' + error.message);
+        console.error('Insert error:', error.message);
+        alert('Error creating battle.');
       } else {
-        console.log('✅ Battle created:', data);
+        alert('Battle created!');
         loadLatestBattle();
       }
-    }
+    });
 
     async function loadLatestBattle() {
       const { data, error } = await supabase
@@ -76,7 +109,7 @@
         .limit(1);
 
       if (error) {
-        console.error('❌ Failed to load:', error.message);
+        console.error('Load error:', error.message);
         return;
       }
 
@@ -86,16 +119,13 @@
       document.getElementById('battleContainer').innerHTML = `
         <div class="battle">
           <h3>${battle.title}</h3>
-          <p>Option 1: ${battle.option1} — <strong>${battle.votes1}</strong> votes</p>
-          <p>Option 2: ${battle.option2} — <strong>${battle.votes2}</strong> votes</p>
+          <p><strong>${battle.option1}</strong>: ${battle.votes1} votes</p>
+          <p><strong>${battle.option2}</strong>: ${battle.votes2} votes</p>
         </div>
       `;
     }
 
-    // 🧷 Привязываем кнопку ПОСЛЕ инициализации supabase
-    document.getElementById('submitBtn').addEventListener('click', submitBattle);
-
-    // 🚀 Загружаем последний батл при старте
+    // Load on start
     loadLatestBattle();
   </script>
 </body>
