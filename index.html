@@ -5,50 +5,88 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
   <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
     .tab-button {
       padding: 10px 20px;
       cursor: pointer;
       border: none;
-      background: #ddd;
+      background: #eee;
       margin-right: 5px;
       border-radius: 5px;
+      font-size: 14px;
     }
     .tab-button.active {
-      background: #aaa;
+      background: #666;
+      color: #fff;
+    }
+    #createForm input, #createForm button {
+      display: block;
+      margin: 8px 0;
+      padding: 8px;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    #createForm button {
+      background-color: #28a745;
+      color: white;
       font-weight: bold;
+      border: none;
+    }
+    .battle-block {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #f9f9f9;
+    }
+    .battle-block h3 {
+      margin-top: 0;
+    }
+    .vote-button {
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .vote-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
 
-  <!-- Кнопка показать/скрыть форму создания -->
   <button onclick="toggleForm()">Create Battle</button>
 
-  <!-- Форма создания батла -->
   <div id="createForm" style="display: none; margin-top: 10px;">
-    <input type="text" id="title" placeholder="Title"><br/>
-    <input type="text" id="option1" placeholder="Option 1"><br/>
-    <input type="text" id="option2" placeholder="Option 2"><br/>
-    <input type="number" id="duration" placeholder="Duration (minutes)"><br/>
-    <input type="text" id="image1" placeholder="Image URL 1 (optional)"><br/>
-    <input type="text" id="image2" placeholder="Image URL 2 (optional)"><br/>
+    <input type="text" id="title" placeholder="Title">
+    <input type="text" id="option1" placeholder="Option 1">
+    <input type="text" id="option2" placeholder="Option 2">
+    <input type="number" id="duration" placeholder="Duration (minutes)">
+    <input type="text" id="image1" placeholder="Image URL 1 (optional)">
+    <input type="text" id="image2" placeholder="Image URL 2 (optional)">
     <button id="submitBtn">Submit</button>
   </div>
 
-  <!-- Табы -->
   <div style="margin-top: 20px;">
     <button id="tab-active" class="tab-button active" onclick="switchTab('active')">Active Battles</button>
     <button id="tab-finished" class="tab-button" onclick="switchTab('finished')">Finished Battles</button>
   </div>
 
-  <!-- Список батлов -->
   <div id="battleList" style="margin-top: 20px;"></div>
 
-  <!-- Контейнер для отображения конкретного батла -->
   <div id="battleContainer" style="margin-top: 20px;"></div>
 
-  <!-- Попап для соцсетей -->
   <div id="socialPopup" style="position:absolute; display:none; background:white; border:1px solid #ccc; padding:10px; z-index:10;"></div>
 
   <script type="module" src="main.js"></script>
