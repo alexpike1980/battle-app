@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
     .tab-button {
       padding: 10px 20px;
       cursor: pointer;
@@ -18,127 +13,88 @@
       margin-right: 5px;
       border-radius: 5px;
     }
-
     .tab-button.active {
       background: #aaa;
       font-weight: bold;
     }
-
     .battle-block {
       border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      background: #f9f9f9;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
     }
-
     .battle-images {
       display: flex;
       justify-content: space-between;
       margin-top: 10px;
-      margin-bottom: 10px;
     }
-
-    .battle-images div {
-      width: 48%;
-      text-align: center;
-    }
-
     .battle-images img {
-      width: 100%;
+      width: 48%;
       height: 150px;
       object-fit: cover;
       border-radius: 8px;
     }
-
-    button {
-      padding: 8px 16px;
-      background-color: #3b82f6;
+    .vote-btn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: #28a745;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      margin-top: 8px;
     }
-
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    input, select {
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 10px;
-      width: 100%;
-      max-width: 400px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
     .progress-container {
-      background-color: #eee;
-      border-radius: 10px;
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 8px;
       overflow: hidden;
-      height: 24px;
+      height: 20px;
       margin-top: 10px;
     }
-
     .progress-bar {
       height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #007bff;
+      text-align: center;
       color: white;
-      font-size: 12px;
-      font-weight: bold;
-      transition: width 0.5s;
+      line-height: 20px;
     }
-
     .countdown {
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-top: 5px;
     }
-
     .social-icons button {
-      margin-right: 8px;
-    }
-
-    .social-icons img {
-      width: 20px;
-      height: 20px;
-      vertical-align: middle;
       margin-right: 5px;
+    }
+    .social-icons img {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 3px;
     }
   </style>
 </head>
 <body>
   <h1>Battle App</h1>
 
-  <!-- Кнопка показать/скрыть форму создания -->
   <button onclick="toggleForm()">Create Battle</button>
 
-  <!-- Форма создания батла -->
   <div id="createForm" style="display: none; margin-top: 10px;">
-    <input type="text" id="title" placeholder="Title" /><br/>
-    <input type="text" id="option1" placeholder="Option 1" /><br/>
-    <input type="text" id="option2" placeholder="Option 2" /><br/>
-    <input type="number" id="duration" placeholder="Duration (minutes)" /><br/>
-    <input type="text" id="image1" placeholder="Image URL 1 (optional)" /><br/>
-    <input type="text" id="image2" placeholder="Image URL 2 (optional)" /><br/>
+    <input type="text" id="title" placeholder="Title"><br/>
+    <input type="text" id="option1" placeholder="Option 1"><br/>
+    <input type="text" id="option2" placeholder="Option 2"><br/>
+    <input type="number" id="duration" placeholder="Duration (minutes)"><br/>
+    <input type="text" id="image1" placeholder="Image URL 1 (optional)"><br/>
+    <input type="text" id="image2" placeholder="Image URL 2 (optional)"><br/>
     <button id="submitBtn">Submit</button>
   </div>
 
-  <!-- Табы -->
   <div style="margin-top: 20px;">
     <button id="tab-active" class="tab-button active" onclick="switchTab('active')">Active Battles</button>
     <button id="tab-finished" class="tab-button" onclick="switchTab('finished')">Finished Battles</button>
   </div>
 
-  <!-- Список батлов -->
   <div id="battleList" style="margin-top: 20px;"></div>
 
-  <!-- Попап для соцсетей -->
   <div id="socialPopup" style="position:absolute; display:none; background:white; border:1px solid #ccc; padding:10px; z-index:10;"></div>
 
   <script type="module" src="main.js"></script>
