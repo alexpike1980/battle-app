@@ -1,121 +1,183 @@
-// main.js
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentTab = 'active';
+let countdownIntervals = {};
 
 function toggleForm() {
   const form = document.getElementById('createForm');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
 }
 
 function switchTab(tab) {
   currentTab = tab;
-  document.getElementById('tab-active').classList.remove('active');
-  document.getElementById('tab-finished').classList.remove('active');
-  document.getElementById('tab-' + tab).classList.add('active');
-  loadBattles();
+  document.getElementById('tab-active').classList.toggle('active', tab === 'active');
+  document.getElementById('tab-finished').classList.toggle('active', tab === 'finished');
+  loadAllBattles();
 }
 
-async function loadBattles() {
-  const now = new Date().toISOString();
-  const filter = currentTab === 'active' ? 'gt' : 'lte';
-  const { data: battles } = await supabase
-    .from('battles')
-    .select('*')
-    .filter('end_time', filter, now)
-    .order('end_time', { ascending: false });
+function formatTime(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes
+    .toString()
+    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
 
-  const battleList = document.getElementById('battleList');
-  battleList.innerHTML = '';
+function renderBattleBlock(battle) {
+  const now = new Date();
+  const endsAt = new Date(battle.ends_at);
+  const timeLeft = endsAt - now;
+  const isOver = timeLeft <= 0;
 
-  battles.forEach(battle => {
-    const block = document.createElement('div');
-    block.className = 'battle-block';
+  const totalVotes = battle.votes1 + battle.votes2;
+  const percent1 = totalVotes === 0 ? 50 : Math.round((battle.votes1 / totalVotes) * 100);
+  const percent2 = 100 - percent1;
 
-    const timeRemaining = getTimeRemaining(battle.end_time);
-    const option1Votes = battle.votes_option1 || 0;
-    const option2Votes = battle.votes_option2 || 0;
-    const totalVotes = option1Votes + option2Votes || 1;
-    const percent1 = Math.round((option1Votes / totalVotes) * 100);
-    const percent2 = 100 - percent1;
-
-    block.innerHTML = `
-      <h3>${battle.title}</h3>
-      <p>Ends in: <span id="countdown-${battle.id}">${timeRemaining}</span></p>
-      <div class="battle-images">
-        <div class="battle-image-container">
-          ${battle.image1 ? `<img src="${battle.image1}" alt="${battle.option1}">` : ''}
-        </div>
-        <div class="battle-image-container">
-          ${battle.image2 ? `<img src="${battle.image2}" alt="${battle.option2}">` : ''}
-        </div>
-      </div>
-      <div>
+  const block = document.createElement('div');
+  block.className = 'battle-block';
+  block.innerHTML = `
+    <h3>${battle.title}</h3>
+    <div id="countdown-${battle.id}" class="countdown-timer">${isOver ? 'Voting ended' : formatTime(timeLeft)}</div>
+    <div class="battle-options">
+      <div class="option">
         <strong>${battle.option1}</strong>
-        <button class="vote-button" onclick="vote(${battle.id}, 1)">Vote Now</button>
-        <div class="progress-container">
-          <div class="progress-bar option1-bar" style="width:${percent1}%">${percent1}%</div>
-        </div>
+        <div class="image-box">${battle.image1 ? `<img src="${battle.image1}" alt="" />` : ''}</div>
+        <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 1)">Vote now</button>
       </div>
-      <div>
+      <div class="option">
         <strong>${battle.option2}</strong>
-        <button class="vote-button" onclick="vote(${battle.id}, 2)">Vote Now</button>
-        <div class="progress-container">
-          <div class="progress-bar option2-bar" style="width:${percent2}%">${percent2}%</div>
-        </div>
+        <div class="image-box">${battle.image2 ? `<img src="${battle.image2}" alt="" />` : ''}</div>
+        <button ${isOver ? 'disabled' : ''} onclick="showSocialPopup(event, '${battle.id}', 2)">Vote now</button>
       </div>
-      <div class="social-icons">
-        <a href="https://t.me/share/url?url=https://battleapp.com/battle/${battle.id}" target="_blank">📨 Telegram</a>
-        <a href="https://wa.me/?text=https://battleapp.com/battle/${battle.id}" target="_blank">📱 WhatsApp</a>
-      </div>
-    `;
+    </div>
+    <div class="progress-bar">
+      <div class="bar left" style="width:${percent1}%">${battle.votes1} (${percent1}%)</div>
+      <div class="bar right" style="width:${percent2}%">${battle.votes2} (${percent2}%)</div>
+    </div>
+  `;
 
-    battleList.appendChild(block);
-    updateCountdown(battle.id, battle.end_time);
+  if (!isOver) {
+    countdownIntervals[battle.id] = setInterval(() => {
+      const newTimeLeft = new Date(battle.ends_at) - new Date();
+      const el = document.getElementById(`countdown-${battle.id}`);
+      if (newTimeLeft <= 0) {
+        clearInterval(countdownIntervals[battle.id]);
+        el.textContent = 'Voting ended';
+        loadAllBattles();
+      } else {
+        el.textContent = formatTime(newTimeLeft);
+      }
+    }, 1000);
+  }
+
+  return block;
+}
+
+async function loadAllBattles() {
+  const { data, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
+  if (error) {
+    alert('Error loading battles');
+    return;
+  }
+  const container = document.getElementById('battleList');
+  container.innerHTML = '';
+  data.forEach(battle => {
+    const now = new Date();
+    const endsAt = new Date(battle.ends_at);
+    const isOver = now > endsAt;
+    if ((currentTab === 'active' && !isOver) || (currentTab === 'finished' && isOver)) {
+      const block = renderBattleBlock(battle);
+      container.appendChild(block);
+    }
   });
 }
 
-function getTimeRemaining(endTime) {
-  const total = Date.parse(endTime) - Date.now();
-  if (total <= 0) return '00:00:00';
-  const seconds = Math.floor((total / 1000) % 60);
-  const minutes = Math.floor((total / 1000 / 60) % 60);
-  const hours = Math.floor((total / 1000 / 60 / 60));
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
-
-function updateCountdown(id, endTime) {
-  setInterval(() => {
-    const countdown = document.getElementById(`countdown-${id}`);
-    if (countdown) {
-      countdown.textContent = getTimeRemaining(endTime);
-    }
-  }, 1000);
-}
-
-async function vote(battleId, option) {
-  const field = option === 1 ? 'votes_option1' : 'votes_option2';
-  await supabase.rpc('increment_vote', { battle_id: battleId, field_name: field });
-  loadBattles();
-}
-
 document.getElementById('submitBtn').addEventListener('click', async () => {
-  const title = document.getElementById('title').value;
-  const option1 = document.getElementById('option1').value;
-  const option2 = document.getElementById('option2').value;
-  const duration = parseInt(document.getElementById('duration').value);
-  const image1 = document.getElementById('image1').value;
-  const image2 = document.getElementById('image2').value;
-  const end_time = new Date(Date.now() + duration * 60000).toISOString();
+  const title = document.getElementById('title').value.trim();
+  const option1 = document.getElementById('option1').value.trim();
+  const option2 = document.getElementById('option2').value.trim();
+  const duration = parseInt(document.getElementById('duration').value.trim());
+  const image1 = document.getElementById('image1').value.trim();
+  const image2 = document.getElementById('image2').value.trim();
 
-  await supabase.from('battles').insert([{ title, option1, option2, image1, image2, end_time }]);
-  toggleForm();
-  loadBattles();
+  if (!title || !option1 || !option2 || isNaN(duration)) {
+    alert('Please fill in all required fields.');
+    return;
+  }
+
+  const endsAt = new Date(Date.now() + duration * 60000).toISOString();
+
+  const { error } = await supabase.from('battles').insert([
+    { title, option1, option2, votes1: 0, votes2: 0, ends_at: endsAt, image1, image2 }
+  ]);
+
+  if (error) {
+    alert('Error creating battle.');
+  } else {
+    alert('Battle created!');
+    toggleForm();
+    loadAllBattles();
+  }
 });
 
-loadBattles();
+window.showSocialPopup = (event, battleId, option) => {
+  const popup = document.getElementById('socialPopup');
+  popup.innerHTML = `
+    <button onclick="voteAndShare('${battleId}', ${option}, 'twitter')">🐦</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'facebook')">📘</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'whatsapp')">🟢</button>
+    <button onclick="voteAndShare('${battleId}', ${option}, 'reddit')">👽</button>
+  `;
+  popup.style.display = 'block';
+  popup.style.left = event.pageX + 'px';
+  popup.style.top = event.pageY + 'px';
+};
+
+window.voteAndShare = async (battleId, option, platform) => {
+  const column = option === 1 ? 'votes1' : 'votes2';
+  const url = window.location.href;
+
+  const { error } = await supabase.rpc('increment_vote', {
+    battle_id_input: battleId,
+    column_name_input: column
+  });
+
+  if (error) {
+    alert('Vote failed.');
+    return;
+  }
+
+  loadAllBattles();
+  const shareText = encodeURIComponent("Check out this battle!");
+  let shareUrl = '';
+
+  switch (platform) {
+    case 'twitter':
+      shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${url}`;
+      break;
+    case 'facebook':
+      shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+      break;
+    case 'whatsapp':
+      shareUrl = `https://api.whatsapp.com/send?text=${shareText}%20${url}`;
+      break;
+    case 'reddit':
+      shareUrl = `https://www.reddit.com/submit?url=${url}&title=${shareText}`;
+      break;
+  }
+
+  window.open(shareUrl, '_blank', 'width=600,height=400');
+  document.getElementById('socialPopup').style.display = 'none';
+};
+
+window.toggleForm = toggleForm;
+window.switchTab = switchTab;
+window.loadAllBattles = loadAllBattles;
+
+loadAllBattles();
