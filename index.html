@@ -1,127 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Battle App</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-    }
-
-    .tab-button {
-      padding: 10px 20px;
-      cursor: pointer;
-      border: none;
-      background: #ddd;
-      margin-right: 5px;
-      border-radius: 5px;
-    }
-
-    .tab-button.active {
-      background: #aaa;
-      font-weight: bold;
-    }
-
-    .battle-block {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-    }
-
-    .battle-images {
-      display: flex;
-      justify-content: space-between;
-      gap: 4%;
-      margin-top: 10px;
-    }
-
-    .battle-images img {
-      width: 48%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
-    .vote-btn {
-      margin-top: 10px;
-      padding: 8px 14px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .progress-container {
-      width: 100%;
-      background: #e0e0e0;
-      border-radius: 8px;
-      overflow: hidden;
-      height: 20px;
-      margin-top: 10px;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: #007bff;
-      text-align: center;
-      color: white;
-      line-height: 20px;
-    }
-
-    .countdown {
-      font-weight: bold;
-      margin-top: 5px;
-    }
-
-    .social-icons button {
-      margin-right: 5px;
-    }
-
-    .social-icons img {
-      width: 16px;
-      height: 16px;
-      vertical-align: middle;
-      margin-right: 3px;
-    }
-
-    #createForm input {
-      margin-bottom: 5px;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Battle App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="./main.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f8f9fa;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>Battle App</h1>
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center mb-8">Battle App</h1>
+        <button id="createBattleBtn" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all">Create Battle</button>
+        <div id="battleList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"></div>
+    </div>
 
-  <!-- Кнопка показать/скрыть форму создания -->
-  <button onclick="toggleForm()">Create Battle</button>
-
-  <!-- Форма создания батла -->
-  <div id="createForm" style="display: none; margin-top: 10px;">
-    <input type="text" id="title" placeholder="Title"><br/>
-    <input type="text" id="option1" placeholder="Option 1"><br/>
-    <input type="text" id="option2" placeholder="Option 2"><br/>
-    <input type="number" id="duration" placeholder="Duration (minutes)"><br/>
-    <input type="text" id="image1" placeholder="Image URL 1 (optional)"><br/>
-    <input type="text" id="image2" placeholder="Image URL 2 (optional)"><br/>
-    <button id="submitBtn">Submit</button>
-  </div>
-
-  <!-- Табы -->
-  <div style="margin-top: 20px;">
-    <button id="tab-active" class="tab-button active" onclick="switchTab('active')">Active Battles</button>
-    <button id="tab-finished" class="tab-button" onclick="switchTab('finished')">Finished Battles</button>
-  </div>
-
-  <!-- Список батлов -->
-  <div id="battleList" style="margin-top: 20px;"></div>
-
-  <!-- Попап для соцсетей -->
-  <div id="socialPopup" style="position:absolute; display:none; background:white; border:1px solid #ccc; padding:10px; z-index:10;"></div>
-
-<script type="module" src="./main.js"></script>
+    <!-- Create Battle Modal -->
+    <div id="createModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
+            <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded" />
+            <input type="text" id="option1" placeholder="Option 1" class="w-full mb-3 p-2 border rounded" />
+            <input type="text" id="option2" placeholder="Option 2" class="w-full mb-3 p-2 border rounded" />
+            <input type="number" id="duration" placeholder="Duration (minutes)" class="w-full mb-3 p-2 border rounded" />
+            <input type="text" id="image1" placeholder="Image URL 1 (optional)" class="w-full mb-3 p-2 border rounded" />
+            <input type="text" id="image2" placeholder="Image URL 2 (optional)" class="w-full mb-3 p-2 border rounded" />
+            <button id="submitBattleBtn" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all">Submit</button>
+            <button id="closeModalBtn" class="bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition-all mt-2">Cancel</button>
+        </div>
+    </div>
 </body>
 </html>
