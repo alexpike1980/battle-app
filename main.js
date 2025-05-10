@@ -186,11 +186,11 @@ window.openShareModal = function (battleId, option) {
         };
     });
 
-    // Закрытие модального окна
-    document.getElementById("closeModalBtn").onclick = () => {
-        modal.classList.add("hidden");
-    };
+// Закрытие модального окна
+document.getElementById("closeModalBtn").onclick = () => {
+    document.getElementById("shareModal").classList.add("hidden");
 };
+
 
     // Обработчик для создания батла
     document.getElementById('submitBattleBtn').addEventListener('click', async () => {
