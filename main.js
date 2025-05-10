@@ -128,7 +128,7 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     }
 });
     } catch (error) {
-        console.error('Ошибка загрузки батлов: ${error.message}');
+        console.error("Ошибка загрузки батлов:" + ${error.message}');
     }
 }
 
@@ -183,7 +183,7 @@ window.openShareModal = function (battleId, option) {
                 // Закрываем модальное окно после шаринга
                 modal.classList.add("hidden");
             } catch (error) {
-                console.error("Ошибка добавления голоса:", error.message);
+              console.error("Ошибка добавления голоса: " + error.message);
             }
         };
     });
