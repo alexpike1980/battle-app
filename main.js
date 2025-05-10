@@ -127,23 +127,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fetchAndRenderBattles();
 
-    // Функция открытия модального окна шаринга
+// Функция открытия модального окна шаринга
 window.openShareModal = function (battleId, option) {
     const modal = document.getElementById("shareModal");
     modal.classList.remove("hidden");
 
-    const url = window.location.href;
-    const title = "Проголосуйте за свой вариант!";
+    const url = window.location.origin;  // Добавляем базовый URL
+    const title = "Make it count – share to vote!";
     
-    document.getElementById("facebookShare").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    document.getElementById("facebookShare").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
     document.getElementById("twitterShare").href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
     document.getElementById("redditShare").href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+
+    // Добавляем обработчик клика для увеличения голосов
+    document.querySelectorAll("#shareModal a").forEach(link => {
+        link.onclick = async (event) => {
+            try {
+                const column = option === 'votes1' ? 'votes1' : 'votes2';
+                const { error } = await supabase.from('battles').update({ [column]: supabase.raw(`${column} + 1`) }).eq('id', battleId);
+                
+                if (error) throw error;
+                
+                console.log('Голос успешно добавлен');
+                modal.classList.add("hidden");
+                fetchAndRenderBattles();  // Обновляем голоса после шаринга
+            } catch (error) {
+                console.error("Ошибка добавления голоса:", error.message);
+            }
+        };
+    });
 
     // Закрытие модального окна
     document.getElementById("closeModalBtn").onclick = () => {
         modal.classList.add("hidden");
     };
 };
+
 
 
     // Обработчик для создания батла
