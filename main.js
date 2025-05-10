@@ -20,6 +20,7 @@ async function fetchAndRenderBattles() {
         const totalVotes = option1Votes + option2Votes;
         const option1Percent = totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0;
         const option2Percent = totalVotes > 0 ? Math.round((option2Votes / totalVotes) * 100) : 0;
+        const timeLeft = calculateTimeLeft(battle.end_time);
 
         const block = document.createElement('div');
         block.className = 'p-4 bg-white rounded-lg shadow-lg';
@@ -28,19 +29,48 @@ async function fetchAndRenderBattles() {
             <div class="flex gap-4 mb-4">
                 <div class="flex-1">
                     <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
-                    <button class="w-full mt-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all" onclick="vote(${battle.id}, 'option1')">Vote</button>
-                    <div class="mt-2 text-center">${option1Votes} votes (${option1Percent}%)</div>
                 </div>
                 <div class="flex-1">
                     <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
-                    <button class="w-full mt-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-all" onclick="vote(${battle.id}, 'option2')">Vote</button>
-                    <div class="mt-2 text-center">${option2Votes} votes (${option2Percent}%)</div>
                 </div>
             </div>
-            ${isActive ? `<div class="text-center text-sm text-gray-500">Active</div>` : `<div class="text-center text-sm text-red-500">Finished</div>`}
+            <div class="w-full bg-gray-200 rounded-full overflow-hidden mb-4">
+                <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent}%;">${option1Votes} votes (${option1Percent}%)</div>
+                <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent}%;">${option2Votes} votes (${option2Percent}%)</div>
+            </div>
+            <div class="flex justify-between items-center">
+                <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all" onclick="shareBattle(${battle.id}, 'option1')">Vote</button>
+                <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all" onclick="shareBattle(${battle.id}, 'option2')">Vote</button>
+                <div class="text-sm text-gray-500">${isActive ? `Time left: ${timeLeft}` : 'Finished'}</div>
+            </div>
         `;
         container.appendChild(block);
+
+        if (isActive) {
+            setInterval(() => {
+                const updatedTimeLeft = calculateTimeLeft(battle.end_time);
+                block.querySelector('.text-sm.text-gray-500').textContent = `Time left: ${updatedTimeLeft}`;
+                if (updatedTimeLeft === '00:00:00') fetchAndRenderBattles();
+            }, 1000);
+        }
     });
+}
+
+function calculateTimeLeft(endTime) {
+    const diff = new Date(endTime) - new Date();
+    if (diff <= 0) return '00:00:00';
+    const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+}
+
+function shareBattle(battleId, option) {
+    const shareUrl = `${window.location.origin}/battle.html?battleId=${battleId}&option=${option}`;
+    const shareText = 'Check out this battle and vote!';
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+    vote(battleId, option);
 }
 
 async function vote(battleId, option) {
