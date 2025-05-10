@@ -2,7 +2,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZXQ6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -14,6 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
         const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
         return `${hours}:${minutes}:${seconds}`;
+    }
+
+    async function uploadImage(file) {
+        try {
+            const fileName = `${Date.now()}-${file.name}`;
+            const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
+            if (error) throw error;
+            const { data: publicData } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
+            if (!publicData || !publicData.publicUrl) throw new Error("Не удалось получить публичную ссылку на изображение");
+            return publicData.publicUrl;
+        } catch (error) {
+            console.error("Ошибка загрузки изображения:", error.message);
+            alert("Ошибка загрузки изображения: " + error.message);
+            return '';
+        }
     }
 
     async function fetchAndRenderBattles() {
@@ -70,11 +85,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const option1 = document.getElementById('option1').value.trim();
             const option2 = document.getElementById('option2').value.trim();
             const duration = parseInt(document.getElementById('duration').value.trim());
+            const image1File = document.getElementById('image1File').files[0];
+            const image2File = document.getElementById('image2File').files[0];
 
             if (!title || !option1 || !option2 || isNaN(duration)) {
                 alert("Пожалуйста, заполните все обязательные поля");
                 return;
             }
+
+            let image1Url = '';
+            let image2Url = '';
+
+            if (image1File) image1Url = await uploadImage(image1File);
+            if (image2File) image2Url = await uploadImage(image2File);
 
             const ends_at = new Date(Date.now() + duration * 60000).toISOString();
 
@@ -84,6 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 option2,
                 votes1: 0,
                 votes2: 0,
+                image1: image1Url,
+                image2: image2Url,
                 ends_at: ends_at,
             });
 
