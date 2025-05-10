@@ -158,37 +158,25 @@ window.openShareModal = function (battleId, option) {
                 
                 console.log('Голос успешно добавлен');
                 
-                // Полное обновление блока баттла
+                // Перезагружаем данные для этого баттла
                 const { data: updatedBattles, error: fetchError } = await supabase.from('battles').select('*').eq('id', battleId);
                 if (fetchError) throw fetchError;
                 
                 const updatedBattle = updatedBattles[0];
-                const battleBlock = document.getElementById(`battle-${battleId}`);
                 
-                // Обновляем весь блок баттла
-                const isActive = new Date(updatedBattle.ends_at) > new Date();
-                const votes1 = updatedBattle.votes1 || 0;
-                const votes2 = updatedBattle.votes2 || 0;
-                const totalVotes = votes1 + votes2;
-                const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
-                const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
-
-                battleBlock.innerHTML = `
-                    <h3 class="text-xl font-semibold mb-3">${updatedBattle.title}</h3>
-                    <div class="flex gap-4 mb-4">
-                        <div class="flex-1">
-                            <img src="${updatedBattle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
-                            <div class="text-center font-semibold text-lg mt-2">${updatedBattle.option1}</div>
-                            <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${updatedBattle.id}', 'votes1')">Vote</button>
-                        </div>
-                        <div class="flex-1">
-                            <img src="${updatedBattle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
-                            <div class="text-center font-semibold text-lg mt-2">${updatedBattle.option2}</div>
-                            <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="openShareModal('${updatedBattle.id}', 'votes2')">Vote</button>
-                        </div>
+                // Обновляем прогресс-бар
+                const totalVotes = updatedBattle.votes1 + updatedBattle.votes2;
+                const option1Percent = totalVotes > 0 ? Math.round((updatedBattle.votes1 / totalVotes) * 100) : 0;
+                const option2Percent = totalVotes > 0 ? Math.round((updatedBattle.votes2 / totalVotes) * 100) : 0;
+                
+                const progressBar = document.getElementById(`progress-bar-${battleId}`);
+                progressBar.innerHTML = `
+                    <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent}%">
+                        ${updatedBattle.votes1} votes (${option1Percent}%)
                     </div>
-                    ${renderProgressBar(votes1, votes2, updatedBattle.id)}
-                    <div id="timer-${updatedBattle.id}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
+                    <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent}%">
+                        ${updatedBattle.votes2} votes (${option2Percent}%)
+                    </div>
                 `;
                 
                 modal.classList.add("hidden");
@@ -203,9 +191,6 @@ window.openShareModal = function (battleId, option) {
         modal.classList.add("hidden");
     };
 };
-
-
-
 
     // Обработчик для создания батла
     document.getElementById('submitBattleBtn').addEventListener('click', async () => {
