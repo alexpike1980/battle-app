@@ -31,27 +31,31 @@ async function uploadImage(file) {
         const fileName = `${Date.now()}-${file.name}`;
         console.log("Попытка загрузить файл:", fileName);
 
-        // Загрузка файла
-        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
+        // Загрузка файла в бакет
+        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+        });
+
         if (error) {
             console.error("Ошибка загрузки файла:", error);
             alert("Ошибка загрузки файла: " + error.message);
             return '';
         }
 
-        // Проверяем заголовки
-        console.log("Заголовки для запроса:", supabase.auth.headers);
+        console.log("Данные загрузки файла:", data);
 
-        // Получаем публичный URL через API Supabase
-        const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
-        if (publicError) {
-            console.error("Ошибка получения публичного URL:", publicError);
-            alert("Ошибка получения публичного URL: " + publicError.message);
+        // Проверяем, что файл действительно загрузился
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
+        const response = await fetch(publicUrl);
+        if (!response.ok) {
+            console.error("Файл не доступен по публичному URL:", publicUrl);
+            alert("Файл не доступен по публичному URL: " + publicUrl);
             return '';
         }
 
-        console.log("Публичный URL изображения:", publicData.publicUrl);
-        return publicData.publicUrl;
+        console.log("Файл успешно загружен:", publicUrl);
+        return publicUrl;
 
     } catch (error) {
         console.error("Ошибка загрузки изображения:", error.message);
@@ -59,6 +63,7 @@ async function uploadImage(file) {
         return '';
     }
 }
+
 
 
     async function fetchAndRenderBattles() {
