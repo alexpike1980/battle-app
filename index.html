@@ -68,6 +68,30 @@
         <button id="closeModalBtn" class="bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition-all mt-2">Cancel</button>
     </div>
 </div>
+<!-- Share Modal -->
+<div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-80 text-center">
+        <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
+        <div class="flex gap-4 mb-4 justify-center">
+            <a href="#" id="facebookShare" target="_blank">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" width="40" />
+            </a>
+            <a href="#" id="twitterShare" target="_blank">
+                <img src="https://upload.wikimedia.org/wikipedia/en/6/60/Twitter_Logo_as_of_2021.svg" width="40" />
+            </a>
+            <a href="#" id="redditShare" target="_blank">
+                <img src="https://upload.wikimedia.org/wikipedia/en/8/82/Reddit_logo_and_wordmark.svg" width="40" />
+            </a>
+        </div>
+        <button id="closeModalBtn" class="bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition-all w-full mt-2">Отмена</button>
+    </div>
+</div>
+
+<style>
+#shareModal.hidden {
+    display: none;
+}
+</style>
 
     <script>
         document.getElementById('createBattleBtn').addEventListener('click', () => {
