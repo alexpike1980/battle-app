@@ -151,17 +151,32 @@ window.openShareModal = function (battleId, option) {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
                 
                 // Обновляем количество голосов в базе данных
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('battles')
-                    .update({ [column]: supabase.raw(`${column} + 1`) })
-                    .eq('id', battleId);
-                
+                    .update({ [column]: supabase.sql(`${column} + 1`) })
+                    .eq('id', battleId)
+                    .select();
+
                 if (error) throw error;
                 
                 console.log('Голос успешно добавлен');
                 
-                // Полное обновление карточки баттла
-                fetchAndRenderBattles();
+                // Получаем обновленные данные баттла
+                const updatedBattle = data[0];
+                const totalVotes = updatedBattle.votes1 + updatedBattle.votes2;
+                const option1Percent = totalVotes > 0 ? Math.round((updatedBattle.votes1 / totalVotes) * 100) : 50;
+                const option2Percent = totalVotes > 0 ? Math.round((updatedBattle.votes2 / totalVotes) * 100) : 50;
+                
+                // Обновляем прогресс-бар
+                const progressBar = document.getElementById(`progress-bar-${battleId}`);
+                progressBar.innerHTML = `
+                    <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent}%">
+                        ${updatedBattle.votes1} votes (${option1Percent}%)
+                    </div>
+                    <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent}%">
+                        ${updatedBattle.votes2} votes (${option2Percent}%)
+                    </div>
+                `;
                 
                 // Закрываем модальное окно после шаринга
                 modal.classList.add("hidden");
@@ -171,6 +186,7 @@ window.openShareModal = function (battleId, option) {
         };
     });
 };
+
 
 
 // Закрытие модального окна
