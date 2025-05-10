@@ -1,20 +1,10 @@
+// Подключение к Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZXQ6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-console.log("Подключение к Supabase создано:", supabase);
-
-function logMessage(message, isError = false) {
-    const logContainer = document.getElementById('logContainer');
-    const logItem = document.createElement('div');
-    logItem.textContent = message;
-    logItem.style.color = isError ? 'red' : 'green';
-    logContainer.appendChild(logItem);
-    console.log(message);
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     function calculateTimeLeft(endTime) {
@@ -27,53 +17,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function uploadImage(file) {
-    try {
-        const fileName = `${Date.now()}-${file.name}`;
-        logMessage(`Попытка загрузить файл: ${fileName}`);
-        logMessage(`Тип файла: ${file.type}`);
-        logMessage(`Размер файла: ${file.size} байт`);
+        try {
+            const fileName = `${Date.now()}-${file.name}`;
 
-        // Проверяем, что файл не пустой
-        if (file.size === 0) {
-            logMessage("Ошибка: Пустой файл", true);
+            const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+            });
+
+            if (error) {
+                console.error(`Ошибка загрузки файла: ${error.message}`);
+                return '';
+            }
+
+            // Формируем публичный URL вручную
+            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
+            return publicUrl;
+
+        } catch (error) {
+            console.error(`Ошибка загрузки изображения: ${error.message}`);
             return '';
         }
-
-        // Загрузка файла в бакет
-        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-        });
-
-        if (error) {
-            logMessage(`Ошибка загрузки файла: ${error.message}`, true);
-            return '';
-        }
-
-        logMessage(`Файл успешно загружен: ${fileName}`);
-
-        // Формируем публичный URL вручную
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
-        logMessage(`Публичный URL изображения: ${publicUrl}`);
-        
-        // Проверяем доступность файла
-        const response = await fetch(publicUrl);
-        if (!response.ok) {
-            logMessage(`Файл не доступен по публичному URL: ${publicUrl}`, true);
-            return '';
-        }
-
-        logMessage(`Файл доступен по публичному URL: ${publicUrl}`);
-        return publicUrl;
-
-    } catch (error) {
-        logMessage(`Ошибка загрузки изображения: ${error.message}`, true);
-        return '';
     }
-}
-
-
-
 
     async function fetchAndRenderBattles() {
         try {
@@ -118,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(block);
             });
         } catch (error) {
-            logMessage(`Ошибка загрузки батлов: ${error.message}`, true);
+            console.error(`Ошибка загрузки батлов: ${error.message}`);
         }
     }
 
@@ -132,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const image2FileInput = document.getElementById('image2File');
 
             if (!title || !option1 || !option2 || isNaN(duration)) {
-                logMessage("Пожалуйста, заполните все обязательные поля", true);
+                console.error("Пожалуйста, заполните все обязательные поля");
                 return;
             }
 
@@ -160,15 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (error) {
-                logMessage(`Ошибка создания батла: ${error.message}`, true);
+                console.error(`Ошибка создания батла: ${error.message}`);
                 return;
             }
 
-            logMessage("Батл успешно создан");
+            console.log("Батл успешно создан");
             document.getElementById('createModal').classList.add('hidden');
             fetchAndRenderBattles();
         } catch (error) {
-            logMessage(`Ошибка создания батла: ${error.message}`, true);
+            console.error(`Ошибка создания батла: ${error.message}`);
         }
     });
 
