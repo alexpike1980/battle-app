@@ -6,109 +6,81 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let currentTab = 'active';
-
-function toggleForm() {
-  const form = document.getElementById('createForm');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById('tab-active').classList.remove('active');
-  document.getElementById('tab-finished').classList.remove('active');
-  document.getElementById(`tab-${tab}`).classList.add('active');
-  fetchAndRenderBattles();
-}
-
-function calculateTimeLeft(endTime) {
-  const diff = new Date(endTime) - new Date();
-  if (diff <= 0) return '00:00:00';
-  const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
-  const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-  const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
-}
-
 async function fetchAndRenderBattles() {
-  const now = new Date().toISOString();
-  const { data: battles } = await supabase.from('battles')
-    .select('*')
-    .order('created_at', { ascending: false });
+    const now = new Date().toISOString();
+    const { data: battles } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
 
-  const filteredBattles = battles.filter(battle =>
-    currentTab === 'active' ? new Date(battle.end_time) > new Date() : new Date(battle.end_time) <= new Date()
-  );
+    const container = document.getElementById('battleList');
+    container.innerHTML = '';
 
-  const container = document.getElementById('battleList');
-  container.innerHTML = '';
-  filteredBattles.forEach(battle => {
-    const block = document.createElement('div');
-    block.className = 'battle-block';
-    block.innerHTML = `
-      <h3>${battle.title}</h3>
-      <div class="battle-images">
-        <div>
-          <img src="${battle.image1 || ''}" alt="Option 1"/>
-          <button class="vote-btn" onclick="vote(${battle.id}, 'option1')">Vote Now</button>
-        </div>
-        <div>
-          <img src="${battle.image2 || ''}" alt="Option 2"/>
-          <button class="vote-btn" onclick="vote(${battle.id}, 'option2')">Vote Now</button>
-        </div>
-      </div>
-      <div class="countdown" id="countdown-${battle.id}"></div>
-    `;
-    container.appendChild(block);
-    updateCountdown(battle.id, battle.end_time);
-  });
-}
+    battles.forEach(battle => {
+        const isActive = new Date(battle.end_time) > new Date();
+        const option1Votes = battle.option1_votes || 0;
+        const option2Votes = battle.option2_votes || 0;
+        const totalVotes = option1Votes + option2Votes;
+        const option1Percent = totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0;
+        const option2Percent = totalVotes > 0 ? Math.round((option2Votes / totalVotes) * 100) : 0;
 
-function updateCountdown(id, endTime) {
-  const element = document.getElementById(`countdown-${id}`);
-  function tick() {
-    const timeLeft = calculateTimeLeft(endTime);
-    element.textContent = `Time left: ${timeLeft}`;
-    if (timeLeft === '00:00:00') fetchAndRenderBattles();
-  }
-  tick();
-  setInterval(tick, 1000);
+        const block = document.createElement('div');
+        block.className = 'p-4 bg-white rounded-lg shadow-lg';
+        block.innerHTML = `
+            <h3 class="text-xl font-semibold mb-3">${battle.title}</h3>
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1">
+                    <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
+                    <button class="w-full mt-2 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-all" onclick="vote(${battle.id}, 'option1')">Vote</button>
+                    <div class="mt-2 text-center">${option1Votes} votes (${option1Percent}%)</div>
+                </div>
+                <div class="flex-1">
+                    <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
+                    <button class="w-full mt-2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-all" onclick="vote(${battle.id}, 'option2')">Vote</button>
+                    <div class="mt-2 text-center">${option2Votes} votes (${option2Percent}%)</div>
+                </div>
+            </div>
+            ${isActive ? `<div class="text-center text-sm text-gray-500">Active</div>` : `<div class="text-center text-sm text-red-500">Finished</div>`}
+        `;
+        container.appendChild(block);
+    });
 }
 
 async function vote(battleId, option) {
-  const { data: battle } = await supabase.from('battles').select('*').eq('id', battleId).single();
-  const newVotes = (battle[`${option}_votes`] || 0) + 1;
-  await supabase.from('battles').update({ [`${option}_votes`]: newVotes }).eq('id', battleId);
-  fetchAndRenderBattles();
+    const { data: battle } = await supabase.from('battles').select('*').eq('id', battleId).single();
+    const newVotes = (battle[`${option}_votes`] || 0) + 1;
+    await supabase.from('battles').update({ [`${option}_votes`]: newVotes }).eq('id', battleId);
+    fetchAndRenderBattles();
 }
 
-document.getElementById('submitBtn').addEventListener('click', async () => {
-  const title = document.getElementById('title').value;
-  const option1 = document.getElementById('option1').value;
-  const option2 = document.getElementById('option2').value;
-  const duration = parseInt(document.getElementById('duration').value);
-  const image1 = document.getElementById('image1').value;
-  const image2 = document.getElementById('image2').value;
-
-  const endTime = new Date(Date.now() + duration * 60000).toISOString();
-
-  await supabase.from('battles').insert({
-    title,
-    option1,
-    option2,
-    option1_votes: 0,
-    option2_votes: 0,
-    end_time: endTime,
-    image1,
-    image2,
-  });
-
-  toggleForm();
-  fetchAndRenderBattles();
+document.getElementById('createBattleBtn').addEventListener('click', () => {
+    document.getElementById('createModal').classList.remove('hidden');
 });
 
-window.toggleForm = toggleForm;
-window.switchTab = switchTab;
-window.vote = vote;
+document.getElementById('closeModalBtn').addEventListener('click', () => {
+    document.getElementById('createModal').classList.add('hidden');
+});
+
+document.getElementById('submitBattleBtn').addEventListener('click', async () => {
+    const title = document.getElementById('title').value;
+    const option1 = document.getElementById('option1').value;
+    const option2 = document.getElementById('option2').value;
+    const duration = parseInt(document.getElementById('duration').value);
+    const image1 = document.getElementById('image1').value;
+    const image2 = document.getElementById('image2').value;
+
+    const endTime = new Date(Date.now() + duration * 60000).toISOString();
+
+    await supabase.from('battles').insert({
+        title,
+        option1,
+        option2,
+        option1_votes: 0,
+        option2_votes: 0,
+        end_time: endTime,
+        image1,
+        image2,
+    });
+
+    document.getElementById('createModal').classList.add('hidden');
+    fetchAndRenderBattles();
+});
 
 fetchAndRenderBattles();
