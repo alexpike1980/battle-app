@@ -101,22 +101,24 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     const block = document.createElement('div');
     block.id = `battle-${battle.id}`;
     block.className = 'p-4 bg-white rounded-lg shadow-lg';
-    block.innerHTML = `
-        <h3 class="text-xl font-semibold mb-3">${battle.title}</h3>
-        <div class="flex gap-4 mb-4">
-            <div class="flex-1">
-                <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
-                <div class="text-center font-semibold text-lg mt-2">${battle.option1}</div>
-                <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes1')">Vote</button>
-            </div>
-            <div class="flex-1">
-                <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
-                <div class="text-center font-semibold text-lg mt-2">${battle.option2}</div>
-                <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes2')">Vote</button>
-            </div>
+ block.innerHTML = `
+    <h3 class="text-xl font-semibold mb-3">${battle.title}</h3>
+    <div class="flex gap-4 mb-4">
+        <div class="flex-1">
+            <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
+            <div class="text-center font-semibold text-lg mt-2">${battle.option1}</div>
+            <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes1')">Vote</button>
         </div>
-        ${renderProgressBar(votes1, votes2, battle.id)}
-        <div id="timer-${battle.id}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
+        <div class="flex-1">
+            <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
+            <div class="text-center font-semibold text-lg mt-2">${battle.option2}</div>
+            <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes2')">Vote</button>
+        </div>
+    </div>
+    ${renderProgressBar(votes1, votes2, battle.id)}
+    <div id="timer-${battle.id}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
+`;
+
     `;
     container.appendChild(block);
 
