@@ -143,14 +143,17 @@ window.openShareModal = function (battleId, option) {
             try {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
                 
-                // Обновляем количество голосов в базе данных
-                const { error } = await supabase.from('battles').update({ [column]: supabase.raw(`${column} + 1`) }).eq('id', battleId);
+                // Правильное увеличение голосов
+                const { error } = await supabase
+                    .from('battles')
+                    .update({ [column]: supabase.sql(`${column} + 1`) })
+                    .eq('id', battleId);
                 
                 if (error) throw error;
                 
                 console.log('Голос успешно добавлен');
                 
-                // Перезагружаем весь блок баттла
+                // Полное обновление карточки баттла
                 fetchAndRenderBattles();
                 
                 modal.classList.add("hidden");
@@ -159,12 +162,13 @@ window.openShareModal = function (battleId, option) {
             }
         };
     });
+
+    // Закрытие модального окна
+    document.getElementById("closeModalBtn").onclick = () => {
+        modal.classList.add("hidden");
+    };
 };
 
-// Закрытие модального окна
-document.getElementById("closeModalBtn").onclick = () => {
-    document.getElementById("shareModal").classList.add("hidden");
-};
 
 
     // Обработчик для создания батла
