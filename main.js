@@ -83,62 +83,54 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     `;
 }
 
-    async function fetchAndRenderBattles() {
-        try {
-            const { data: battles, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
+   async function fetchAndRenderBattles() {
+    try {
+        const { data: battles, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
 
-            const container = document.getElementById('battleList');
-            if (!container) return;
-            container.innerHTML = '';
+        const container = document.getElementById('battleList');
+        if (!container) return;
+        container.innerHTML = '';
 
         battles.forEach(battle => {
-    const isActive = new Date(battle.ends_at) > new Date();
-    const votes1 = battle.votes1 || 0;
-    const votes2 = battle.votes2 || 0;
-    const timeLeftId = `timer-${battle.id}`;
+            const isActive = new Date(battle.ends_at) > new Date();
+            const votes1 = battle.votes1 || 0;
+            const votes2 = battle.votes2 || 0;
 
-    // Добавляем уникальный ID для каждого блока баттла
-    const block = document.createElement('div');
-    block.id = `battle-${battle.id}`;
-    block.className = 'p-4 bg-white rounded-lg shadow-lg';
-                block.innerHTML = `
-                    <h3 class="text-xl font-semibold mb-3">${battle.title}</h3>
-                    <div class="flex gap-4 mb-4">
-                        <div class="flex-1">
-                            <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
-                            <div class="text-center font-semibold text-lg mt-2">${battle.option1}</div>
-                            <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes1')">Vote</button>
-                        </div>
-                        <div class="flex-1">
-                            <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
-                            <div class="text-center font-semibold text-lg mt-2">${battle.option2}</div>
-                            <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2"  onclick="openShareModal('${battle.id}', 'votes2')">Vote</button>
-                        </div>
+            const block = document.createElement('div');
+            block.id = `battle-${battle.id}`;
+            block.className = 'p-4 bg-white rounded-lg shadow-lg';
+            block.innerHTML = `
+                <h3 class="text-xl font-semibold mb-3">${battle.title}</h3>
+                <div class="flex gap-4 mb-4">
+                    <div class="flex-1">
+                        <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
+                        <div class="text-center font-semibold text-lg mt-2">${battle.option1}</div>
+                        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes1')">Vote</button>
                     </div>
-                    ${renderProgressBar(votes1, votes2)}
-                    <div id="${timeLeftId}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
-                `;
-                container.appendChild(block);
-
-                // Запуск live таймера
-                if (isActive) {
-                    startLiveCountdown(battle.id, battle.ends_at);
-                }
-            });
-        } catch (error) {
-            console.error(`Ошибка загрузки батлов: ${error.message}`);
-        }
+                    <div class="flex-1">
+                        <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
+                        <div class="text-center font-semibold text-lg mt-2">${battle.option2}</div>
+                        <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes2')">Vote</button>
+                    </div>
+                </div>
+                ${renderProgressBar(votes1, votes2, battle.id)}
+                <div id="timer-${battle.id}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
+            `;
+            container.appendChild(block);
+        });
+    } catch (error) {
+        console.error(`Ошибка загрузки батлов: ${error.message}`);
     }
+}
 
-    fetchAndRenderBattles();
-
+fetchAndRenderBattles();
 // Функция открытия модального окна шаринга
 window.openShareModal = function (battleId, option) {
     const modal = document.getElementById("shareModal");
     modal.classList.remove("hidden");
 
-    const url = window.location.origin;
+    const url = window.location.href;
     const title = "Make it count – share to vote!";
     
     document.getElementById("facebookShare").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
@@ -158,26 +150,8 @@ window.openShareModal = function (battleId, option) {
                 
                 console.log('Голос успешно добавлен');
                 
-                // Перезагружаем данные для этого баттла
-                const { data: updatedBattles, error: fetchError } = await supabase.from('battles').select('*').eq('id', battleId);
-                if (fetchError) throw fetchError;
-                
-                const updatedBattle = updatedBattles[0];
-                
-                // Обновляем прогресс-бар
-                const totalVotes = updatedBattle.votes1 + updatedBattle.votes2;
-                const option1Percent = totalVotes > 0 ? Math.round((updatedBattle.votes1 / totalVotes) * 100) : 0;
-                const option2Percent = totalVotes > 0 ? Math.round((updatedBattle.votes2 / totalVotes) * 100) : 0;
-                
-                const progressBar = document.getElementById(`progress-bar-${battleId}`);
-                progressBar.innerHTML = `
-                    <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent}%">
-                        ${updatedBattle.votes1} votes (${option1Percent}%)
-                    </div>
-                    <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent}%">
-                        ${updatedBattle.votes2} votes (${option2Percent}%)
-                    </div>
-                `;
+                // Перезагружаем весь блок баттла
+                fetchAndRenderBattles();
                 
                 modal.classList.add("hidden");
             } catch (error) {
@@ -185,6 +159,7 @@ window.openShareModal = function (battleId, option) {
             }
         };
     });
+};
 
 // Закрытие модального окна
 document.getElementById("closeModalBtn").onclick = () => {
