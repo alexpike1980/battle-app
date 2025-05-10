@@ -27,37 +27,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function uploadImage(file) {
-        try {
-            const fileName = `${Date.now()}-${file.name}`;
-            logMessage(`Попытка загрузить файл: ${fileName}`);
+    try {
+        const fileName = `${Date.now()}-${file.name}`;
+        logMessage(`Попытка загрузить файл: ${fileName}`);
 
-            const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
-                cacheControl: '3600',
-                upsert: false,
-            });
+        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+        });
 
-            if (error) {
-                logMessage(`Ошибка загрузки файла: ${error.message}`, true);
-                return '';
-            }
-
-            logMessage(`Файл успешно загружен: ${fileName}`);
-
-            // Получаем публичный URL через API Supabase
-            const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
-            if (publicError) {
-                logMessage(`Ошибка получения публичного URL: ${publicError.message}`, true);
-                return '';
-            }
-
-            logMessage(`Публичный URL изображения: ${publicData.publicUrl}`);
-            return publicData.publicUrl;
-
-        } catch (error) {
-            logMessage(`Ошибка загрузки изображения: ${error.message}`, true);
+        if (error) {
+            logMessage(`Ошибка загрузки файла: ${error.message}`, true);
             return '';
         }
+
+        logMessage(`Файл успешно загружен: ${fileName}`);
+
+        // Формируем публичный URL вручную
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
+        logMessage(`Публичный URL изображения: ${publicUrl}`);
+        
+        // Проверяем доступность файла
+        const response = await fetch(publicUrl);
+        if (!response.ok) {
+            logMessage(`Файл не доступен по публичному URL: ${publicUrl}`, true);
+            return '';
+        }
+
+        return publicUrl;
+
+    } catch (error) {
+        logMessage(`Ошибка загрузки изображения: ${error.message}`, true);
+        return '';
     }
+}
+
 
 
 
