@@ -142,9 +142,9 @@ window.openShareModal = function (battleId, option) {
     const url = window.location.href;
     const title = "Make it count – share to vote!";
     
-    document.getElementById("facebookShare").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-    document.getElementById("twitterShare").href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-    document.getElementById("redditShare").href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+    document.getElementById("facebookShare").href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url) + "&quote=" + encodeURIComponent(title);
+    document.getElementById("twitterShare").href = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(title);
+    document.getElementById("redditShare").href = "https://www.reddit.com/submit?url=" + encodeURIComponent(url) + "&title=" + encodeURIComponent(title);
 
     // Добавляем обработчик клика для увеличения голосов
     document.querySelectorAll("#shareModal a").forEach(link => {
@@ -155,7 +155,7 @@ window.openShareModal = function (battleId, option) {
                 // Обновляем количество голосов в базе данных
                 const { data, error } = await supabase
                     .from('battles')
-                    .update({ [column]: supabase.sql(`${column} + 1`) })
+                    .update({ [column]: supabase.sql(column + ' + 1') })
                     .eq('id', battleId)
                     .select();
 
@@ -170,24 +170,24 @@ window.openShareModal = function (battleId, option) {
                 const option2Percent = totalVotes > 0 ? Math.round((updatedBattle.votes2 / totalVotes) * 100) : 50;
                 
                 // Обновляем прогресс-бар
-                const progressBar = document.getElementById(`progress-bar-${battleId}`);
-                progressBar.innerHTML = `
-                    <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent}%">
-                        ${updatedBattle.votes1} votes (${option1Percent}%)
-                    </div>
-                    <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent}%">
-                        ${updatedBattle.votes2} votes (${option2Percent}%)
-                    </div>
-                `;
+                const progressBar = document.getElementById("progress-bar-" + battleId);
+                progressBar.innerHTML = 
+                    '<div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:' + option1Percent + '%">' +
+                    updatedBattle.votes1 + ' votes (' + option1Percent + '%)' +
+                    '</div>' +
+                    '<div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:' + option2Percent + '%">' +
+                    updatedBattle.votes2 + ' votes (' + option2Percent + '%)' +
+                    '</div>';
                 
                 // Закрываем модальное окно после шаринга
                 modal.classList.add("hidden");
             } catch (error) {
-              console.error("Ошибка добавления голоса: " + error.message);
+                console.error("Ошибка добавления голоса: " + error.message);
             }
         };
     });
 };
+
 
 
 
