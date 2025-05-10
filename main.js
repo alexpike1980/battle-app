@@ -118,5 +118,37 @@ document.getElementById('submitBattleBtn').addEventListener('click', async () =>
         alert("Ошибка создания батла: " + error.message);
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const submitBattleBtn = document.getElementById('submitBattleBtn');
+    const titleInput = document.getElementById('title');
+    const option1Input = document.getElementById('option1');
+    const option2Input = document.getElementById('option2');
+    const durationInput = document.getElementById('duration');
+
+    if (!submitBattleBtn || !titleInput || !option1Input || !option2Input || !durationInput) {
+        console.error("Элементы формы не найдены");
+        return;
+    }
+
+    submitBattleBtn.addEventListener('click', async () => {
+        try {
+            const title = titleInput.value.trim();
+            const option1 = option1Input.value.trim();
+            const option2 = option2Input.value.trim();
+            const duration = parseInt(durationInput.value.trim());
+
+            if (!title || !option1 || !option2 || isNaN(duration)) {
+                alert("Пожалуйста, заполните все обязательные поля");
+                return;
+            }
+
+            // Загрузка изображения и создание батла...
+        } catch (error) {
+            console.error("Ошибка создания батла:", error.message);
+            alert("Ошибка создания батла: " + error.message);
+        }
+    });
+});
+
 
 fetchAndRenderBattles();
