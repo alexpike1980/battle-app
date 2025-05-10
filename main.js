@@ -69,10 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
         return `
             <div class=\"w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex relative gap-0\">
-                <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent || 50}%;">
+                <div class=\"bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full\" style="width:${option1Percent || 50}%;">
                     ${votes1} votes (${option1Percent}%)
                 </div>
-                <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent || 50}%;">
+                <div class=\"bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full\" style="width:${option2Percent || 50}%;">
                     ${votes2} votes (${option2Percent}%)
                 </div>
             </div>
