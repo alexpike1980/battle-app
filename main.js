@@ -2,11 +2,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZXQ6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
+
     function calculateTimeLeft(endTime) {
         const diff = new Date(endTime) - new Date();
         if (diff <= 0) return '00:00:00';
@@ -100,10 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="flex gap-4 mb-4">
                         <div class="flex-1">
                             <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
+                            <div class="text-center font-semibold text-lg mt-2">${battle.option1}</div>
                             <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
                         </div>
                         <div class="flex-1">
                             <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
+                            <div class="text-center font-semibold text-lg mt-2">${battle.option2}</div>
                             <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="shareBattle(${battle.id}, 'votes2')">Vote</button>
                         </div>
                     </div>
