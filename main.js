@@ -2,7 +2,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZXQ6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (error) throw error;
             const { data: publicData } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
             if (!publicData || !publicData.publicUrl) throw new Error("Не удалось получить публичную ссылку на изображение");
+            console.log("Загруженный URL изображения:", publicData.publicUrl);
             return publicData.publicUrl;
         } catch (error) {
             console.error("Ошибка загрузки изображения:", error.message);
@@ -85,8 +86,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const option1 = document.getElementById('option1').value.trim();
             const option2 = document.getElementById('option2').value.trim();
             const duration = parseInt(document.getElementById('duration').value.trim());
-            const image1File = document.getElementById('image1File').files[0];
-            const image2File = document.getElementById('image2File').files[0];
+            const image1FileInput = document.getElementById('image1File');
+            const image2FileInput = document.getElementById('image2File');
 
             if (!title || !option1 || !option2 || isNaN(duration)) {
                 alert("Пожалуйста, заполните все обязательные поля");
@@ -96,8 +97,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let image1Url = '';
             let image2Url = '';
 
-            if (image1File) image1Url = await uploadImage(image1File);
-            if (image2File) image2Url = await uploadImage(image2File);
+            if (image1FileInput && image1FileInput.files.length > 0) {
+                image1Url = await uploadImage(image1FileInput.files[0]);
+            }
+            if (image2FileInput && image2FileInput.files.length > 0) {
+                image2Url = await uploadImage(image2FileInput.files[0]);
+            }
 
             const ends_at = new Date(Date.now() + duration * 60000).toISOString();
 
@@ -121,26 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Ошибка создания батла: " + error.message);
         }
     });
-
-    async function uploadImage(file) {
-    try {
-        const fileName = `${Date.now()}-${file.name}`;
-        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
-        if (error) throw error;
-
-        // Получаем публичный URL
-        const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
-        if (publicError) throw publicError;
-
-        console.log("Загруженный URL изображения:", publicData.publicUrl);
-        return publicData.publicUrl;
-    } catch (error) {
-        console.error("Ошибка загрузки изображения:", error.message);
-        alert("Ошибка загрузки изображения: " + error.message);
-        return '';
-    }
-}
-
 
     fetchAndRenderBattles();
 });
