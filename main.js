@@ -2,7 +2,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZXQ6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -40,38 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function startLiveCountdown(battleId, endTime) {
-        const timerElement = document.getElementById(`timer-${battleId}`);
-
-        function updateTimer() {
-            const diff = new Date(endTime) - new Date();
-            if (diff <= 0) {
-                timerElement.textContent = "Finished";
-                clearInterval(interval);
-                return;
-            }
-
-            const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
-            const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-            const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-            timerElement.textContent = `${hours}:${minutes}:${seconds}`;
-        }
-
-        // Обновляем таймер каждую секунду
-        const interval = setInterval(updateTimer, 1000);
-        updateTimer(); // Первый вызов сразу
-    }
-
-    function renderProgressBar(votes1, votes2) {
+    function renderProgressBar(votes1 = 0, votes2 = 0) {
         const totalVotes = votes1 + votes2;
         const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
         const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
         return `
-            <div class="w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex">
-                <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center" style="width:${option1Percent}%">
+            <div class="w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex relative">
+                <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent || 50}%;">
                     ${votes1} votes (${option1Percent}%)
                 </div>
-                <div class="bg-green-600 text-white text-sm leading-none py-1 text-center" style="width:${option2Percent}%">
+                <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent || 50}%;">
                     ${votes2} votes (${option2Percent}%)
                 </div>
             </div>
@@ -100,17 +78,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="flex gap-4 mb-4">
                         <div class="flex-1">
                             <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
+                            <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
                         </div>
                         <div class="flex-1">
                             <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
+                            <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="shareBattle(${battle.id}, 'votes2')">Vote</button>
                         </div>
                     </div>
                     ${renderProgressBar(votes1, votes2)}
-                    <div class="flex justify-between items-center">
-                        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
-                        <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all" onclick="shareBattle(${battle.id}, 'votes2')">Vote</button>
-                        <div id="${timeLeftId}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
-                    </div>
+                    <div id="${timeLeftId}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
                 `;
                 container.appendChild(block);
 
