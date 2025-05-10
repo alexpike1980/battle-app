@@ -65,36 +65,26 @@ function calculateTimeLeft(endTime) {
     return `${hours}:${minutes}:${seconds}`;
 }
 
-function shareBattle(battleId, option) {
-    const shareUrl = `${window.location.origin}/battle.html?battleId=${battleId}&option=${option}`;
-    const shareText = 'Check out this battle and vote!';
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
-    window.open(url, '_blank');
-    vote(battleId, option);
+async function uploadImage(file) {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
+    if (error) throw error;
+    const { publicURL } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
+    return publicURL;
 }
-
-async function vote(battleId, option) {
-    const { data: battle } = await supabase.from('battles').select('*').eq('id', battleId).single();
-    const newVotes = (battle[`${option}_votes`] || 0) + 1;
-    await supabase.from('battles').update({ [`${option}_votes`]: newVotes }).eq('id', battleId);
-    fetchAndRenderBattles();
-}
-
-document.getElementById('createBattleBtn').addEventListener('click', () => {
-    document.getElementById('createModal').classList.remove('hidden');
-});
-
-document.getElementById('closeModalBtn').addEventListener('click', () => {
-    document.getElementById('createModal').classList.add('hidden');
-});
 
 document.getElementById('submitBattleBtn').addEventListener('click', async () => {
     const title = document.getElementById('title').value;
     const option1 = document.getElementById('option1').value;
     const option2 = document.getElementById('option2').value;
     const duration = parseInt(document.getElementById('duration').value);
-    const image1 = document.getElementById('image1').value;
-    const image2 = document.getElementById('image2').value;
+    const image1File = document.getElementById('image1').files[0];
+    const image2File = document.getElementById('image2').files[0];
+
+    let image1Url = '';
+    let image2Url = '';
+    if (image1File) image1Url = await uploadImage(image1File);
+    if (image2File) image2Url = await uploadImage(image2File);
 
     const endTime = new Date(Date.now() + duration * 60000).toISOString();
 
@@ -105,8 +95,8 @@ document.getElementById('submitBattleBtn').addEventListener('click', async () =>
         option1_votes: 0,
         option2_votes: 0,
         end_time: endTime,
-        image1,
-        image2,
+        image1: image1Url,
+        image2: image2Url,
     });
 
     document.getElementById('createModal').classList.add('hidden');
