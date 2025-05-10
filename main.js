@@ -1,10 +1,11 @@
-// Подключение к Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZXQ6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+console.log("Подключение к Supabase создано:", supabase);
 
 function logMessage(message, isError = false) {
     const logContainer = document.getElementById('logContainer');
