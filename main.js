@@ -128,7 +128,7 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     }
 });
     } catch (error) {
-        console.error(`Ошибка загрузки батлов: ${error.message}`);
+        console.error('Ошибка загрузки батлов: ${error.message}');
     }
 }
 
