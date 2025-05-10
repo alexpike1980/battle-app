@@ -30,7 +30,16 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         const fileName = `${Date.now()}-${file.name}`;
         logMessage(`Попытка загрузить файл: ${fileName}`);
+        logMessage(`Тип файла: ${file.type}`);
+        logMessage(`Размер файла: ${file.size} байт`);
 
+        // Проверяем, что файл не пустой
+        if (file.size === 0) {
+            logMessage("Ошибка: Пустой файл", true);
+            return '';
+        }
+
+        // Загрузка файла в бакет
         const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
             cacheControl: '3600',
             upsert: false,
@@ -54,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return '';
         }
 
+        logMessage(`Файл доступен по публичному URL: ${publicUrl}`);
         return publicUrl;
 
     } catch (error) {
@@ -61,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return '';
     }
 }
-
 
 
 
