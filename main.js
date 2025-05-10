@@ -15,84 +15,73 @@ function toggleForm() {
 
 function switchTab(tab) {
   currentTab = tab;
-  document.getElementById('tab-active').classList.toggle('active', tab === 'active');
-  document.getElementById('tab-finished').classList.toggle('active', tab === 'finished');
-  loadBattles();
+  document.getElementById('tab-active').classList.remove('active');
+  document.getElementById('tab-finished').classList.remove('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  fetchAndRenderBattles();
 }
 
-async function loadBattles() {
-  const { data: battles, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
-  if (error) {
-    console.error('Error loading battles:', error);
-    return;
-  }
+function calculateTimeLeft(endTime) {
+  const diff = new Date(endTime) - new Date();
+  if (diff <= 0) return '00:00:00';
+  const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
+  const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+  const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
+}
+
+async function fetchAndRenderBattles() {
+  const now = new Date().toISOString();
+  const { data: battles } = await supabase.from('battles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const filteredBattles = battles.filter(battle =>
+    currentTab === 'active' ? new Date(battle.end_time) > new Date() : new Date(battle.end_time) <= new Date()
+  );
 
   const container = document.getElementById('battleList');
   container.innerHTML = '';
-  const now = new Date();
-
-  battles.forEach(battle => {
-    const endTime = new Date(battle.created_at);
-    endTime.setMinutes(endTime.getMinutes() + battle.duration);
-    const isActive = endTime > now;
-    if ((currentTab === 'active' && isActive) || (currentTab === 'finished' && !isActive)) {
-      const div = document.createElement('div');
-      div.className = 'battle-block';
-
-      const timeRemaining = Math.max(0, Math.floor((endTime - now) / 1000));
-      const progressPercent = Math.min(100, 100 - ((timeRemaining / (battle.duration * 60)) * 100));
-
-      div.innerHTML = `
-        <h3>${battle.title}</h3>
-        <div class="battle-images">
-          <div style="width: 48%; text-align: center">
-            <img src="${battle.image1 || ''}" alt="Option 1" />
-            <button class="vote-btn">Vote now</button>
-          </div>
-          <div style="width: 48%; text-align: center">
-            <img src="${battle.image2 || ''}" alt="Option 2" />
-            <button class="vote-btn">Vote now</button>
-          </div>
+  filteredBattles.forEach(battle => {
+    const block = document.createElement('div');
+    block.className = 'battle-block';
+    block.innerHTML = `
+      <h3>${battle.title}</h3>
+      <div class="battle-images">
+        <div>
+          <img src="${battle.image1 || ''}" alt="Option 1"/>
+          <button class="vote-btn" onclick="vote(${battle.id}, 'option1')">Vote Now</button>
         </div>
-        <div class="progress-container">
-          <div class="progress-bar" style="width: ${progressPercent}%">${Math.floor(progressPercent)}%</div>
+        <div>
+          <img src="${battle.image2 || ''}" alt="Option 2"/>
+          <button class="vote-btn" onclick="vote(${battle.id}, 'option2')">Vote Now</button>
         </div>
-        <div class="countdown" data-endtime="${endTime.toISOString()}">⏳</div>
-        <div class="social-icons" style="margin-top: 10px;">
-          <button onclick="shareTo('https://t.me/share/url?url=' + location.href)"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" />Telegram</button>
-          <button onclick="shareTo('https://wa.me/?text=' + encodeURIComponent(location.href))"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" />WhatsApp</button>
-        </div>
-      `;
-
-      container.appendChild(div);
-    }
+      </div>
+      <div class="countdown" id="countdown-${battle.id}"></div>
+    `;
+    container.appendChild(block);
+    updateCountdown(battle.id, battle.end_time);
   });
 }
 
-function shareTo(url) {
-  window.open(url, '_blank');
+function updateCountdown(id, endTime) {
+  const element = document.getElementById(`countdown-${id}`);
+  function tick() {
+    const timeLeft = calculateTimeLeft(endTime);
+    element.textContent = `Time left: ${timeLeft}`;
+    if (timeLeft === '00:00:00') fetchAndRenderBattles();
+  }
+  tick();
+  setInterval(tick, 1000);
 }
 
-function updateCountdowns() {
-  const countdowns = document.querySelectorAll('.countdown');
-  const now = new Date();
-  countdowns.forEach(el => {
-    const end = new Date(el.dataset.endtime);
-    const diff = Math.floor((end - now) / 1000);
-    if (diff > 0) {
-      const h = String(Math.floor(diff / 3600)).padStart(2, '0');
-      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
-      const s = String(diff % 60).padStart(2, '0');
-      el.textContent = `⏳ ${h}:${m}:${s}`;
-    } else {
-      el.textContent = 'Battle ended';
-    }
-  });
+async function vote(battleId, option) {
+  const { data: battle } = await supabase.from('battles').select('*').eq('id', battleId).single();
+  const newVotes = (battle[`${option}_votes`] || 0) + 1;
+  await supabase.from('battles').update({ [`${option}_votes`]: newVotes }).eq('id', battleId);
+  fetchAndRenderBattles();
 }
 
-setInterval(updateCountdowns, 1000);
-
-// Обработка создания батла
 document.getElementById('submitBtn').addEventListener('click', async () => {
   const title = document.getElementById('title').value;
   const option1 = document.getElementById('option1').value;
@@ -101,28 +90,25 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   const image1 = document.getElementById('image1').value;
   const image2 = document.getElementById('image2').value;
 
-  if (!title || !option1 || !option2 || !duration) {
-    alert('Please fill all required fields.');
-    return;
-  }
+  const endTime = new Date(Date.now() + duration * 60000).toISOString();
 
-  const { error } = await supabase.from('battles').insert([
-    { title, option1, option2, duration, image1, image2 }
-  ]);
+  await supabase.from('battles').insert({
+    title,
+    option1,
+    option2,
+    option1_votes: 0,
+    option2_votes: 0,
+    end_time: endTime,
+    image1,
+    image2,
+  });
 
-  if (error) {
-    console.error('Error creating battle:', error);
-  } else {
-    document.getElementById('createForm').style.display = 'none';
-    document.getElementById('title').value = '';
-    document.getElementById('option1').value = '';
-    document.getElementById('option2').value = '';
-    document.getElementById('duration').value = '';
-    document.getElementById('image1').value = '';
-    document.getElementById('image2').value = '';
-    loadBattles();
-  }
+  toggleForm();
+  fetchAndRenderBattles();
 });
 
-// Инициализация
-loadBattles();
+window.toggleForm = toggleForm;
+window.switchTab = switchTab;
+window.vote = vote;
+
+fetchAndRenderBattles();
