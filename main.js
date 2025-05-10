@@ -25,33 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}:${seconds}`;
     }
 
-    async function uploadImage(file) {
-    try {
-        const fileName = `${Date.now()}-${file.name}`;
-        console.log("Попытка загрузить файл:", fileName);
-
-        // Загрузка файла
-        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
-        if (error) {
-            console.error("Ошибка загрузки файла:", error);
-            alert("Ошибка загрузки файла: " + error.message);
-            return '';
-        }
-
-        // Формируем публичный URL вручную
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
-        console.log("Публичный URL изображения:", publicUrl);
-
-        // Убираем проверку доступности файла
-        return publicUrl;
-
-    } catch (error) {
-        console.error("Ошибка загрузки изображения:", error.message);
-        alert("Ошибка загрузки изображения: " + error.message);
-        return '';
-    }
-}
-
+  
 
     document.getElementById('submitBattleBtn').addEventListener('click', async () => {
         try {
