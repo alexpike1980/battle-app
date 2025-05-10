@@ -170,9 +170,20 @@ window.openShareModal = function (battleId, option) {
     });
 
 // Закрытие модального окна
-document.getElementById("closeModalBtn").onclick = () => {
-    document.getElementById("shareModal").classList.add("hidden");
-};
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("closeModalBtn").onclick = () => {
+        document.getElementById("shareModal").classList.add("hidden");
+    };
+
+    // Закрытие при клике вне модального окна
+    document.addEventListener("click", (event) => {
+        const modal = document.getElementById("shareModal");
+        if (event.target === modal) {
+            modal.classList.add("hidden");
+        }
+    });
+});
+
 
 };
 
