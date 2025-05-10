@@ -27,11 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             battles.forEach(battle => {
                 const isActive = new Date(battle.ends_at) > new Date();
-                const option1Votes = battle.option1_votes || 0;
-                const option2Votes = battle.option2_votes || 0;
-                const totalVotes = option1Votes + option2Votes;
-                const option1Percent = totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0;
-                const option2Percent = totalVotes > 0 ? Math.round((option2Votes / totalVotes) * 100) : 0;
+                const votes1 = battle.votes1 || 0;
+                const votes2 = battle.votes2 || 0;
+                const totalVotes = votes1 + votes2;
+                const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
+                const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
                 const timeLeft = calculateTimeLeft(battle.ends_at);
 
                 const block = document.createElement('div');
@@ -47,12 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full overflow-hidden mb-4">
-                        <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent}%;">${option1Votes} votes (${option1Percent}%)</div>
-                        <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent}%;">${option2Votes} votes (${option2Percent}%)</div>
+                        <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent}%;">${votes1} votes (${option1Percent}%)</div>
+                        <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent}%;">${votes2} votes (${option2Percent}%)</div>
                     </div>
                     <div class="flex justify-between items-center">
-                        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all" onclick="shareBattle(${battle.id}, 'option1')">Vote</button>
-                        <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all" onclick="shareBattle(${battle.id}, 'option2')">Vote</button>
+                        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
+                        <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all" onclick="shareBattle(${battle.id}, 'votes2')">Vote</button>
                         <div class="text-sm text-gray-500">${isActive ? `Time left: ${timeLeft}` : 'Finished'}</div>
                     </div>
                 `;
@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 title,
                 option1,
                 option2,
-                option1_votes: 0,
-                option2_votes: 0,
+                votes1: 0,
+                votes2: 0,
                 ends_at: ends_at,
             });
 
