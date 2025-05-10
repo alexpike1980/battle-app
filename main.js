@@ -45,17 +45,16 @@ async function uploadImage(file) {
 
         console.log("Данные загрузки файла:", data);
 
-        // Проверяем, что файл действительно загрузился
-        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
-        const response = await fetch(publicUrl);
-        if (!response.ok) {
-            console.error("Файл не доступен по публичному URL:", publicUrl);
-            alert("Файл не доступен по публичному URL: " + publicUrl);
+        // Получаем публичный URL через API Supabase
+        const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
+        if (publicError) {
+            console.error("Ошибка получения публичного URL:", publicError);
+            alert("Ошибка получения публичного URL: " + publicError.message);
             return '';
         }
 
-        console.log("Файл успешно загружен:", publicUrl);
-        return publicUrl;
+        console.log("Публичный URL изображения:", publicData.publicUrl);
+        return publicData.publicUrl;
 
     } catch (error) {
         console.error("Ошибка загрузки изображения:", error.message);
@@ -63,6 +62,7 @@ async function uploadImage(file) {
         return '';
     }
 }
+
 
 
 
