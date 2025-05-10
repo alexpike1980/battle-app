@@ -119,7 +119,7 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     <div id="timer-${battle.id}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
 `;
 
-    `;
+   
     container.appendChild(block);
 
     // Запуск live таймера
@@ -205,9 +205,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
-
-
-
 
 
 
