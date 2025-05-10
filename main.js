@@ -6,6 +6,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function calculateTimeLeft(endTime) {
+    const diff = new Date(endTime) - new Date();
+    if (diff <= 0) return '00:00:00';
+    const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+}
+
 async function fetchAndRenderBattles() {
     try {
         const { data: battles, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
