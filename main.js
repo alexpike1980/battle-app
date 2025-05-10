@@ -26,13 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
 
             battles.forEach(battle => {
-                const isActive = new Date(battle.end_time) > new Date();
+                const isActive = new Date(battle.ends_at) > new Date();
                 const option1Votes = battle.option1_votes || 0;
                 const option2Votes = battle.option2_votes || 0;
                 const totalVotes = option1Votes + option2Votes;
                 const option1Percent = totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0;
                 const option2Percent = totalVotes > 0 ? Math.round((option2Votes / totalVotes) * 100) : 0;
-                const timeLeft = calculateTimeLeft(battle.end_time);
+                const timeLeft = calculateTimeLeft(battle.ends_at);
 
                 const block = document.createElement('div');
                 block.className = 'p-4 bg-white rounded-lg shadow-lg';
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const endTime = new Date(Date.now() + duration * 60000).toISOString();
+            const ends_at = new Date(Date.now() + duration * 60000).toISOString();
 
             const { error } = await supabase.from('battles').insert({
                 title,
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 option2,
                 option1_votes: 0,
                 option2_votes: 0,
-                end_time: endTime,
+                ends_at: ends_at,
             });
 
             if (error) throw error;
