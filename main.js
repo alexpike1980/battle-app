@@ -62,22 +62,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const interval = setInterval(updateTimer, 1000);
         updateTimer(); // Первый вызов сразу
     }
-
-    function renderProgressBar(votes1 = 0, votes2 = 0) {
-        const totalVotes = votes1 + votes2;
-        const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
-        const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
-        return `
-            <div class=\"w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex relative gap-0\">
-                <div class=\"bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full\" style="width:${option1Percent || 50}%;">
-                    ${votes1} votes (${option1Percent}%)
-                </div>
-                <div class=\"bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full\" style="width:${option2Percent || 50}%;">
-                    ${votes2} votes (${option2Percent}%)
-                </div>
+function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
+    const totalVotes = votes1 + votes2;
+    const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
+    const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
+    return `
+        <div id="progress-bar-${battleId}" class="w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex relative gap-0">
+            <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent || 50}%">
+                ${votes1} votes (${option1Percent}%)
             </div>
-        `;
-    }
+            <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent || 50}%">
+                ${votes2} votes (${option2Percent}%)
+            </div>
+        </div>
+    `;
+}
+
 
     async function fetchAndRenderBattles() {
         try {
@@ -132,7 +132,7 @@ window.openShareModal = function (battleId, option) {
     const modal = document.getElementById("shareModal");
     modal.classList.remove("hidden");
 
-    const url = window.location.origin;  // Добавляем базовый URL
+    const url = window.location.origin;
     const title = "Make it count – share to vote!";
     
     document.getElementById("facebookShare").href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
@@ -144,13 +144,33 @@ window.openShareModal = function (battleId, option) {
         link.onclick = async (event) => {
             try {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
+                
+                // Обновляем количество голосов в базе данных
                 const { error } = await supabase.from('battles').update({ [column]: supabase.raw(`${column} + 1`) }).eq('id', battleId);
                 
                 if (error) throw error;
                 
                 console.log('Голос успешно добавлен');
+                
+                // Мгновенно обновляем интерфейс
+                const response = await supabase.from('battles').select('*').eq('id', battleId);
+                const updatedBattle = response.data[0];
+                const progressBar = document.getElementById(`progress-bar-${battleId}`);
+                
+                const totalVotes = updatedBattle.votes1 + updatedBattle.votes2;
+                const option1Percent = totalVotes > 0 ? Math.round((updatedBattle.votes1 / totalVotes) * 100) : 0;
+                const option2Percent = totalVotes > 0 ? Math.round((updatedBattle.votes2 / totalVotes) * 100) : 0;
+                
+                progressBar.innerHTML = `
+                    <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent}%">
+                        ${updatedBattle.votes1} votes (${option1Percent}%)
+                    </div>
+                    <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent}%">
+                        ${updatedBattle.votes2} votes (${option2Percent}%)
+                    </div>
+                `;
+                
                 modal.classList.add("hidden");
-                fetchAndRenderBattles();  // Обновляем голоса после шаринга
             } catch (error) {
                 console.error("Ошибка добавления голоса:", error.message);
             }
