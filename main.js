@@ -69,8 +69,8 @@ async function uploadImage(file) {
     const fileName = `${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
     if (error) throw error;
-    const { publicURL } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
-    return publicURL;
+    const { publicUrl } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
+    return publicUrl.publicUrl;
 }
 
 document.getElementById('submitBattleBtn').addEventListener('click', async () => {
@@ -78,13 +78,16 @@ document.getElementById('submitBattleBtn').addEventListener('click', async () =>
     const option1 = document.getElementById('option1').value;
     const option2 = document.getElementById('option2').value;
     const duration = parseInt(document.getElementById('duration').value);
-    const image1File = document.getElementById('image1').files[0];
-    const image2File = document.getElementById('image2').files[0];
+    const image1Url = document.getElementById('image1Url').value.trim();
+    const image2Url = document.getElementById('image2Url').value.trim();
+    const image1File = document.getElementById('image1File').files[0];
+    const image2File = document.getElementById('image2File').files[0];
 
-    let image1Url = '';
-    let image2Url = '';
-    if (image1File) image1Url = await uploadImage(image1File);
-    if (image2File) image2Url = await uploadImage(image2File);
+    let finalImage1 = image1Url;
+    let finalImage2 = image2Url;
+
+    if (!finalImage1 && image1File) finalImage1 = await uploadImage(image1File);
+    if (!finalImage2 && image2File) finalImage2 = await uploadImage(image2File);
 
     const endTime = new Date(Date.now() + duration * 60000).toISOString();
 
@@ -95,8 +98,8 @@ document.getElementById('submitBattleBtn').addEventListener('click', async () =>
         option1_votes: 0,
         option2_votes: 0,
         end_time: endTime,
-        image1: image1Url,
-        image2: image2Url,
+        image1: finalImage1,
+        image2: finalImage2,
     });
 
     document.getElementById('createModal').classList.add('hidden');
