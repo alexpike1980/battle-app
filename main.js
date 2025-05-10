@@ -26,42 +26,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}:${seconds}`;
     }
 
-async function uploadImage(file) {
-    try {
-        const fileName = `${Date.now()}-${file.name}`;
-        console.log("Попытка загрузить файл:", fileName);
+    async function uploadImage(file) {
+        try {
+            const fileName = `${Date.now()}-${file.name}`;
+            logMessage(`Попытка загрузить файл: ${fileName}`);
 
-        // Загрузка файла в бакет
-        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-        });
+            const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+            });
 
-        if (error) {
-            console.error("Ошибка загрузки файла:", error);
-            alert("Ошибка загрузки файла: " + error.message);
+            if (error) {
+                logMessage(`Ошибка загрузки файла: ${error.message}`, true);
+                return '';
+            }
+
+            logMessage(`Файл успешно загружен: ${fileName}`);
+
+            // Получаем публичный URL через API Supabase
+            const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
+            if (publicError) {
+                logMessage(`Ошибка получения публичного URL: ${publicError.message}`, true);
+                return '';
+            }
+
+            logMessage(`Публичный URL изображения: ${publicData.publicUrl}`);
+            return publicData.publicUrl;
+
+        } catch (error) {
+            logMessage(`Ошибка загрузки изображения: ${error.message}`, true);
             return '';
         }
-
-        console.log("Данные загрузки файла:", data);
-
-        // Получаем публичный URL через API Supabase
-        const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
-        if (publicError) {
-            console.error("Ошибка получения публичного URL:", publicError);
-            alert("Ошибка получения публичного URL: " + publicError.message);
-            return '';
-        }
-
-        console.log("Публичный URL изображения:", publicData.publicUrl);
-        return publicData.publicUrl;
-
-    } catch (error) {
-        console.error("Ошибка загрузки изображения:", error.message);
-        alert("Ошибка загрузки изображения: " + error.message);
-        return '';
     }
-}
 
 
 
