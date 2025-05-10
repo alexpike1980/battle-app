@@ -16,22 +16,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}:${seconds}`;
     }
 
-    async function uploadImage(file) {
-        try {
-            const fileName = `${Date.now()}-${file.name}`;
-            const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
-            if (error) throw error;
-            
-            // Формируем публичный URL вручную
-            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
-            console.log("Загруженный URL изображения:", publicUrl);
-            return publicUrl;
-        } catch (error) {
-            console.error("Ошибка загрузки изображения:", error.message);
-            alert("Ошибка загрузки изображения: " + error.message);
+async function uploadImage(file) {
+    try {
+        const fileName = `${Date.now()}-${file.name}`;
+        console.log("Попытка загрузить файл:", fileName);
+
+        // Загрузка файла
+        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
+        if (error) {
+            console.error("Ошибка загрузки файла:", error);
+            alert("Ошибка загрузки файла: " + error.message);
             return '';
         }
+
+        // Формируем публичный URL вручную
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
+        console.log("Публичный URL изображения:", publicUrl);
+
+        // Проверяем, что URL действительно доступен
+        const response = await fetch(publicUrl);
+        if (!response.ok) {
+            console.error("Файл не доступен:", publicUrl);
+            alert("Файл не доступен: " + publicUrl);
+            return '';
+        }
+
+        return publicUrl;
+    } catch (error) {
+        console.error("Ошибка загрузки изображения:", error.message);
+        alert("Ошибка загрузки изображения: " + error.message);
+        return '';
     }
+}
+
 
     async function fetchAndRenderBattles() {
         try {
