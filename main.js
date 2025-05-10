@@ -122,5 +122,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    async function uploadImage(file) {
+    try {
+        const fileName = `${Date.now()}-${file.name}`;
+        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
+        if (error) throw error;
+
+        // Получаем публичный URL
+        const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
+        if (publicError) throw publicError;
+
+        console.log("Загруженный URL изображения:", publicData.publicUrl);
+        return publicData.publicUrl;
+    } catch (error) {
+        console.error("Ошибка загрузки изображения:", error.message);
+        alert("Ошибка загрузки изображения: " + error.message);
+        return '';
+    }
+}
+
+
     fetchAndRenderBattles();
 });
