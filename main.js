@@ -131,6 +131,7 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
 }
 
 fetchAndRenderBattles();
+
 // Функция открытия модального окна шаринга
 window.openShareModal = function (battleId, option) {
     const modal = document.getElementById("shareModal");
@@ -149,10 +150,10 @@ window.openShareModal = function (battleId, option) {
             try {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
                 
-                // Правильное увеличение голосов
+                // Обновляем количество голосов в базе данных
                 const { error } = await supabase
                     .from('battles')
-                    .update({ [column]: supabase.sql(`${column} + 1`) })
+                    .update({ [column]: supabase.raw(`${column} + 1`) })
                     .eq('id', battleId);
                 
                 if (error) throw error;
@@ -162,12 +163,15 @@ window.openShareModal = function (battleId, option) {
                 // Полное обновление карточки баттла
                 fetchAndRenderBattles();
                 
+                // Закрываем модальное окно после шаринга
                 modal.classList.add("hidden");
             } catch (error) {
                 console.error("Ошибка добавления голоса:", error.message);
             }
         };
     });
+};
+
 
 // Закрытие модального окна
 document.addEventListener("DOMContentLoaded", () => {
