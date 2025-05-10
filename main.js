@@ -67,12 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
         const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
         return `
-            <div class="w-full bg-gray-200 rounded-2xl overflow-hidden mb-4 flex relative">
-                <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-2xl" style="width:${option1Percent}%;">
-                    <span class="absolute left-2">${votes1} votes (${option1Percent}%)</span>
+            <div class="w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex">
+                <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center" style="width:${option1Percent}%">
+                    ${votes1} votes (${option1Percent}%)
                 </div>
-                <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-2xl" style="width:${option2Percent}%;">
-                    <span class="absolute right-2">${votes2} votes (${option2Percent}%)</span>
+                <div class="bg-green-600 text-white text-sm leading-none py-1 text-center" style="width:${option2Percent}%">
+                    ${votes2} votes (${option2Percent}%)
                 </div>
             </div>
         `;
@@ -100,15 +100,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="flex gap-4 mb-4">
                         <div class="flex-1">
                             <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
-                            <button class="bg-blue-600 text-white py-2 px-4 rounded-2xl hover:bg-blue-700 transition-all w-full mt-2" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
                         </div>
                         <div class="flex-1">
                             <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
-                            <button class="bg-green-600 text-white py-2 px-4 rounded-2xl hover:bg-green-700 transition-all w-full mt-2" onclick="shareBattle(${battle.id}, 'votes2')">Vote</button>
                         </div>
                     </div>
                     ${renderProgressBar(votes1, votes2)}
-                    <div id="${timeLeftId}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
+                    <div class="flex justify-between items-center">
+                        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
+                        <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all" onclick="shareBattle(${battle.id}, 'votes2')">Vote</button>
+                        <div id="${timeLeftId}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
+                    </div>
                 `;
                 container.appendChild(block);
 
@@ -172,10 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchAndRenderBattles();
         } catch (error) {
             console.error(`Ошибка создания батла: ${error.message}`);
-        }
-    });
-});
-
         }
     });
 });
