@@ -21,10 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const fileName = `${Date.now()}-${file.name}`;
             const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
             if (error) throw error;
-            const { data: publicData } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
-            if (!publicData || !publicData.publicUrl) throw new Error("Не удалось получить публичную ссылку на изображение");
-            console.log("Загруженный URL изображения:", publicData.publicUrl);
-            return publicData.publicUrl;
+            
+            // Формируем публичный URL вручную
+            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
+            console.log("Загруженный URL изображения:", publicUrl);
+            return publicUrl;
         } catch (error) {
             console.error("Ошибка загрузки изображения:", error.message);
             alert("Ошибка загрузки изображения: " + error.message);
@@ -63,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full overflow-hidden mb-4">
-                        <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent}%;">${votes1} votes (${option1Percent}%)</div>
-                        <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent}%;">${votes2} votes (${option2Percent}%)</div>
+                        <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option1Percent}%">${votes1} votes (${option1Percent}%)</div>
+                        <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-full" style="width:${option2Percent}%">${votes2} votes (${option2Percent}%)</div>
                     </div>
                     <div class="flex justify-between items-center">
                         <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all" onclick="shareBattle(${battle.id}, 'votes1')">Vote</button>
