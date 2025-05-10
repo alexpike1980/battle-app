@@ -64,21 +64,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     const totalVotes = votes1 + votes2;
-    const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 0;
-    const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 0;
+    const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 50;
+    const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 50;
+
+    // Если нет голосов, показываем пустой бар
+    const option1Width = totalVotes > 0 ? option1Percent : 50;
+    const option2Width = totalVotes > 0 ? option2Percent : 50;
+    
     return `
         <div id="progress-bar-${battleId}" class="w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex relative gap-0">
-            <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Percent}%">
+            <div class="bg-blue-600 text-white text-sm leading-none py-1 text-center rounded-l-full" style="width:${option1Width}%">
                 ${votes1} votes (${option1Percent}%)
             </div>
-            <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Percent}%">
+            <div class="bg-green-600 text-white text-sm leading-none py-1 text-center rounded-r-full" style="width:${option2Width}%">
                 ${votes2} votes (${option2Percent}%)
             </div>
         </div>
     `;
 }
-
-
 
     async function fetchAndRenderBattles() {
         try {
