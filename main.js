@@ -29,27 +29,33 @@ document.addEventListener('DOMContentLoaded', () => {
 async function uploadImage(file) {
     try {
         const fileName = `${Date.now()}-${file.name}`;
-        logMessage(`Попытка загрузить файл: ${fileName}`);
+        console.log("Попытка загрузить файл:", fileName);
 
-        // Загрузка файла в бакет
+        // Загрузка файла
         const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file);
         if (error) {
-            logMessage(`Ошибка загрузки файла: ${error.message}`, true);
+            console.error("Ошибка загрузки файла:", error);
+            alert("Ошибка загрузки файла: " + error.message);
             return '';
         }
+
+        // Проверяем заголовки
+        console.log("Заголовки для запроса:", supabase.auth.headers);
 
         // Получаем публичный URL через API Supabase
         const { data: publicData, error: publicError } = await supabase.storage.from('battle-images').getPublicUrl(fileName);
         if (publicError) {
-            logMessage(`Ошибка получения публичного URL: ${publicError.message}`, true);
+            console.error("Ошибка получения публичного URL:", publicError);
+            alert("Ошибка получения публичного URL: " + publicError.message);
             return '';
         }
 
-        logMessage(`Публичный URL изображения: ${publicData.publicUrl}`);
+        console.log("Публичный URL изображения:", publicData.publicUrl);
         return publicData.publicUrl;
 
     } catch (error) {
-        logMessage(`Ошибка загрузки изображения: ${error.message}`, true);
+        console.error("Ошибка загрузки изображения:", error.message);
+        alert("Ошибка загрузки изображения: " + error.message);
         return '';
     }
 }
