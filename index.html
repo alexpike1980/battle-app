@@ -67,39 +67,46 @@
 .progress-bar {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     color: white;
     font-size: 14px;
     line-height: 30px;
     white-space: nowrap;
     position: relative;
     overflow: hidden;
+    padding: 0 10px;
 }
 
 .progress-bar-blue {
     background-color: #007bff;
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
-    min-width: 50%;
+    flex-grow: 1;
 }
 
 .progress-bar-green {
     background-color: #28a745;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
-    min-width: 50%;
+    flex-grow: 1;
 }
 
 /* Текст всегда виден */
-.progress-text {
+.progress-text-left {
     position: absolute;
-    width: 100%;
-    text-align: center;
+    left: 10px;
     color: white;
     font-weight: bold;
     z-index: 2;
 }
 
+.progress-text-right {
+    position: absolute;
+    right: 10px;
+    color: white;
+    font-weight: bold;
+    z-index: 2;
+}
 
 </style>
 
