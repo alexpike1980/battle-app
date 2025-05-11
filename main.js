@@ -74,16 +74,17 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     const option2Width = totalVotes > 0 ? option2Percent : 50;
     
     return `
-        <div id="progress-bar-${battleId}" class="w-full bg-gray-200 rounded-full overflow-hidden mb-4 flex relative gap-0" style="height: 30px;">
-            <div class="bg-blue-600 text-white text-sm leading-none flex items-center justify-center rounded-l-full" style="width:${option1Width}%; line-height: 30px;">
-                ${votes1} votes (${option1Percent}%)
+        <div id="progress-bar-${battleId}" class="progress-bar-container">
+            <div class="progress-bar progress-bar-blue" style="width:${option1Width}%">
+                <span class="progress-text">${votes1} votes (${option1Percent}%)</span>
             </div>
-            <div class="bg-green-600 text-white text-sm leading-none flex items-center justify-center rounded-r-full" style="width:${option2Width}%; line-height: 30px;">
-                ${votes2} votes (${option2Percent}%)
+            <div class="progress-bar progress-bar-green" style="width:${option2Width}%">
+                <span class="progress-text">${votes2} votes (${option2Percent}%)</span>
             </div>
         </div>
     `;
 }
+
 
 
    async function fetchAndRenderBattles() {
