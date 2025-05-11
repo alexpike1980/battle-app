@@ -71,7 +71,7 @@
 
 <!-- Share Modal -->
 <div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-80 text-center">
+    <div id="modalContent" class="bg-white p-8 rounded-lg shadow-lg w-80 text-center relative">
         <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
         <div class="flex gap-4 mb-4 justify-center">
             <a href="#" id="facebookShare" target="_blank">
@@ -90,7 +90,10 @@
 
 <style>
 .hidden {
-    display: none;
+    display: none !important;
+}
+#shareModal {
+    z-index: 9999;
 }
 </style>
 
