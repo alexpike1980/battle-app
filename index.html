@@ -30,13 +30,14 @@
 
 .modal-content {
     background-color: #fff;
-    padding: 20px;
+    padding: 30px 20px;
     border-radius: 12px;
     width: 90%;
     max-width: 500px;
     text-align: center;
     z-index: 1001;
 }
+
 
 .modal button {
     background-color: #6c757d;
@@ -52,7 +53,78 @@
 .modal button:hover {
     background-color: #5a6268;
 }
+.share-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
 
+/* Стили кнопок */
+.share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: #f1f1f1;
+    color: #333;
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    width: 140px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.share-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+/* Цвета для кнопок */
+.facebook {
+    background-color: #4267B2;
+    color: white;
+}
+
+.twitter {
+    background-color: #1DA1F2;
+    color: white;
+}
+
+.reddit {
+    background-color: #FF4500;
+    color: white;
+}
+
+/* Hover эффекты */
+.share-btn:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.1);
+}
+
+/* Мобильное расположение */
+@media (max-width: 768px) {
+    .share-buttons {
+        flex-direction: column;
+    }
+}
+       /* Кнопка отмены */
+.cancel-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+    background-color: #5a6268;
+}
 .progress-bar-container {
     display: flex;
     width: 100%;
