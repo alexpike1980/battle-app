@@ -192,21 +192,24 @@ window.openShareModal = function (battleId, option) {
 // Закрытие модального окна
 document.addEventListener("DOMContentLoaded", () => {
     const shareModal = document.getElementById("shareModal");
+    const shareModalContent = document.getElementById("shareModalContent");
     const shareCloseBtn = document.getElementById("shareCloseBtn");
-    const shareModalContent = shareModal.querySelector(".modal-content");
 
     // Закрываем модальное окно по кнопке Cancel
     shareCloseBtn.addEventListener("click", () => {
+        console.log("Закрываем модальное окно sharing");
         shareModal.classList.add("hidden");
     });
 
     // Закрываем модальное окно при клике вне его области
     shareModal.addEventListener("click", (event) => {
         if (!shareModalContent.contains(event.target)) {
+            console.log("Клик вне контента, закрываем окно");
             shareModal.classList.add("hidden");
         }
     });
 });
+
 
 
 
