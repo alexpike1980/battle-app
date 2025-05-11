@@ -67,35 +67,33 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background-color: #f1f1f1;
-    color: #333;
+    color: white;
     padding: 12px 20px;
     border-radius: 8px;
     text-decoration: none;
     font-weight: bold;
-    width: 140px;
+    width: 200px;
     transition: background-color 0.2s, transform 0.2s;
 }
 
+/* Иконки */
 .share-btn img {
     width: 24px;
     height: 24px;
+    filter: brightness(0) invert(1); /* Контрастные иконки */
 }
 
 /* Цвета для кнопок */
 .facebook {
     background-color: #4267B2;
-    color: white;
 }
 
 .twitter {
     background-color: #1DA1F2;
-    color: white;
 }
 
 .reddit {
     background-color: #FF4500;
-    color: white;
 }
 
 /* Hover эффекты */
@@ -108,22 +106,37 @@
 @media (max-width: 768px) {
     .share-buttons {
         flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    .share-btn {
+        width: 100%;
+        max-width: 300px;
     }
 }
-       /* Кнопка отмены */
+
+/* Кнопка отмены */
 .cancel-btn {
     background-color: #6c757d;
     color: white;
-    padding: 12px 30px;
+    padding: 12px 20px;
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    margin-top: 10px;
+    width: 200px;
     transition: background-color 0.2s;
 }
 
 .cancel-btn:hover {
     background-color: #5a6268;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .cancel-btn {
+        width: 100%;
+        max-width: 300px;
+    }
 }
 .progress-bar-container {
     display: flex;
