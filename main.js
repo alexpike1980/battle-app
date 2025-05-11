@@ -193,13 +193,16 @@ window.openShareModal = function (battleId, option) {
 
 // Закрытие модального окна
 document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById("closeModalBtn").onclick = () => {
-        document.getElementById("shareModal").classList.add("hidden");
-    };
+    const modal = document.getElementById("shareModal");
+    const closeModalBtn = document.getElementById("closeModalBtn");
 
-    // Закрытие при клике вне модального окна
-    document.addEventListener("click", (event) => {
-        const modal = document.getElementById("shareModal");
+    // Закрываем модальное окно по кнопке Cancel
+    closeModalBtn.addEventListener("click", () => {
+        modal.classList.add("hidden");
+    });
+
+    // Закрываем модальное окно при клике вне его области
+    modal.addEventListener("click", (event) => {
         if (event.target === modal) {
             modal.classList.add("hidden");
         }
