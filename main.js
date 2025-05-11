@@ -211,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+
     // Обработчик для создания батла
     document.getElementById('submitBattleBtn').addEventListener('click', async () => {
         try {
