@@ -64,6 +64,7 @@
     position: relative;
 }
 
+/* Прогресс-бары */
 .progress-bar {
     display: flex;
     align-items: center;
@@ -75,6 +76,7 @@
     padding: 0 10px;
     position: relative;
     flex-shrink: 0;
+    z-index: 1;
 }
 
 /* Цвета прогресс-бара */
@@ -90,10 +92,15 @@
     border-bottom-right-radius: 12px;
 }
 
+/* Полное заполнение */
+.full {
+    border-radius: 12px !important;
+    width: 100% !important;
+}
+
 /* Текст всегда виден */
 .progress-text {
     font-weight: bold;
-    z-index: 2;
     width: 100%;
 }
 
@@ -108,10 +115,6 @@
     padding-right: 10px;
 }
 
-.text-center {
-    text-align: center;
-    width: 100%;
-}
 
 
 </style>
