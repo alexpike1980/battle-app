@@ -53,12 +53,13 @@
 .modal button:hover {
     background-color: #5a6268;
 }
+/* Центрирование кнопок */
 .share-buttons {
     display: flex;
-    flex-wrap: wrap;
     gap: 15px;
     justify-content: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 /* Стили кнопок */
@@ -72,15 +73,16 @@
     border-radius: 8px;
     text-decoration: none;
     font-weight: bold;
-    width: 200px;
+    width: 140px;
     transition: background-color 0.2s, transform 0.2s;
 }
 
 /* Иконки */
-.share-btn img {
+.share-icon {
     width: 24px;
     height: 24px;
-    filter: brightness(0) invert(1); /* Контрастные иконки */
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 /* Цвета для кнопок */
@@ -94,6 +96,19 @@
 
 .reddit {
     background-color: #FF4500;
+}
+
+/* Иконки */
+.facebook-icon {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg');
+}
+
+.twitter-icon {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Simpleicons_Interface_x-symbol-plain.svg/1200px-Simpleicons_Interface_x-symbol-plain.svg.png');
+}
+
+.reddit-icon {
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Reddit_Logo_V2.svg/2048px-Reddit_Logo_V2.svg.png');
 }
 
 /* Hover эффекты */
