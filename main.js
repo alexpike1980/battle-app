@@ -180,6 +180,7 @@ window.openShareModal = function (battleId, option) {
 
 
 
+
 // Закрытие модального окна
 // Обработчик для модального окна sharing
 window.addEventListener("load", () => {
