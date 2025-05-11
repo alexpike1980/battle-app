@@ -191,22 +191,33 @@ window.openShareModal = function (battleId, option) {
 
 // Закрытие модального окна
 document.addEventListener("DOMContentLoaded", () => {
-    const modal = document.getElementById("shareModal");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const modalContent = modal.querySelector(".modal-content");
+    console.log("DOM полностью загружен");
 
-    // Закрываем модальное окно по кнопке Cancel
-    closeModalBtn.addEventListener("click", () => {
-        modal.classList.add("hidden");
-    });
+    const shareModal = document.getElementById("shareModal");
+    const shareCloseBtn = document.getElementById("shareCloseBtn");
+
+    // Проверяем, что кнопка вообще найдена
+    if (shareCloseBtn) {
+        console.log("Кнопка Cancel найдена");
+
+        // Закрываем модальное окно по кнопке Cancel
+        shareCloseBtn.addEventListener("click", () => {
+            console.log("Закрываем модальное окно sharing");
+            shareModal.classList.add("hidden");
+        });
+    } else {
+        console.error("Кнопка Cancel не найдена!");
+    }
 
     // Закрываем модальное окно при клике вне его области
-    modal.addEventListener("click", (event) => {
-        if (!modalContent.contains(event.target)) {
-            modal.classList.add("hidden");
+    shareModal.addEventListener("click", (event) => {
+        if (event.target === shareModal) {
+            console.log("Клик вне контента, закрываем окно");
+            shareModal.classList.add("hidden");
         }
     });
 });
+
 
 
 
