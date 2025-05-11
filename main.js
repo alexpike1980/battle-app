@@ -192,8 +192,9 @@ window.openShareModal = function (battleId, option) {
 
 
 // Закрытие модального окна
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM полностью загружен");
+// Обработчик для модального окна sharing
+window.addEventListener("load", () => {
+    console.log("Страница полностью загружена");
 
     const shareModal = document.getElementById("shareModal");
     const shareCloseBtn = document.getElementById("shareCloseBtn");
