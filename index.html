@@ -94,8 +94,8 @@
 </div>
 
 <!-- Share Modal -->
-<div id="shareModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div id="modalContent" class="bg-white p-8 rounded-lg shadow-lg w-80 text-center relative">
+<div id="shareModal" class="modal hidden">
+    <div class="modal-content">
         <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
         <div class="flex gap-4 mb-4 justify-center">
             <a href="#" id="facebookShare" target="_blank">
@@ -108,18 +108,10 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/2111/2111589.png" width="40" alt="Reddit" />
             </a>
         </div>
-        <button id="closeModalBtn" class="bg-gray-400 text-white py-2 px-4 rounded-lg hover:bg-gray-500 transition-all w-full mt-2">Cancel</button>
+        <button id="closeModalBtn">Cancel</button>
     </div>
 </div>
 
-<style>
-.hidden {
-    display: none !important;
-}
-#shareModal {
-    z-index: 9999;
-}
-</style>
 
 
 
