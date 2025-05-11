@@ -155,9 +155,9 @@ window.openShareModal = function (battleId, option) {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
                 
                 // Правильное увеличение голосов
-                const { error } = await supabase
+                const { data, error } = await supabase
                     .from('battles')
-                    .update({ [column]: supabase.raw(column + ' + 1') })
+                    .update({ [column]: supabase.fn('increment', 1) })
                     .eq('id', battleId)
                     .select();
 
@@ -171,11 +171,12 @@ window.openShareModal = function (battleId, option) {
                 // Закрываем модальное окно после шаринга
                 modal.classList.add("hidden");
             } catch (error) {
-                console.error("Ошибка добавления голоса:", error.message);
+                console.error("Ошибка добавления голоса: " + error.message);
             }
         };
     });
 };
+
 
 
 
