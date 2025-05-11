@@ -70,33 +70,38 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 50;
 
     // Полное заполнение для 100% голосов
-    const option1Full = option1Percent === 100 ? 'full' : '';
-    const option2Full = option2Percent === 100 ? 'full' : '';
-    
+    if (option1Percent === 100) {
+        return `
+            <div id="progress-bar-${battleId}" class="progress-bar-container">
+                <div class="progress-bar progress-bar-blue full">
+                    <span class="progress-text text-left">${votes1} votes (100%)</span>
+                </div>
+            </div>
+        `;
+    }
+
+    if (option2Percent === 100) {
+        return `
+            <div id="progress-bar-${battleId}" class="progress-bar-container">
+                <div class="progress-bar progress-bar-green full">
+                    <span class="progress-text text-right">${votes2} votes (100%)</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Обычный режим, если нет 100% варианта
     return `
         <div id="progress-bar-${battleId}" class="progress-bar-container">
-            ${option1Percent < 100 ? `
-                <div class="progress-bar progress-bar-blue ${option1Full}" style="width:${option1Percent}%;">
-                    <span class="progress-text text-left">${votes1} votes (${option1Percent}%)</span>
-                </div>` : ''}
-            ${option2Percent < 100 ? `
-                <div class="progress-bar progress-bar-green ${option2Full}" style="width:${option2Percent}%;">
-                    <span class="progress-text text-right">${votes2} votes (${option2Percent}%)</span>
-                </div>` : ''}
-            ${option1Percent === 100 ? `
-                <div class="progress-bar progress-bar-blue full" style="width: 100%;">
-                    <span class="progress-text text-left">${votes1} votes (100%)</span>
-                </div>` : ''}
-            ${option2Percent === 100 ? `
-                <div class="progress-bar progress-bar-green full" style="width: 100%;">
-                    <span class="progress-text text-right">${votes2} votes (100%)</span>
-                </div>` : ''}
+            <div class="progress-bar progress-bar-blue" style="width:${option1Percent}%">
+                <span class="progress-text text-left">${votes1} votes (${option1Percent}%)</span>
+            </div>
+            <div class="progress-bar progress-bar-green" style="width:${option2Percent}%">
+                <span class="progress-text text-right">${votes2} votes (${option2Percent}%)</span>
+            </div>
         </div>
     `;
 }
-
-
-
 
 
    async function fetchAndRenderBattles() {
