@@ -154,10 +154,10 @@ window.openShareModal = function (battleId, option) {
             try {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
                 
-                // Правильное увеличение голосов
+                // Правильное увеличение голосов через raw SQL
                 const { data, error } = await supabase
                     .from('battles')
-                    .update({ [column]: supabase.fn('increment', 1) })
+                    .update({ [column]: supabase.rpc('increment_vote', { column_name: column }) })
                     .eq('id', battleId)
                     .select();
 
@@ -176,6 +176,7 @@ window.openShareModal = function (battleId, option) {
         };
     });
 };
+
 
 
 
