@@ -1,3 +1,5 @@
+console.log("Скрипт main.js загружен");
+
 // Подключение к Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
