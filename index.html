@@ -6,35 +6,59 @@
     <title>Battle App</title>
     <script src="https://cdn.tailwindcss.com"></script>
  
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: #f8f9fa;
-        }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal.hidden {
-            display: none;
-        }
-        .modal-content {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-        }
-    </style>
+   <style>
+    body {
+        font-family: sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    /* Основной стиль модального окна */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    /* Скрытое модальное окно */
+    .modal.hidden {
+        display: none !important;
+    }
+
+    /* Контент модального окна */
+    .modal-content {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+        z-index: 1001;
+    }
+
+    /* Дополнительные стили для кнопок */
+    .modal button {
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: background-color 0.2s;
+    }
+
+    .modal button:hover {
+        background-color: #5a6268;
+    }
+</style>
+
 </head>
 <body>
 
