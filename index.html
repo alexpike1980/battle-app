@@ -64,7 +64,6 @@
     position: relative;
 }
 
-/* Прогресс-бары */
 .progress-bar {
     display: flex;
     align-items: center;
@@ -73,37 +72,39 @@
     line-height: 30px;
     white-space: nowrap;
     overflow: hidden;
+    padding: 0 10px;
+    position: relative;
 }
 
 .progress-bar-blue {
     background-color: #007bff;
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
-    position: relative;
+    flex-shrink: 0;
 }
 
 .progress-bar-green {
     background-color: #28a745;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
-    position: relative;
+    flex-shrink: 0;
 }
 
-/* Тексты поверх прогресс-бара */
-.progress-text-left {
-    position: absolute;
-    left: 10px;
-    color: white;
+/* Текст для голосов */
+.progress-text {
     font-weight: bold;
     z-index: 2;
+    width: 100%;
 }
 
-.progress-text-right {
-    position: absolute;
-    right: 10px;
-    color: white;
-    font-weight: bold;
-    z-index: 2;
+.text-left {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.text-right {
+    text-align: right;
+    padding-right: 10px;
 }
 
 </style>
