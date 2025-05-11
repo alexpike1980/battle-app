@@ -154,12 +154,24 @@ window.openShareModal = function (battleId, option) {
             try {
                 const column = option === 'votes1' ? 'votes1' : 'votes2';
                 
-                // Правильное увеличение голосов через raw SQL
-                const { data, error } = await supabase
+                // Получаем текущие голоса для баттла
+                const { data: battleData, error: fetchError } = await supabase
                     .from('battles')
-                    .update({ [column]: supabase.rpc('increment_vote', { column_name: column }) })
+                    .select(column)
                     .eq('id', battleId)
-                    .select();
+                    .single();
+
+                if (fetchError) throw fetchError;
+                
+                // Увеличиваем количество голосов
+                const currentVotes = battleData[column] || 0;
+                const newVotes = currentVotes + 1;
+                
+                // Обновляем количество голосов
+                const { error } = await supabase
+                    .from('battles')
+                    .update({ [column]: newVotes })
+                    .eq('id', battleId);
 
                 if (error) throw error;
                 
@@ -176,6 +188,7 @@ window.openShareModal = function (battleId, option) {
         };
     });
 };
+
 
 
 
