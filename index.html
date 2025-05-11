@@ -53,34 +53,53 @@
     background-color: #5a6268;
 }
 
-       .progress-bar-container {
+.progress-bar-container {
     display: flex;
     width: 100%;
     background-color: #e9ecef;
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 16px;
-    height: 24px;
+    height: 30px;
+    position: relative;
 }
 
 .progress-bar {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
     font-size: 14px;
-    line-height: 24px; /* Высота строки фиксирована */
+    line-height: 30px;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
 }
 
 .progress-bar-blue {
     background-color: #007bff;
     border-top-left-radius: 12px;
     border-bottom-left-radius: 12px;
+    min-width: 50%;
 }
 
 .progress-bar-green {
     background-color: #28a745;
     border-top-right-radius: 12px;
     border-bottom-right-radius: 12px;
+    min-width: 50%;
 }
+
+/* Текст всегда виден */
+.progress-text {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    z-index: 2;
+}
+
 
 </style>
 
