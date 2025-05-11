@@ -76,14 +76,15 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     return `
         <div id="progress-bar-${battleId}" class="progress-bar-container">
             <div class="progress-bar progress-bar-blue" style="width:${option1Width}%">
-                <span class="progress-text">${votes1} votes (${option1Percent}%)</span>
+                <span class="progress-text-left">${votes1} votes (${option1Percent}%)</span>
             </div>
             <div class="progress-bar progress-bar-green" style="width:${option2Width}%">
-                <span class="progress-text">${votes2} votes (${option2Percent}%)</span>
+                <span class="progress-text-right">${votes2} votes (${option2Percent}%)</span>
             </div>
         </div>
     `;
 }
+
 
 
 
