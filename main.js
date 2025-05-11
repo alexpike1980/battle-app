@@ -189,13 +189,11 @@ window.openShareModal = function (battleId, option) {
 };
 
 
-
-
 // Закрытие модального окна
 document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("shareModal");
     const closeModalBtn = document.getElementById("closeModalBtn");
-    const modalContent = document.getElementById("modalContent");
+    const modalContent = modal.querySelector(".modal-content");
 
     // Закрываем модальное окно по кнопке Cancel
     closeModalBtn.addEventListener("click", () => {
@@ -209,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
 
 
 
