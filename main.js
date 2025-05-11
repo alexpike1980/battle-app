@@ -70,20 +70,21 @@ function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
     const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 50;
 
     // Если нет голосов, показываем пустой бар
-    const option1Width = totalVotes > 0 ? option1Percent : 50;
-    const option2Width = totalVotes > 0 ? option2Percent : 50;
+    const option1Width = option1Percent === 100 ? 100 : option1Percent;
+    const option2Width = option2Percent === 100 ? 100 : option2Percent;
     
     return `
         <div id="progress-bar-${battleId}" class="progress-bar-container">
-            <div class="progress-bar progress-bar-blue" style="width:${option1Width}%">
-                <span class="progress-text ${option1Percent === 100 ? 'text-right' : 'text-left'}">${votes1} votes (${option1Percent}%)</span>
+            <div class="progress-bar progress-bar-blue" style="width:${option1Width}%; ${option1Percent === 100 ? 'border-radius: 12px;' : ''}">
+                <span class="progress-text ${option1Percent === 100 ? 'text-center' : 'text-left'}">${votes1} votes (${option1Percent}%)</span>
             </div>
-            <div class="progress-bar progress-bar-green" style="width:${option2Width}%">
-                <span class="progress-text ${option2Percent === 100 ? 'text-right' : 'text-left'}">${votes2} votes (${option2Percent}%)</span>
+            <div class="progress-bar progress-bar-green" style="width:${option2Width}%; ${option2Percent === 100 ? 'border-radius: 12px;' : ''}">
+                <span class="progress-text ${option2Percent === 100 ? 'text-center' : 'text-right'}">${votes2} votes (${option2Percent}%)</span>
             </div>
         </div>
     `;
 }
+
 
 
 
