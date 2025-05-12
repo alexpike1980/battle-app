@@ -215,7 +215,7 @@
     padding-right: 10px;
 }
 
-       /* Зеленая кнопка Submit */
+    /* Зеленая кнопка Submit */
 .submit-btn {
     background-color: #28a745;
     color: white;
@@ -236,12 +236,16 @@
 /* Стили для табов времени */
 .time-selector {
     margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
 }
 
 .time-tabs {
     display: flex;
     gap: 10px;
-    margin-top: 10px;
+    flex-wrap: nowrap;
 }
 
 .time-tab {
@@ -252,6 +256,8 @@
     cursor: pointer;
     font-weight: bold;
     transition: background-color 0.2s, color 0.2s;
+    flex: 1;
+    text-align: center;
 }
 
 .time-tab.active {
@@ -264,15 +270,21 @@
     color: white;
 }
 
-/* Прячем поле выбора даты по умолчанию */
-.hidden {
-    display: none;
-    margin-top: 10px;
-    width: 100%;
+/* Поле ввода времени */
+#duration,
+#datetimePicker {
+    flex: 2;
+    margin-top: 0;
+    width: 200px;
     padding: 10px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 14px;
+}
+
+/* Прячем поле выбора даты по умолчанию */
+.hidden {
+    display: none;
 }
 
 </style>
