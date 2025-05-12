@@ -7,7 +7,6 @@ const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 document.addEventListener("DOMContentLoaded", () => {
     const durationInput = document.getElementById("duration");
     const datetimePicker = document.getElementById("datetimePicker");
@@ -120,9 +119,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Устанавливаем активный таб по умолчанию (минуты)
     document.querySelector(".time-tab[data-unit='minutes']").click();
-
-    // Восстановление остального функционала
-    fetchAndRenderBattles();
 });
 
 
