@@ -25,7 +25,7 @@ document.getElementById("submitBattleBtn").addEventListener("click", async () =>
 
         let ends_at;
 
-        // Проверяем таб выбора времени
+        // Обработка выбора точной даты
         if (activeTab === "date") {
             const dateTimeValue = datetimePicker.value;
             if (!dateTimeValue) {
@@ -33,14 +33,16 @@ document.getElementById("submitBattleBtn").addEventListener("click", async () =>
                 return;
             }
             ends_at = new Date(dateTimeValue).toISOString();
-        } else {
-            // Проверяем значение поля времени только если не выбран таб даты
-            if (!durationInput.value.trim()) {
-                alert("Пожалуйста, введите время.");
+        } 
+        // Обработка ввода количества минут, часов или дней
+        else {
+            const durationValue = durationInput.value.trim();
+            if (!durationValue) {
+                alert(`Пожалуйста, введите время в ${activeTab}.`);
                 return;
             }
 
-            const duration = parseInt(durationInput.value.trim());
+            const duration = parseInt(durationValue);
             if (isNaN(duration) || duration <= 0) {
                 alert("Пожалуйста, введите корректное время.");
                 return;
@@ -61,6 +63,7 @@ document.getElementById("submitBattleBtn").addEventListener("click", async () =>
         console.error("Ошибка создания батла:", error.message);
     }
 });
+
 
 
 
