@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
         return `${hours}:${minutes}:${seconds}`;
     }
+   });
 
     document.addEventListener("DOMContentLoaded", () => {
     const durationInput = document.getElementById("duration");
