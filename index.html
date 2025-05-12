@@ -297,20 +297,18 @@
         <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded" />
         <input type="text" id="option1" placeholder="Option 1" class="w-full mb-3 p-2 border rounded" />
         <input type="text" id="option2" placeholder="Option 2" class="w-full mb-3 p-2 border rounded" />
-       <!-- Поле для ввода времени -->
+
+<!-- Поле для ввода времени -->
 <div class="time-selector">
-    <input type="number" id="duration" placeholder="Enter time" min="1" />
     <div class="time-tabs">
         <button type="button" class="time-tab active" data-unit="minutes">Minutes</button>
         <button type="button" class="time-tab" data-unit="hours">Hours</button>
         <button type="button" class="time-tab" data-unit="days">Days</button>
         <button type="button" class="time-tab" data-unit="date">Pick Date</button>
     </div>
+    <input type="number" id="duration" placeholder="Enter time" min="1" />
     <input type="datetime-local" id="datetimePicker" class="hidden" />
 </div>
-
-<!-- Кнопка сабмита -->
-<button id="submitBattleBtn" class="submit-btn">Submit</button>
 
         <!-- Поля для загрузки изображений -->
         <label for="image1File" class="w-full mb-1 block font-semibold">Image 1</label>
