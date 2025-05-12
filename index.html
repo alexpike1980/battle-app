@@ -248,28 +248,6 @@
     flex-wrap: nowrap;
 }
 
-.time-tab {
-    padding: 10px 20px;
-    background-color: #f1f1f1;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s, color 0.2s;
-    flex: 1;
-    text-align: center;
-}
-
-.time-tab.active {
-    background-color: #28a745;
-    color: white;
-}
-
-.time-tab:hover {
-    background-color: #218838;
-    color: white;
-}
-
 /* Поля ввода времени */
 #duration,
 #datetimePicker {
@@ -285,6 +263,33 @@
 .hidden {
     display: none;
 }
+
+/* Активные табы */
+.time-tab.active {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Стили табов */
+.time-tab {
+    padding: 10px 20px;
+    background-color: #f1f1f1;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.2s, color 0.2s;
+    margin-right: 10px;
+    flex: 1;
+    text-align: center;
+}
+
+.time-tab:hover {
+    background-color: #218838;
+    color: white;
+}
+
+
 
 </style>
 
