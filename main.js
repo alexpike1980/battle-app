@@ -19,6 +19,68 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${hours}:${minutes}:${seconds}`;
     }
 
+    document.addEventListener("DOMContentLoaded", () => {
+    const durationInput = document.getElementById("duration");
+    const datetimePicker = document.getElementById("datetimePicker");
+    const timeTabs = document.querySelectorAll(".time-tab");
+    let selectedUnit = "minutes"; // По умолчанию минуты
+
+    // Обработка кликов по табам
+    timeTabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            // Убираем активный класс со всех табов
+            timeTabs.forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            selectedUnit = tab.dataset.unit;
+
+            if (selectedUnit === "date") {
+                durationInput.classList.add("hidden");
+                datetimePicker.classList.remove("hidden");
+            } else {
+                durationInput.classList.remove("hidden");
+                datetimePicker.classList.add("hidden");
+            }
+        });
+    });
+
+    // Обработка сабмита
+    document.getElementById("submitBattleBtn").addEventListener("click", async () => {
+        try {
+            const title = document.getElementById("title").value.trim();
+            const option1 = document.getElementById("option1").value.trim();
+            const option2 = document.getElementById("option2").value.trim();
+            let ends_at;
+
+            if (selectedUnit === "date") {
+                const dateTimeValue = datetimePicker.value;
+                if (!dateTimeValue) {
+                    alert("Please select a date and time.");
+                    return;
+                }
+                ends_at = new Date(dateTimeValue).toISOString();
+            } else {
+                const duration = parseInt(durationInput.value.trim());
+                if (isNaN(duration) || duration <= 0) {
+                    alert("Please enter a valid duration.");
+                    return;
+                }
+
+                let durationMs = duration * 60000; // Минуты по умолчанию
+                if (selectedUnit === "hours") durationMs *= 60;
+                if (selectedUnit === "days") durationMs *= 1440;
+
+                ends_at = new Date(Date.now() + durationMs).toISOString();
+            }
+
+            // Лог для проверки
+            console.log("Battle will end at:", ends_at);
+        } catch (error) {
+            console.error("Ошибка создания батла:", error.message);
+        }
+    });
+});
+
+
     async function uploadImage(file) {
         try {
             const fileName = `${Date.now()}-${file.name}`;
