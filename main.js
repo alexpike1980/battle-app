@@ -125,9 +125,6 @@ document.querySelector(".time-tab[data-unit='minutes']").click();
 
 
 
-
-
-
 document.addEventListener('DOMContentLoaded', () => {
 
     function calculateTimeLeft(endTime) {
