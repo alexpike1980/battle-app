@@ -39,10 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 durationInput.classList.remove("hidden");
                 datetimePicker.classList.add("hidden");
+                durationInput.placeholder = `Enter ${selectedUnit}`;
             }
         });
     });
-
+});
     // Обработка сабмита
     document.getElementById("submitBattleBtn").addEventListener("click", async () => {
         try {
