@@ -35,110 +35,96 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Обработка сабмита формы
-// Обработка сабмита формы
-document.getElementById("submitBattleBtn").addEventListener("click", async () => {
-    try {
-        const title = document.getElementById("title").value.trim();
-        const option1 = document.getElementById("option1").value.trim();
-        const option2 = document.getElementById("option2").value.trim();
-        const activeTab = selectedUnit;
+    document.getElementById("submitBattleBtn").addEventListener("click", async () => {
+        try {
+            const title = document.getElementById("title").value.trim();
+            const option1 = document.getElementById("option1").value.trim();
+            const option2 = document.getElementById("option2").value.trim();
 
-        // Проверяем обязательные поля
-        if (!title || !option1 || !option2) {
-            alert("Пожалуйста, заполните все обязательные поля");
-            return;
-        }
-
-        let ends_at;
-
-        // Обработка выбора точной даты
-        if (activeTab === "date") {
-            const dateTimeValue = datetimePicker.value;
-            if (!dateTimeValue) {
-                alert("Пожалуйста, выберите дату и время.");
-                return;
-            }
-            ends_at = new Date(dateTimeValue).toISOString();
-        } 
-        // Обработка ввода количества минут, часов или дней
-        else {
-            const durationValue = durationInput.value.trim();
-            if (!durationValue) {
-                alert(`Пожалуйста, введите время в ${activeTab}.`);
+            // Проверяем обязательные поля
+            if (!title || !option1 || !option2) {
+                alert("Пожалуйста, заполните все обязательные поля");
                 return;
             }
 
-            const duration = parseInt(durationValue);
-            if (isNaN(duration) || duration <= 0) {
-                alert("Пожалуйста, введите корректное время.");
+            let ends_at;
+
+            // Обработка выбора точной даты
+            if (selectedUnit === "date") {
+                const dateTimeValue = datetimePicker.value;
+                if (!dateTimeValue) {
+                    alert("Пожалуйста, выберите дату и время.");
+                    return;
+                }
+                ends_at = new Date(dateTimeValue).toISOString();
+            } 
+            // Обработка ввода количества минут, часов или дней
+            else {
+                const durationValue = durationInput.value.trim();
+                if (!durationValue) {
+                    alert(`Пожалуйста, введите время в ${selectedUnit}.`);
+                    return;
+                }
+
+                const duration = parseInt(durationValue);
+                if (isNaN(duration) || duration <= 0) {
+                    alert("Пожалуйста, введите корректное время.");
+                    return;
+                }
+
+                let durationMs = duration * 60000; // Минуты по умолчанию
+                if (selectedUnit === "hours") durationMs *= 60;
+                if (selectedUnit === "days") durationMs *= 1440;
+
+                ends_at = new Date(Date.now() + durationMs).toISOString();
+            }
+
+            // Отправляем данные в базу данных
+            const image1FileInput = document.getElementById("image1File");
+            const image2FileInput = document.getElementById("image2File");
+
+            let image1Url = '';
+            let image2Url = '';
+
+            if (image1FileInput && image1FileInput.files.length > 0) {
+                image1Url = await uploadImage(image1FileInput.files[0]);
+            }
+            if (image2FileInput && image2FileInput.files.length > 0) {
+                image2Url = await uploadImage(image2FileInput.files[0]);
+            }
+
+            const { error } = await supabase.from('battles').insert({
+                title,
+                option1,
+                option2,
+                votes1: 0,
+                votes2: 0,
+                image1: image1Url,
+                image2: image2Url,
+                ends_at: ends_at
+            });
+
+            if (error) {
+                alert("Ошибка создания батла: " + error.message);
                 return;
             }
 
-            let durationMs = duration * 60000; // Минуты по умолчанию
-            if (activeTab === "hours") durationMs *= 60;
-            if (activeTab === "days") durationMs *= 1440;
+            console.log("Батл успешно создан с датой окончания:", ends_at);
+            document.getElementById("createModal").classList.add("hidden");
+            fetchAndRenderBattles();
 
-            ends_at = new Date(Date.now() + durationMs).toISOString();
+        } catch (error) {
+            console.error("Ошибка создания батла:", error.message);
         }
+    });
 
-        // Отправляем данные в базу данных
-        const image1FileInput = document.getElementById("image1File");
-        const image2FileInput = document.getElementById("image2File");
+    // Устанавливаем активный таб по умолчанию (минуты)
+    document.querySelector(".time-tab[data-unit='minutes']").click();
 
-        let image1Url = '';
-        let image2Url = '';
-
-        if (image1FileInput && image1FileInput.files.length > 0) {
-            image1Url = await uploadImage(image1FileInput.files[0]);
-        }
-        if (image2FileInput && image2FileInput.files.length > 0) {
-            image2Url = await uploadImage(image2FileInput.files[0]);
-        }
-
-        const { error } = await supabase.from('battles').insert({
-            title,
-            option1,
-            option2,
-            votes1: 0,
-            votes2: 0,
-            image1: image1Url,
-            image2: image2Url,
-            ends_at: ends_at
-        });
-
-        if (error) {
-            alert("Ошибка создания баттла: " + error.message);
-            return;
-        }
-
-        console.log("Батл успешно создан с датой окончания:", ends_at);
-        document.getElementById("createModal").classList.add("hidden");
-        fetchAndRenderBattles();
-
-    } catch (error) {
-        console.error("Ошибка создания батла:", error.message);
-    }
+    // Восстановление остального функционала
+    fetchAndRenderBattles();
 });
 
-// Устанавливаем активный таб по умолчанию (минуты)
-document.querySelector(".time-tab[data-unit='minutes']").click();
-
-});
-
-
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    function calculateTimeLeft(endTime) {
-        const diff = new Date(endTime) - new Date();
-        if (diff <= 0) return '00:00:00';
-        const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
-        const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-        const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
-    }
 
     async function uploadImage(file) {
         try {
