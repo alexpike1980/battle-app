@@ -8,6 +8,33 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+document.addEventListener("DOMContentLoaded", () => {
+    const durationInput = document.getElementById("duration");
+    const datetimePicker = document.getElementById("datetimePicker");
+    const timeTabs = document.querySelectorAll(".time-tab");
+    let selectedUnit = "minutes"; // По умолчанию минуты
+
+    // Обработка кликов по табам
+    timeTabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            // Убираем активный класс со всех табов
+            timeTabs.forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            selectedUnit = tab.dataset.unit;
+
+            if (selectedUnit === "date") {
+                durationInput.classList.add("hidden");
+                datetimePicker.classList.remove("hidden");
+            } else {
+                durationInput.classList.remove("hidden");
+                datetimePicker.classList.add("hidden");
+                durationInput.placeholder = `Enter ${selectedUnit}`;
+            }
+        });
+    });
+});
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
     function calculateTimeLeft(endTime) {
