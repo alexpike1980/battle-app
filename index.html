@@ -303,29 +303,98 @@
 
 <!-- Create Battle Modal -->
 <div id="createModal" class="modal hidden">
-    <div class="modal-content">
-        <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
-        <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded" />
-        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-3 p-2 border rounded" />
-        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-3 p-2 border rounded" />
+  <div class="modal-content">
+    <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
 
-    <div class="time-selector">
-      <div class="time-tabs">
-        <button type="button" class="time-tab active" data-unit="minutes">Minutes</button>
-        <button type="button" class="time-tab" data-unit="hours">Hours</button>
-        <button type="button" class="time-tab" data-unit="days">Days</button>
-        <button type="button" class="time-tab" data-unit="date">Pick Date</button>
-      </div>
-      <input type="number" id="duration" placeholder="Enter minutes" min="1" />
-      <input type="datetime-local" id="datetimePicker" class="hidden" />
+    <input
+      type="text"
+      id="title"
+      placeholder="Title"
+      class="w-full mb-3 p-2 border rounded"
+    />
+
+    <div class="mb-4">
+      <input
+        type="text"
+        id="option1"
+        placeholder="Option 1"
+        class="w-full mb-2 p-2 border rounded"
+      />
+      <!-- Upload button for image 1 -->
+      <label
+        for="image1File"
+        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
+      >
+        Upload Image 1
+      </label>
+      <input type="file" id="image1File" class="hidden" />
     </div>
 
-    <!-- остальные поля и кнопки -->
-    <input type="file" id="image1File" />
-    <input type="file" id="image2File" />
-    <button id="submitBattleBtn" class="bg-green-600 text-white py-2 px-4 rounded-lg">Submit</button>
+    <div class="mb-4">
+      <input
+        type="text"
+        id="option2"
+        placeholder="Option 2"
+        class="w-full mb-2 p-2 border rounded"
+      />
+      <!-- Upload button for image 2 -->
+      <label
+        for="image2File"
+        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
+      >
+        Upload Image 2
+      </label>
+      <input type="file" id="image2File" class="hidden" />
+    </div>
+
+    <!-- Time selector -->
+    <div class="time-selector mb-4">
+      <div class="time-tabs">
+        <button type="button" class="time-tab active" data-unit="minutes">
+          Minutes
+        </button>
+        <button type="button" class="time-tab" data-unit="hours">
+          Hours
+        </button>
+        <button type="button" class="time-tab" data-unit="days">
+          Days
+        </button>
+        <button type="button" class="time-tab" data-unit="date">
+          Pick Date
+        </button>
+      </div>
+      <input
+        type="number"
+        id="duration"
+        placeholder="Enter minutes"
+        min="1"
+        class="p-2 border rounded w-full"
+      />
+      <input
+        type="datetime-local"
+        id="datetimePicker"
+        class="hidden p-2 border rounded w-full mt-2"
+      />
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex justify-end gap-2">
+      <button
+        id="cancelCreateBtn"
+        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+      >
+        Cancel
+      </button>
+      <button
+        id="submitBattleBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      >
+        Submit
+      </button>
+    </div>
   </div>
 </div>
+
 <!-- Share Modal -->
 <div id="shareModal" class="modal hidden">
   <div id="shareModalContent" class="modal-content">
