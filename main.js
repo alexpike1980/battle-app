@@ -46,10 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
   }
 
-  // Функция вычисления оставшегося времени
+// ↓ Замените существующую функцию на эту
 function calculateTimeLeft(endTime) {
   let diff = new Date(endTime) - new Date();
-  if (diff <= 0) return 'Finished';
+  if (diff <= 0) return '';
 
   const days    = Math.floor(diff / 86400000); diff %= 86400000;
   const hours   = Math.floor(diff / 3600000);   diff %= 3600000;
@@ -57,25 +57,32 @@ function calculateTimeLeft(endTime) {
   const seconds = Math.floor(diff / 1000);
 
   const parts = [];
-  if (days)    parts.push(`${days} day${days > 1 ? 's' : ''}`);
-  if (hours)   parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-  if (minutes) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
-  if (seconds) parts.push(`${seconds} second${seconds > 1 ? 's' : ''}`);
+  if (days)    parts.push(`${days} day${days>1?'s':''}`);
+  if (hours)   parts.push(`${hours} hour${hours>1?'s':''}`);
+  if (minutes) parts.push(`${minutes} minute${minutes>1?'s':''}`);
+  if (seconds) parts.push(`${seconds} second${seconds>1?'s':''}`);
 
-  return parts.join(', ');
-}
+  return parts.join(' ');
+} // ← end calculateTimeLeft
 
 
   // Live-обновление таймера для каждого баттла
-  function startLiveCountdown(battleId, endTime) {
-    const el = document.getElementById(`timer-${battleId}`);
-    const iv = setInterval(() => {
-      const text = calculateTimeLeft(endTime);
-      el.textContent = text;
-      if (text === '00:00:00') clearInterval(iv);
-    }, 1000);
-    el.textContent = calculateTimeLeft(endTime);
+function startLiveCountdown(battleId, endTime) {
+  const el = document.getElementById(`timer-${battleId}`);
+
+  function update() {
+    const t = calculateTimeLeft(endTime);
+    if (!t) {
+      el.textContent = 'Finished';
+      clearInterval(iv);
+    } else {
+      el.textContent = `Time to Left: ${t}`;
+    }
   }
+
+  const iv = setInterval(update, 1000);
+  update();
+} // ← end startLiveCountdown
 
   // Рендер прогресс-бара результатов
   function renderProgressBar(v1 = 0, v2 = 0, id) {
@@ -142,7 +149,11 @@ function calculateTimeLeft(endTime) {
           </div>
         </div>
         ${renderProgressBar(b.votes1, b.votes2, b.id)}
-        <div id="timer-${b.id}" class="text-sm text-gray-500">${active ? '' : 'Finished'}</div>
+  <div id="timer-${b.id}" class="text-xs text-gray-500">
+    ${active
+       ? `Time to Left: ${calculateTimeLeft(b.ends_at)}`
+       : 'Finished'}
+  </div>
       `;
       container.appendChild(block);
 
