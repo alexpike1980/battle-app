@@ -204,45 +204,46 @@ window.openShareModal = (battleId, option) => {
   document.getElementById('redditShare').href =
     `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
 
-  // После установки href на ссылки
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    // Сбрасываем предыдущий обработчик, чтобы не накапливались
-    link.onclick = null;
+ // После установки href на ссылки
+document.querySelectorAll('#shareModal a').forEach(link => {
+  // клонируем ссылку без старых обработчиков
+  const cleanLink = link.cloneNode(true);
+  link.parentNode.replaceChild(cleanLink, link);
 
-    // Вешаем новый обработчик, привязанный к текущему option
-    link.onclick = async event => {
-      event.preventDefault();
-      const shareUrl = link.href;
-      const column   = option === 'votes1' ? 'votes1' : 'votes2';
+  // вешаем новый единственный слушатель
+  cleanLink.addEventListener('click', async event => {
+    event.preventDefault();
+    const shareUrl = cleanLink.href;
+    const column   = option === 'votes1' ? 'votes1' : 'votes2';
+    try {
+      // 1) Получаем текущее число голосов
+      const { data: battleData, error: fetchError } = await supabase
+        .from('battles')
+        .select(column)
+        .eq('id', battleId)
+        .single();
+      if (fetchError) throw fetchError;
 
-      try {
-        // 1) Получаем текущее число голосов
-        const { data: battleData, error: fetchError } = await supabase
-          .from('battles')
-          .select(column)
-          .eq('id', battleId)
-          .single();
-        if (fetchError) throw fetchError;
+      // 2) Инкремент и запись в БД
+      const newVotes = (battleData[column] || 0) + 1;
+      const { error: updError } = await supabase
+        .from('battles')
+        .update({ [column]: newVotes })
+        .eq('id', battleId);
+      if (updError) throw updError;
 
-        // 2) Инкремент и запись в БД
-        const newVotes = (battleData[column] || 0) + 1;
-        const { error: updError } = await supabase
-          .from('battles')
-          .update({ [column]: newVotes })
-          .eq('id', battleId);
-        if (updError) throw updError;
+      // 3) Перерисовываем список батлов
+      await fetchAndRenderBattles();
 
-        // 3) Перерисовываем список батлов
-        await fetchAndRenderBattles();
+      // 4) Закрываем модалку и открываем окно шаринга
+      document.getElementById('shareModal').classList.add('hidden');
+      window.open(shareUrl, '_blank');
+    } catch (err) {
+      console.error('Ошибка добавления голоса: ' + err.message);
+    }
+  });
+}); // ← закрываем forEach
 
-        // 4) Закрываем модалку и открываем окно шаринга
-        modal.classList.add('hidden');
-        window.open(shareUrl, '_blank');
-      } catch (err) {
-        console.error('Ошибка добавления голоса: ' + err.message);
-      }
-    };
-  }); // ← закрываем forEach
+}; // ← закрываем window.openShareModal
 
-};   // ← закрываем window.openShareModal
 });
