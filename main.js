@@ -205,10 +205,17 @@ function startLiveCountdown(battleId, endTime) {
       ends_at
     });
 
+      // Обработчик кнопки Cancel в модалке Create Battle
+  document.getElementById('cancelCreateBtn').addEventListener('click', () => {
+    document.getElementById('createModal').classList.add('hidden');
+  });
+
     if (error) return alert('Error creating battle: ' + error.message);
     document.getElementById('createModal').classList.add('hidden');
     fetchAndRenderBattles();
+    
   });
+  
 
 // Модальное окно шаринга
 window.openShareModal = (battleId, option) => {
@@ -266,5 +273,6 @@ document.querySelectorAll('#shareModal a').forEach(link => {
 }); // ← закрываем forEach
 
 }; // ← закрываем window.openShareModal
+  
 
 });
