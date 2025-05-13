@@ -8,362 +8,144 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-document.addEventListener("DOMContentLoaded", () => {
-    const durationInput = document.getElementById("duration");
-    const datetimePicker = document.getElementById("datetimePicker");
-    const timeTabs = document.querySelectorAll(".time-tab");
-    let selectedUnit = "minutes"; // По умолчанию минуты
-
-    // Обработка кликов по табам
-    timeTabs.forEach(tab => {
-        tab.addEventListener("click", () => {
-            // Убираем активный класс со всех табов
-            timeTabs.forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-            selectedUnit = tab.dataset.unit;
-
-            // Переключаем видимость полей
-            if (selectedUnit === "date") {
-                durationInput.classList.add("hidden");
-                datetimePicker.classList.remove("hidden");
-            } else {
-                durationInput.classList.remove("hidden");
-                datetimePicker.classList.add("hidden");
-                durationInput.placeholder = `Enter ${selectedUnit}`;
-            }
-        });
-    });
-
-    // Обработка сабмита формы
-    document.getElementById("submitBattleBtn").addEventListener("click", async () => {
-        try {
-            const title = document.getElementById("title").value.trim();
-            const option1 = document.getElementById("option1").value.trim();
-            const option2 = document.getElementById("option2").value.trim();
-
-            // Проверяем обязательные поля
-            if (!title || !option1 || !option2) {
-                alert("Пожалуйста, заполните все обязательные поля");
-                return;
-            }
-
-            let ends_at;
-
-            // Обработка выбора точной даты
-            if (selectedUnit === "date") {
-                const dateTimeValue = datetimePicker.value;
-                if (!dateTimeValue) {
-                    alert("Пожалуйста, выберите дату и время.");
-                    return;
-                }
-                ends_at = new Date(dateTimeValue).toISOString();
-            } 
-            // Обработка ввода количества минут, часов или дней
-            else {
-                const durationValue = durationInput.value.trim();
-                if (!durationValue) {
-                    alert(`Пожалуйста, введите время в ${selectedUnit}.`);
-                    return;
-                }
-
-                const duration = parseInt(durationValue);
-                if (isNaN(duration) || duration <= 0) {
-                    alert("Пожалуйста, введите корректное время.");
-                    return;
-                }
-
-                let durationMs = duration * 60000; // Минуты по умолчанию
-                if (selectedUnit === "hours") durationMs *= 60;
-                if (selectedUnit === "days") durationMs *= 1440;
-
-                ends_at = new Date(Date.now() + durationMs).toISOString();
-            }
-
-            // Отправляем данные в базу данных
-            const image1FileInput = document.getElementById("image1File");
-            const image2FileInput = document.getElementById("image2File");
-
-            let image1Url = '';
-            let image2Url = '';
-
-            if (image1FileInput && image1FileInput.files.length > 0) {
-                image1Url = await uploadImage(image1FileInput.files[0]);
-            }
-            if (image2FileInput && image2FileInput.files.length > 0) {
-                image2Url = await uploadImage(image2FileInput.files[0]);
-            }
-
-            const { error } = await supabase.from('battles').insert({
-                title,
-                option1,
-                option2,
-                votes1: 0,
-                votes2: 0,
-                image1: image1Url,
-                image2: image2Url,
-                ends_at: ends_at
-            });
-
-            if (error) {
-                alert("Ошибка создания батла: " + error.message);
-                return;
-            }
-
-            console.log("Батл успешно создан с датой окончания:", ends_at);
-            document.getElementById("createModal").classList.add("hidden");
-            fetchAndRenderBattles();
-
-        } catch (error) {
-            console.error("Ошибка создания батла:", error.message);
-        }
-    });
-
-    // Устанавливаем активный таб по умолчанию (минуты)
-    document.querySelector(".time-tab[data-unit='minutes']").click();
-
-   
-});
-
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    function calculateTimeLeft(endTime) {
-        const diff = new Date(endTime) - new Date();
-        if (diff <= 0) return '00:00:00';
-        const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
-        const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-        const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
-    }
-
-    async function uploadImage(file) {
-        try {
-            const fileName = `${Date.now()}-${file.name}`;
-
-            const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
-                cacheControl: '3600',
-                upsert: false,
-            });
-
-            if (error) {
-                console.error(`Ошибка загрузки файла: ${error.message}`);
-                return '';
-            }
-
-            // Формируем публичный URL вручную
-            const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
-            return publicUrl;
-
-        } catch (error) {
-            console.error(`Ошибка загрузки изображения: ${error.message}`);
-            return '';
-        }
-    }
-
-    function startLiveCountdown(battleId, endTime) {
-        const timerElement = document.getElementById(`timer-${battleId}`);
-
-        function updateTimer() {
-            const diff = new Date(endTime) - new Date();
-            if (diff <= 0) {
-                timerElement.textContent = "Finished";
-                clearInterval(interval);
-                return;
-            }
-
-            const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
-            const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-            const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-            timerElement.textContent = `${hours}:${minutes}:${seconds}`;
-        }
-
-        // Обновляем таймер каждую секунду
-        const interval = setInterval(updateTimer, 1000);
-        updateTimer(); // Первый вызов сразу
-    }
-function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
-    const totalVotes = votes1 + votes2;
-    const option1Percent = totalVotes > 0 ? Math.round((votes1 / totalVotes) * 100) : 50;
-    const option2Percent = totalVotes > 0 ? Math.round((votes2 / totalVotes) * 100) : 50;
-
-    // Полное заполнение для 100% голосов
-    if (option1Percent === 100) {
-        return `
-            <div id="progress-bar-${battleId}" class="progress-bar-container">
-                <div class="progress-bar progress-bar-blue full">
-                    <span class="progress-text text-left">${votes1} votes (100%)</span>
-                </div>
-            </div>
-        `;
-    }
-
-    if (option2Percent === 100) {
-        return `
-            <div id="progress-bar-${battleId}" class="progress-bar-container">
-                <div class="progress-bar progress-bar-green full">
-                    <span class="progress-text text-right">${votes2} votes (100%)</span>
-                </div>
-            </div>
-        `;
-    }
-
-    // Обычный режим, если нет 100% варианта
-    return `
-        <div id="progress-bar-${battleId}" class="progress-bar-container">
-            <div class="progress-bar progress-bar-blue" style="width:${option1Percent}%">
-                <span class="progress-text text-left">${votes1} votes (${option1Percent}%)</span>
-            </div>
-            <div class="progress-bar progress-bar-green" style="width:${option2Percent}%">
-                <span class="progress-text text-right">${votes2} votes (${option2Percent}%)</span>
-            </div>
-        </div>
-    `;
+// Функции работы со временем и изображениями
+function calculateTimeLeft(endTime) {
+    const diff = new Date(endTime) - new Date();
+    if (diff <= 0) return '00:00:00';
+    const hours = String(Math.floor(diff / 3600000)).padStart(2, '0');
+    const minutes = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+    const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
 }
 
+async function uploadImage(file) {
+    try {
+        const fileName = `${Date.now()}-${file.name}`;
+        const { data, error } = await supabase.storage.from('battle-images').upload(fileName, file, {
+            cacheControl: '3600', upsert: false
+        });
+        if (error) throw error;
+        return `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
+    } catch (error) {
+        console.error(`Ошибка загрузки изображения: ${error.message}`);
+        return '';
+    }
+}
 
-   async function fetchAndRenderBattles() {
+function startLiveCountdown(battleId, endTime) {
+    const timerElement = document.getElementById(`timer-${battleId}`);
+    const interval = setInterval(() => {
+        const diff = new Date(endTime) - new Date();
+        if (diff <= 0) {
+            timerElement.textContent = 'Finished';
+            clearInterval(interval);
+            return;
+        }
+        timerElement.textContent = calculateTimeLeft(endTime);
+    }, 1000);
+}
+
+function renderProgressBar(votes1 = 0, votes2 = 0, battleId) {
+    const total = votes1 + votes2;
+    const p1 = total ? Math.round((votes1 / total) * 100) : 50;
+    const p2 = total ? Math.round((votes2 / total) * 100) : 50;
+    if (p1 === 100) {
+        return `<div id="progress-bar-${battleId}" class="progress-bar-container">
+            <div class="progress-bar progress-bar-blue full"><span class="progress-text text-left">${votes1} votes (100%)</span></div>
+        </div>`;
+    }
+    if (p2 === 100) {
+        return `<div id="progress-bar-${battleId}" class="progress-bar-container">
+            <div class="progress-bar progress-bar-green full"><span class="progress-text text-right">${votes2} votes (100%)</span></div>
+        </div>`;
+    }
+    return `<div id="progress-bar-${battleId}" class="progress-bar-container">
+        <div class="progress-bar progress-bar-blue" style="width:${p1}%"><span class="progress-text text-left">${votes1} votes (${p1}%)</span></div>
+        <div class="progress-bar progress-bar-green" style="width:${p2}%"><span class="progress-text text-right">${votes2} votes (${p2}%)</span></div>
+    </div>`;
+}
+
+async function fetchAndRenderBattles() {
     try {
         const { data: battles, error } = await supabase.from('battles').select('*').order('created_at', { ascending: false });
         if (error) throw error;
-
         const container = document.getElementById('battleList');
-        if (!container) return;
         container.innerHTML = '';
-
-        battles.forEach(battle => {
-    const isActive = new Date(battle.ends_at) > new Date();
-    const votes1 = battle.votes1 || 0;
-    const votes2 = battle.votes2 || 0;
-    const timeLeftId = `timer-${battle.id}`;
-
-    const block = document.createElement('div');
-    block.id = `battle-${battle.id}`;
-    block.className = 'p-4 bg-white rounded-lg shadow-lg';
- block.innerHTML = `
-    <h3 class="text-xl font-semibold mb-3">${battle.title}</h3>
-    <div class="flex gap-4 mb-4">
-        <div class="flex-1">
-            <img src="${battle.image1 || 'https://via.placeholder.com/150'}" alt="Option 1" class="w-full h-40 object-cover rounded-lg" />
-            <div class="text-center font-semibold text-lg mt-2">${battle.option1}</div>
-            <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes1')">Vote</button>
-        </div>
-        <div class="flex-1">
-            <img src="${battle.image2 || 'https://via.placeholder.com/150'}" alt="Option 2" class="w-full h-40 object-cover rounded-lg" />
-            <div class="text-center font-semibold text-lg mt-2">${battle.option2}</div>
-            <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="openShareModal('${battle.id}', 'votes2')">Vote</button>
-        </div>
-    </div>
-    ${renderProgressBar(votes1, votes2, battle.id)}
-    <div id="timer-${battle.id}" class="text-sm text-gray-500">${isActive ? 'Calculating...' : 'Finished'}</div>
-`;
-
-   
-    container.appendChild(block);
-
-    // Запуск live таймера
-    if (isActive) {
-        startLiveCountdown(battle.id, battle.ends_at);
-    }
-});
-    } catch (error) {
-        console.error("Ошибка загрузки батлов:" + error.message);
+        battles.forEach(b => {
+            const isActive = new Date(b.ends_at) > new Date();
+            const block = document.createElement('div');
+            block.id = `battle-${b.id}`;
+            block.className = 'p-4 bg-white rounded-lg shadow-lg';
+            block.innerHTML = `
+                <h3 class="text-xl font-semibold mb-3">${b.title}</h3>
+                <div class="flex gap-4 mb-4">
+                    <div class="flex-1">
+                        <img src="${b.image1 || 'https://via.placeholder.com/150'}" class="w-full h-40 object-cover rounded-lg" />
+                        <div class="text-center font-semibold text-lg mt-2">${b.option1}</div>
+                        <button class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all w-full mt-2" onclick="openShareModal('${b.id}','votes1')">Vote</button>
+                    </div>
+                    <div class="flex-1">
+                        <img src="${b.image2 || 'https://via.placeholder.com/150'}" class="w-full h-40 object-cover rounded-lg" />
+                        <div class="text-center font-semibold text-lg mt-2">${b.option2}</div>
+                        <button class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all w-full mt-2" onclick="openShareModal('${b.id}','votes2')">Vote</button>
+                    </div>
+                </div>
+                ${renderProgressBar(b.votes1, b.votes2, b.id)}
+                <div id="timer-${b.id}" class="text-sm text-gray-500">${isActive ? calculateTimeLeft(b.ends_at) : 'Finished'}</div>
+            `;
+            container.appendChild(block);
+            if (isActive) startLiveCountdown(b.id, b.ends_at);
+        });
+    } catch (err) {
+        console.error(`Ошибка загрузки батлов: ${err.message}`);
     }
 }
 
-fetchAndRenderBattles();
-
-// Функция открытия модального окна шаринга
-window.openShareModal = function (battleId, option) {
-    const modal = document.getElementById("shareModal");
-    modal.classList.remove("hidden");
-
-    const url = window.location.href;
-    const title = "Make it count – share to vote!";
-    
-    document.getElementById("facebookShare").href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url) + "&quote=" + encodeURIComponent(title);
-    document.getElementById("twitterShare").href = "https://twitter.com/intent/tweet?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(title);
-    document.getElementById("redditShare").href = "https://www.reddit.com/submit?url=" + encodeURIComponent(url) + "&title=" + encodeURIComponent(title);
-
-    // Добавляем обработчик клика для увеличения голосов
-    document.querySelectorAll("#shareModal a").forEach(link => {
-        link.onclick = async (event) => {
-            try {
-                const column = option === 'votes1' ? 'votes1' : 'votes2';
-                
-                // Получаем текущие голоса для баттла
-                const { data: battleData, error: fetchError } = await supabase
-                    .from('battles')
-                    .select(column)
-                    .eq('id', battleId)
-                    .single();
-
-                if (fetchError) throw fetchError;
-                
-                // Увеличиваем количество голосов
-                const currentVotes = battleData[column] || 0;
-                const newVotes = currentVotes + 1;
-                
-                // Обновляем количество голосов
-                const { error } = await supabase
-                    .from('battles')
-                    .update({ [column]: newVotes })
-                    .eq('id', battleId);
-
-                if (error) throw error;
-                
-                console.log('Голос успешно добавлен');
-                
-                // Полное обновление карточки баттла
-                fetchAndRenderBattles();
-                
-                // Закрываем модальное окно после шаринга
-                modal.classList.add("hidden");
-            } catch (error) {
-                console.error("Ошибка добавления голоса: " + error.message);
-            }
-        };
-    });
+window.openShareModal = async (battleId, option) => {
+    const modal = document.getElementById('shareModal'); modal.classList.remove('hidden');
+    const url = window.location.href; const title = 'Make it count – share to vote!';
+    document.getElementById('facebookShare').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
+    document.getElementById('twitterShare').href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+    document.getElementById('redditShare').href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+    document.querySelectorAll('#shareModal a').forEach(link => link.onclick = async () => {
+        const col = option === 'votes1' ? 'votes1' : 'votes2';
+        const { data: d, error: fe } = await supabase.from('battles').select(col).eq('id', battleId).single(); if (fe) throw fe;
+        const nv = (d[col]||0)+1;
+        const { error } = await supabase.from('battles').update({ [col]: nv }).eq('id', battleId);
+        if (error) throw error;
+        fetchAndRenderBattles(); modal.classList.add('hidden');
+    }).forEach(() => {});
 };
 
-
-
-
-
-
-
-// Закрытие модального окна
-// Обработчик для модального окна sharing
-window.addEventListener("load", () => {
-    console.log("Страница полностью загружена");
-
-    const shareModal = document.getElementById("shareModal");
-    const shareCloseBtn = document.getElementById("shareCloseBtn");
-
-    // Проверяем, что кнопка вообще найдена
-    if (shareCloseBtn) {
-        console.log("Кнопка Cancel найдена");
-
-        // Закрываем модальное окно по кнопке Cancel
-        shareCloseBtn.addEventListener("click", () => {
-            console.log("Закрываем модальное окно sharing");
-            shareModal.classList.add("hidden");
-        });
-    } else {
-        console.error("Кнопка Cancel не найдена!");
-    }
-
-    // Закрываем модальное окно при клике вне его области
-    shareModal.addEventListener("click", (event) => {
-        if (event.target === shareModal) {
-            console.log("Клик вне контента, закрываем окно");
-            shareModal.classList.add("hidden");
-        }
-    });
+window.addEventListener('load', () => {
+    const shareModal = document.getElementById('shareModal'), btn = document.getElementById('shareCloseBtn');
+    if (btn) btn.onclick = () => shareModal.classList.add('hidden');
+    shareModal.onclick = e => { if (e.target === shareModal) shareModal.classList.add('hidden'); };
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    // Инициализация табов и форма создания батла
+    const durationInput = document.getElementById('duration'), datetimePicker = document.getElementById('datetimePicker');
+    let sel = 'minutes';
+    document.querySelectorAll('.time-tab').forEach(t => t.onclick = () => {
+        document.querySelectorAll('.time-tab').forEach(x=>x.classList.remove('active'));
+        t.classList.add('active'); sel = t.dataset.unit;
+        if (sel==='date') { durationInput.classList.add('hidden'); datetimePicker.classList.remove('hidden'); }
+        else { durationInput.classList.remove('hidden'); datetimePicker.classList.add('hidden'); durationInput.placeholder=`Enter ${sel}`; }
+    });
+    document.querySelector(".time-tab[data-unit='minutes']").click();
 
-
-
+    document.getElementById('submitBattleBtn').onclick = async () => {
+        const title = document.getElementById('title').value.trim();
+        const o1 = document.getElementById('option1').value.trim();
+        const o2 = document.getElementById('option2').value.trim();
+        if(!title||!o1||!o2){alert('Пожалуйста, заполните все обязательные поля');return;}
+        let ends;
+        if(sel==='date') { const v=datetimePicker.value; if(!v){alert('Выберите дату и время');return;} ends=new Date(v).toISOString(); }
+        else { const v=durationInput.value.trim(); if(!v){alert(`Введите время в ${sel}`);return;} const n=parseInt(v); if(isNaN(n)||n<=0){alert('Введите корректное время');return;} let ms=n*60000; if(sel==='hours')ms*=60; if(sel==='days')ms*=1440; ends=new Date(Date.now()+ms).toISOString(); }
+        const i1=document.getElementById('image1File'), i2=document.getElementById('image2File');
+        let u1='',u2=''; if(i1?.files.length)u1=await uploadImage(i1.files[0]); if(i2?.files.length)u2=await uploadImage(i2.files[0]);
+        const { error }=await supabase.from('battles').insert({title,o1:o1,option2:o2,votes1:0,votes2:0,image1:u1,image2:u2,ends_at:ends});
+        if(error){alert(error.message);return;} document.getElementById('createModal').classList.add('hidden'); fetchAndRenderBattles();
+    };
 });
