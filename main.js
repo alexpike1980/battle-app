@@ -189,55 +189,57 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndRenderBattles();
   });
 
-  // Модальное окно шаринга
-  window.openShareModal = (battleId, option) => {
-    const modal = document.getElementById('shareModal');
-    modal.classList.remove('hidden');
-    const url = window.location.href;
-    const title = 'Make it count – share to vote!';
-    document.getElementById('facebookShare').href =
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-    document.getElementById('twitterShare').href =
-      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-    document.getElementById('redditShare').href =
-      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+ // Модальное окно шаринга
+window.openShareModal = (battleId, option) => {
+  const modal = document.getElementById('shareModal');
+  modal.classList.remove('hidden');
 
-    // После шаринга обновляем голос
-   
-// Новый блок замены внутри openShareModal:
-document.querySelectorAll("#shareModal a").forEach(link => {
-  link.addEventListener("click", async event => {
-    event.preventDefault();
+  const url = window.location.href;
+  const title = 'Make it count – share to vote!';
 
-    const shareUrl = link.href;
-    const column = option === 'votes1' ? 'votes1' : 'votes2';
+  document.getElementById('facebookShare').href =
+    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
+  document.getElementById('twitterShare').href =
+    `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+  document.getElementById('redditShare').href =
+    `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
 
-    try {
-      // 1) Получаем текущее число голосов
-      const { data: battleData, error: fetchError } = await supabase
-        .from('battles')
-        .select(column)
-        .eq('id', battleId)
-        .single();
-      if (fetchError) throw fetchError;
+  // После шаринга обновляем голос
+  document.querySelectorAll('#shareModal a').forEach(link => {
+    link.addEventListener('click', async event => {
+      event.preventDefault();
 
-      // 2) Инкремент и запись в БД
-      const newVotes = (battleData[column] || 0) + 1;
-      const { error: updError } = await supabase
-        .from('battles')
-        .update({ [column]: newVotes })
-        .eq('id', battleId);
-      if (updError) throw updError;
+      const shareUrl = link.href;
+      const column = option === 'votes1' ? 'votes1' : 'votes2';
 
-      // 3) Перерисовываем список батлов
-      await fetchAndRenderBattles();
+      try {
+        // 1) Получаем текущее число голосов
+        const { data: battleData, error: fetchError } = await supabase
+          .from('battles')
+          .select(column)
+          .eq('id', battleId)
+          .single();
+        if (fetchError) throw fetchError;
 
-      // 4) Закрываем модалку и открываем окно шаринга
-      document.getElementById("shareModal").classList.add("hidden");
-      window.open(shareUrl, "_blank");
+        // 2) Инкремент и запись в БД
+        const newVotes = (battleData[column] || 0) + 1;
+        const { error: updError } = await supabase
+          .from('battles')
+          .update({ [column]: newVotes })
+          .eq('id', battleId);
+        if (updError) throw updError;
 
-    } catch (err) {
-      console.error("Ошибка добавления голоса: " + err.message);
-    }
+        // 3) Перерисовываем список батлов
+        await fetchAndRenderBattles();
+
+        // 4) Закрываем модалку и открываем окно шаринга
+        modal.classList.add('hidden');
+        window.open(shareUrl, '_blank');
+      } catch (err) {
+        console.error('Ошибка добавления голоса: ' + err.message);
+      }
+    });
   });
+};  // <-- Закрыли window.openShareModal
+
 
