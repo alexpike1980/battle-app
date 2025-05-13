@@ -203,43 +203,42 @@ window.openShareModal = (battleId, option) => {
     `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
   document.getElementById('redditShare').href =
     `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+// После установки href на ссылки
+document.querySelectorAll('#shareModal a').forEach(link => {
+  // Сбрасываем предыдущий обработчик, чтобы не накапливались
+  link.onclick = null;
 
-  // После шаринга обновляем голос
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    link.addEventListener('click', async event => {
-      event.preventDefault();
+  // Вешаем новый обработчик, привязанный к текущему option
+  link.onclick = async event => {
+    event.preventDefault();
+    const shareUrl = link.href;
+    const column   = option === 'votes1' ? 'votes1' : 'votes2';
 
-      const shareUrl = link.href;
-      const column = option === 'votes1' ? 'votes1' : 'votes2';
+    try {
+      // 1) Получаем текущее число голосов
+      const { data: battleData, error: fetchError } = await supabase
+        .from('battles')
+        .select(column)
+        .eq('id', battleId)
+        .single();
+      if (fetchError) throw fetchError;
 
-      try {
-        // 1) Получаем текущее число голосов
-        const { data: battleData, error: fetchError } = await supabase
-          .from('battles')
-          .select(column)
-          .eq('id', battleId)
-          .single();
-        if (fetchError) throw fetchError;
+      // 2) Инкремент и запись в БД
+      const newVotes = (battleData[column] || 0) + 1;
+      const { error: updError } = await supabase
+        .from('battles')
+        .update({ [column]: newVotes })
+        .eq('id', battleId);
+      if (updError) throw updError;
 
-        // 2) Инкремент и запись в БД
-        const newVotes = (battleData[column] || 0) + 1;
-        const { error: updError } = await supabase
-          .from('battles')
-          .update({ [column]: newVotes })
-          .eq('id', battleId);
-        if (updError) throw updError;
+      // 3) Перерисовываем список батлов
+      await fetchAndRenderBattles();
 
-        // 3) Перерисовываем список батлов
-        await fetchAndRenderBattles();
-
-        // 4) Закрываем модалку и открываем окно шаринга
-        modal.classList.add('hidden');
-        window.open(shareUrl, '_blank');
-      } catch (err) {
-        console.error('Ошибка добавления голоса: ' + err.message);
-      }
-    });
-  });
-};  // <-- Закрыли window.openShareModal
-
-}); 
+      // 4) Закрываем модалку и открываем окно шаринга
+      document.getElementById('shareModal').classList.add('hidden');
+      window.open(shareUrl, '_blank');
+    } catch (err) {
+      console.error('Ошибка добавления голоса: ' + err.message);
+    }
+  };
+});
