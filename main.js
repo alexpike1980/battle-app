@@ -240,5 +240,4 @@ document.querySelectorAll("#shareModal a").forEach(link => {
       console.error("Ошибка добавления голоса: " + err.message);
     }
   });
-});
-});
+
