@@ -242,4 +242,4 @@ window.openShareModal = (battleId, option) => {
   });
 };  // <-- Закрыли window.openShareModal
 
-
+}); 
