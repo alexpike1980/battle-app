@@ -47,14 +47,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Функция вычисления оставшегося времени
-  function calculateTimeLeft(endTime) {
-    const diff = new Date(endTime) - new Date();
-    if (diff <= 0) return '00:00:00';
-    const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
-    const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
-    const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
-    return `${h}:${m}:${s}`;
-  }
+function calculateTimeLeft(endTime) {
+  let diff = new Date(endTime) - new Date();
+  if (diff <= 0) return 'Finished';
+
+  const days    = Math.floor(diff / 86400000); diff %= 86400000;
+  const hours   = Math.floor(diff / 3600000);   diff %= 3600000;
+  const minutes = Math.floor(diff / 60000);     diff %= 60000;
+  const seconds = Math.floor(diff / 1000);
+
+  const parts = [];
+  if (days)    parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  if (hours)   parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
+  if (minutes) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+  if (seconds) parts.push(`${seconds} second${seconds > 1 ? 's' : ''}`);
+
+  return parts.join(', ');
+}
+
 
   // Live-обновление таймера для каждого баттла
   function startLiveCountdown(battleId, endTime) {
