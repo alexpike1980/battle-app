@@ -144,7 +144,7 @@ async function fetchAndRenderBattles() {
           <img src="${b.image1 || 'https://via.placeholder.com/150'}"
                alt="${b.option1}"
                class="w-full h-40 object-cover rounded-lg" />
-          <div class="text-center font-semibold text-lg mt-2">${b.option1}</div>
+          <div class="option-title ">${b.option1}</div>
           <button class="bg-blue-600 text-white py-2 px-4 rounded-lg w-full mt-2"
                   onclick="openShareModal('${b.id}', 'votes1')">
             Vote
@@ -158,7 +158,7 @@ async function fetchAndRenderBattles() {
           <img src="${b.image2 || 'https://via.placeholder.com/150'}"
                alt="${b.option2}"
                class="w-full h-40 object-cover rounded-lg" />
-          <div class="text-center font-semibold text-lg mt-2">${b.option2}</div>
+          <div class="option-title ">${b.option2}</div>
           <button class="bg-green-600 text-white py-2 px-4 rounded-lg w-full mt-2"
                   onclick="openShareModal('${b.id}', 'votes2')">
             Vote
