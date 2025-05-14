@@ -6,94 +6,89 @@
   <title>Battle Details</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: sans-serif; background-color: #f8f9fa; }
-    /* VS circle between images */
-    .battle-images-wrapper { position: relative; display: flex; gap: 1rem; align-items: center; }
-    .vs-circle {
-      position: absolute; left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      width: 40px; height: 40px;
-      background: #fff; color: #000;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: bold; font-size: 0.9rem; z-index: 2;
+    .battle-images-wrapper {
+      position: relative;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
     }
-    /* Option title responsive */
+    .vs-circle {
+      position: absolute;
+      left: 50%;
+      top: 35%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background: #fff;
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.9rem;
+      z-index: 2;
+    }
     .option-title {
       font-size: clamp(0.8rem, 4vw, 1.2rem);
-      line-height: 1.2; text-align: center; word-break: break-word;
-      margin-top: 0.5rem;
+      line-height: 1.2;
+      text-align: center;
+      word-wrap: break-word;
+      padding: 0.6em 0 0.3em 0;
     }
-    /* Progress bar */
-    .progress-bar-container {
-      display: flex; width: 100%; background: #e9ecef;
-      border-radius: 0.5rem; overflow: hidden; margin: 1rem 0; height: 1.5rem;
-    }
-    .progress-bar {
-      display: flex; align-items: center; color: #fff;
-      font-size: 0.75rem; white-space: nowrap; overflow: hidden;
-      padding: 0 0.5rem; flex-shrink: 0;
-    }
-    .progress-bar-blue { background: #007bff; }
-    .progress-bar-green { background: #28a745; }
-    .progress-bar.full { width: 100% !important; border-radius: 0.5rem; }
-    .text-left { text-align: left; flex: 1; }
-    .text-right { text-align: right; flex: 1; }
-    /* Modal base */
-    .modal {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); display: flex;
-      align-items: center; justify-content: center; z-index: 1000;
-    }
-    .modal.hidden { display: none !important; }
-    .modal-content {
-      background: #fff; padding: 1.5rem; border-radius: 0.75rem;
-      width: 90%; max-width: 400px; text-align: center;
-    }
-    .share-buttons {
-      display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;
-    }
-    .share-btn {
-      display: flex; align-items: center; gap: 0.5rem;
-      color: #fff; padding: 0.5rem 1rem; border-radius: 0.5rem;
-      font-weight: bold; text-decoration: none; transition: transform .2s;
-      width: 120px; justify-content: center;
-    }
-    .share-btn img { width: 1.25rem; height: 1.25rem; filter: brightness(0) invert(1); }
-    .facebook { background: #4267B2; }
-    .twitter  { background: #1DA1F2; }
-    .reddit   { background: #FF4500; }
-    .share-btn:hover { transform: translateY(-2px); }
-    .cancel-btn {
-      background: #6c757d; color: #fff; padding: .5rem 1rem;
-      border: none; border-radius: .5rem; cursor: pointer;
-    }
-    .cancel-btn:hover { background: #5a6268; }
   </style>
 </head>
 <body class="bg-gray-100">
+  <div class="container mx-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Main content -->
+    <div class="lg:col-span-3 space-y-6">
+      <button onclick="location.href='index.html'"
+              class="text-blue-500 hover:underline">&larr; Back to list</button>
 
-  <div class="container mx-auto p-6">
-    <button onclick="location.href='index.html'"
-            class="mb-6 text-blue-500 hover:underline">
-      ← Back to list
-    </button>
-    <div id="battleDetail"></div>
+      <div id="battleDetail"></div>
+
+      <!-- Статистика -->
+      <section id="statistics" class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Statistics</h2>
+        <!-- Здесь будет график, таблица и т.п. -->
+        <p class="text-gray-600">Loading stats...</p>
+      </section>
+
+      <!-- Комментарии -->
+      <section id="comments" class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-2">Comments</h2>
+        <!-- Здесь будет форма + список комментариев -->
+        <p class="text-gray-600">No comments yet.</p>
+      </section>
+    </div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="space-y-4">
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-2">Widgets & Ads</h2>
+        <!-- сюда позже можно вставить рекламу, виджеты и т.п. -->
+        <p class="text-gray-600">Placeholder for ads/widgets</p>
+      </div>
+      <!-- можно добавить ещё блоки -->
+    </aside>
   </div>
 
   <!-- Share Modal -->
   <div id="shareModal" class="modal hidden">
-    <div class="modal-content">
+    <div id="shareModalContent" class="modal-content">
       <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
-      <div class="share-buttons">
+      <div class="share-buttons mb-4">
         <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook"/>Facebook
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook"/>
+          <span>Facebook</span>
         </a>
         <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/twitter.png" alt="X.com"/>X.com
+          <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images/x-social-media-white-icon.svg" alt="X"/>
+          <span>X.com</span>
         </a>
         <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit"/>Reddit
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit"/>
+          <span>Reddit</span>
         </a>
       </div>
       <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
@@ -102,119 +97,34 @@
 
   <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
   const SUPABASE_URL     = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+  const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Утилиты
-  function calculateTimeLeft(endTime) {
-    let diff = new Date(endTime) - new Date();
-    if (diff <= 0) return '';
-    const days    = Math.floor(diff / 86400000); diff %= 86400000;
-    const hours   = Math.floor(diff / 3600000);   diff %= 3600000;
-    const minutes = Math.floor(diff / 60000);     diff %= 60000;
-    const seconds = Math.floor(diff / 1000);
-    const parts = [];
-    if (days)    parts.push(`${days} day${days>1?'s':''}`);
-    if (hours)   parts.push(`${hours} hour${hours>1?'s':''}`);
-    if (minutes) parts.push(`${minutes} min${minutes>1?'s':''}`);
-    if (seconds) parts.push(`${seconds} sec${seconds>1?'s':''}`);
-    return parts.join(' ');
-  }
+  // Утилиты (скопировать из main.js)
+  function calculateTimeLeft(endTime){ /* … */ }
+  function startLiveCountdown(id,endTime){ /* … */ }
+  function renderProgressBar(v1,v2){ /* … */ }
+  function openShareModal(battleId,option){ /* … */ }
 
-  function startLiveCountdown(id, endTime) {
-    const el = document.getElementById(`timer-${id}`);
-    function upd() {
-      const t = calculateTimeLeft(endTime);
-      if (!t) {
-        el.textContent = 'Finished';
-        clearInterval(iv);
-      } else {
-        el.textContent = `Time to Left: ${t}`;
-      }
-    }
-    const iv = setInterval(upd, 1000);
-    upd();
-  }
+  // Парсим id из URL
+  const params = new URLSearchParams(location.search),
+        battleId = params.get('id');
 
-  function renderProgressBar(v1, v2) {
-    const total = v1 + v2, p1 = total ? Math.round(v1 / total * 100) : 50, p2 = 100 - p1;
-    if (p1 === 100) return `
-      <div class="progress-bar-container">
-        <div class="progress-bar progress-bar-blue full"><span class="text-left">${v1} votes (100%)</span></div>
-      </div>`;
-    if (p2 === 100) return `
-      <div class="progress-bar-container">
-        <div class="progress-bar progress-bar-green full"><span class="text-right">${v2} votes (100%)</span></div>
-      </div>`;
-    return `
-      <div class="progress-bar-container">
-        <div class="progress-bar progress-bar-blue" style="width:${p1}%"><span class="text-left">${v1} (${p1}%)</span></div>
-        <div class="progress-bar progress-bar-green" style="width:${p2}%"><span class="text-right">${v2} (${p2}%)</span></div>
-      </div>`;
-  }
-
-  // Шаринг-модалка
-  function openShareModal(battleId, option) {
-    const m = document.getElementById('shareModal');
-    m.classList.remove('hidden');
-    const url = location.href, title = 'Make it count – share to vote!';
-    document.getElementById('facebookShare').href = 
-      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-    document.getElementById('twitterShare').href = 
-      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-    document.getElementById('redditShare').href = 
-      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-
-    // Сброс старых обработчиков
-    document.querySelectorAll('#shareModal a').forEach(a => {
-      const c = a.cloneNode(true);
-      a.replaceWith(c);
-    });
-    // Новый обработчик
-    document.querySelectorAll('#shareModal a').forEach(a => {
-      a.onclick = async e => {
-        e.preventDefault();
-        const col = option === 'votes1' ? 'votes1' : 'votes2';
-        // инкремент
-        const { data: row, error: fe } = await supabase
-          .from('battles').select(col).eq('id', battleId).single();
-        if (fe) throw fe;
-        const newV = (row[col] || 0) + 1;
-        await supabase.from('battles').update({ [col]: newV }).eq('id', battleId);
-        await loadBattle();
-        m.classList.add('hidden');
-        window.open(a.href, '_blank');
-      };
-    });
-  }
-  // Экспорт в глобал
-  window.openShareModal = openShareModal;
-
-  // Закрытие модалки шаринга
-  window.addEventListener('load', () => {
-    const m = document.getElementById('shareModal');
-    document.getElementById('shareCloseBtn').onclick = () => m.classList.add('hidden');
-    m.onclick = e => { if (e.target === m) m.classList.add('hidden'); };
-  });
-
-  // Загрузка одного баттла по ?id=
-  const params = new URLSearchParams(location.search);
-  const battleId = params.get('id');
-  async function loadBattle() {
-    if (!battleId) {
-      document.getElementById('battleDetail').innerText = 'No battle ID';
+  async function loadBattle(){
+    if(!battleId){
+      document.getElementById('battleDetail').innerText='No battle ID';
       return;
     }
-    const { data: b, error } = await supabase
+    const { data:b, error } = await supabase
       .from('battles')
       .select('id,title,option1,option2,votes1,votes2,ends_at,image1,image2')
-      .eq('id', battleId).single();
-    if (error) {
-      document.getElementById('battleDetail').innerText = error.message;
+      .eq('id',battleId).single();
+    if(error){
+      document.getElementById('battleDetail').innerText=error.message;
       return;
     }
+
     const active = new Date(b.ends_at) > new Date();
     document.getElementById('battleDetail').innerHTML = `
       <h1 class="text-3xl font-bold mb-4">${b.title}</h1>
@@ -235,17 +145,22 @@
       </div>
       ${renderProgressBar(b.votes1,b.votes2)}
       <div id="timer-${b.id}" class="text-sm text-gray-600 mb-6">
-        ${active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}
+        ${active?`Time to Left: ${calculateTimeLeft(b.ends_at)}`:'Finished'}
       </div>
     `;
-    if (active) startLiveCountdown(b.id, b.ends_at);
+    if(active) startLiveCountdown(b.id, b.ends_at);
   }
-  // Экспорт в глобал, чтобы fetch внутри шаринга тоже работал
-  window.loadBattle = loadBattle;
-
   loadBattle();
-</script>
 
-
+  // Закрытие share-модалки
+  window.addEventListener('load', () => {
+    document.getElementById('shareCloseBtn').onclick = () =>
+      document.getElementById('shareModal').classList.add('hidden');
+    document.getElementById('shareModal').onclick = e => {
+      if (e.target.id==='shareModal')
+        e.target.classList.add('hidden');
+    };
+  });
+  </script>
 </body>
 </html>
