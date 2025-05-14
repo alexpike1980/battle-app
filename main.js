@@ -115,49 +115,75 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ——————————————————————————————————————————
-  // Fetch & render all battles
-  async function fetchAndRenderBattles() {
-    const { data: battles, error } = await supabase
-      .from('battles')
-      .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
-      .order('created_at', { ascending: false });
-    if (error) {
-      console.error('Ошибка загрузки батлов:', error.message);
-      return;
-    }
-    const container = document.getElementById('battleList');
-    container.innerHTML = '';
-    battles.forEach(b => {
-      const active = new Date(b.ends_at) > new Date();
-      const block = document.createElement('div');
-      block.id = `battle-${b.id}`;
-      block.className = 'p-4 bg-white rounded-lg shadow-lg mb-6';
-      block.innerHTML = `
-        <h3 class="text-xl font-semibold mb-3">${b.title}</h3>
-        <div class="flex gap-4 mb-4">
-          <div class="flex-1">
-            <img src="${b.image1||'https://via.placeholder.com/150'}" alt="" class="w-full h-40 object-cover rounded-lg" />
-            <div class="text-center font-semibold text-lg mt-2">${b.option1}</div>
-            <button class="bg-blue-600 text-white py-2 px-4 rounded-lg w-full mt-2"
-                    onclick="openShareModal('${b.id}','votes1')">Vote</button>
-          </div>
-          <div class="flex-1">
-            <img src="${b.image2||'https://via.placeholder.com/150'}" alt="" class="w-full h-40 object-cover rounded-lg" />
-            <div class="text-center font-semibold text-lg mt-2">${b.option2}</div>
-            <button class="bg-green-600 text-white py-2 px-4 rounded-lg w-full mt-2"
-                    onclick="openShareModal('${b.id}','votes2')">Vote</button>
-          </div>
-        </div>
-        ${renderProgressBar(b.votes1, b.votes2, b.id)}
-        <div id="timer-${b.id}" class="text-xs text-gray-500">
-          ${ active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished' }
-        </div>
-      `;
-      container.appendChild(block);
-      if (active) startLiveCountdown(b.id, b.ends_at);
-    });
+// Fetch & render all battles
+async function fetchAndRenderBattles() {
+  const { data: battles, error } = await supabase
+    .from('battles')
+    .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('Ошибка загрузки батлов:', error.message);
+    return;
   }
-  fetchAndRenderBattles();
+
+  const container = document.getElementById('battleList');
+  container.innerHTML = '';
+
+  battles.forEach(b => {
+    const active = new Date(b.ends_at) > new Date();
+    const block = document.createElement('div');
+    block.id = `battle-${b.id}`;
+    block.className = 'p-4 bg-white rounded-lg shadow-lg mb-6';
+
+    block.innerHTML = `
+      <h3 class="text-xl font-semibold mb-3">${b.title}</h3>
+
+      <!-- Обёртка с картинками и VS -->
+      <div class="battle-images-wrapper mb-4">
+        <div class="flex-1">
+          <img src="${b.image1 || 'https://via.placeholder.com/150'}"
+               alt="${b.option1}"
+               class="w-full h-40 object-cover rounded-lg" />
+          <div class="text-center font-semibold text-lg mt-2">${b.option1}</div>
+          <button class="bg-blue-600 text-white py-2 px-4 rounded-lg w-full mt-2"
+                  onclick="openShareModal('${b.id}', 'votes1')">
+            Vote
+          </button>
+        </div>
+
+        <!-- Кружок VS -->
+        <div class="vs-circle">VS</div>
+
+        <div class="flex-1">
+          <img src="${b.image2 || 'https://via.placeholder.com/150'}"
+               alt="${b.option2}"
+               class="w-full h-40 object-cover rounded-lg" />
+          <div class="text-center font-semibold text-lg mt-2">${b.option2}</div>
+          <button class="bg-green-600 text-white py-2 px-4 rounded-lg w-full mt-2"
+                  onclick="openShareModal('${b.id}', 'votes2')">
+            Vote
+          </button>
+        </div>
+      </div>
+
+      ${renderProgressBar(b.votes1, b.votes2, b.id)}
+
+      <div id="timer-${b.id}" class="text-xs text-gray-500">
+        ${ active
+           ? `Time to Left: ${calculateTimeLeft(b.ends_at)}`
+           : 'Finished' }
+      </div>
+    `;
+
+    container.appendChild(block);
+
+    if (active) startLiveCountdown(b.id, b.ends_at);
+  });
+}
+
+// Запуск сразу после определения функции
+fetchAndRenderBattles();
+
 
   // ——————————————————————————————————————————
   // Cancel-button для Create-Battle
