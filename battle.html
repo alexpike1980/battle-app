@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Battle Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Скопируйте сюда нужные стили из index.html, 
+       например .modal, .progress-bar-container и т.д. */
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto p-6">
+    <button onclick="location.href='index.html'"
+            class="mb-6 text-blue-500 hover:underline">
+      ← Back to list
+    </button>
+
+    <div id="battleDetail"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Утилиты (скопируйте из main.js)
+    function calculateTimeLeft(endTime) { /* ... */ }
+    function startLiveCountdown(id, endTime) { /* ... */ }
+    function renderProgressBar(v1, v2) { /* ... */ }
+    function uploadImage(file) { /* ... */ }
+    function openShareModal(battleId, option) { /* ... */ }
+
+    // Парсим id из URL
+    const params = new URLSearchParams(window.location.search);
+    const battleId = params.get('id');
+
+    async function loadBattle() {
+      if (!battleId) {
+        document.getElementById('battleDetail').innerText = 'No battle ID';
+        return;
+      }
+      const { data: b, error } = await supabase
+        .from('battles')
+        .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
+        .eq('id', battleId)
+        .single();
+      if (error) {
+        document.getElementById('battleDetail').innerText = error.message;
+        return;
+      }
+
+      const active = new Date(b.ends_at) > new Date();
+      document.getElementById('battleDetail').innerHTML = `
+        <h1 class="text-3xl font-bold mb-4">${b.title}</h1>
+        <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
+          <div class="text-center">
+            <img src="${b.image1}" class="mx-auto mb-2 w-64 h-64 object-cover rounded" />
+            <p class="font-semibold">${b.option1}</p>
+          </div>
+          <div class="text-4xl font-bold text-gray-500">VS</div>
+          <div class="text-center">
+            <img src="${b.image2}" class="mx-auto mb-2 w-64 h-64 object-cover rounded" />
+            <p class="font-semibold">${b.option2}</p>
+          </div>
+        </div>
+        <div class="mb-4">${renderProgressBar(b.votes1, b.votes2)}</div>
+        <div id="timer-${b.id}" class="text-sm text-gray-600 mb-6">
+          ${ active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished' }
+        </div>
+        <div class="flex gap-4">
+          <button onclick="openShareModal('${b.id}','votes1')"
+                  class="bg-blue-600 text-white px-4 py-2 rounded">
+            Vote 👍
+          </button>
+          <button onclick="openShareModal('${b.id}','votes2')"
+                  class="bg-green-600 text-white px-4 py-2 rounded">
+            Vote 👍
+          </button>
+        </div>
+      `;
+      if (active) startLiveCountdown(b.id, b.ends_at);
+    }
+
+    loadBattle();
+  </script>
+</body>
+</html>
