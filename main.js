@@ -217,14 +217,14 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndRenderBattles();
   });
 
-  // ——————————————————————————————————————————
-  // Sharing-modal
-  window.openShareModal = (battleId, option) => {
+ // ——————————————————————————————————————————
+// Sharing-modal
+window.openShareModal = (battleId, option) => {
   // Открываем модалку
   const modal = document.getElementById('shareModal');
   modal.classList.remove('hidden');
 
-  // Формируем ссылки шаринга
+  // Готовим ссылки для шаринга
   const url   = window.location.href;
   const title = 'Make it count – share to vote!';
   document.getElementById('facebookShare').href =
@@ -234,22 +234,22 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('redditShare').href =
     `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
 
-  // 1) Сброс всех прошлых обработчиков: заменяем каждую ссылку её клоном
+  // 1) Сбрасываем старые обработчики: заменяем каждую ссылку её клоном
   const shareLinks = document.querySelectorAll('#shareModal a');
   shareLinks.forEach(link => {
     const clone = link.cloneNode(true);
     link.parentNode.replaceChild(clone, link);
   });
 
-  // 2) Вешаем по одному обработчику onclick на каждую ссылку
+  // 2) Вешаем по одному обработчику на каждую ссылку
   document.querySelectorAll('#shareModal a').forEach(link => {
-    link.onclick = async event => {
+    link.addEventListener('click', async event => {
       event.preventDefault();
       const shareUrl = link.href;
       const column   = option === 'votes1' ? 'votes1' : 'votes2';
 
       try {
-        // Получаем текущее число голосов
+        // а) читаем текущее число голосов
         const { data: row, error: fe } = await supabase
           .from('battles')
           .select(column)
@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
           .single();
         if (fe) throw fe;
 
-        // Инкремент и запись
+        // б) записываем +1
         const newVotes = (row[column] || 0) + 1;
         const { error: ue } = await supabase
           .from('battles')
@@ -265,15 +265,15 @@ document.addEventListener('DOMContentLoaded', () => {
           .eq('id', battleId);
         if (ue) throw ue;
 
-        // Обновляем список и закрываем модалку
+        // в) обновляем UI и закрываем модалку
         await fetchAndRenderBattles();
         modal.classList.add('hidden');
 
-        // Открываем окно шаринга
+        // г) наконец — открываем окно шаринга
         window.open(shareUrl, '_blank');
       } catch (err) {
         console.error('Ошибка добавления голоса:', err);
       }
-    }; // ← закрываем link.onclick
-  }); // ← закрываем forEach
+    });
+  });
 }; // ← закрываем window.openShareModal
