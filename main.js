@@ -136,7 +136,9 @@ async function fetchAndRenderBattles() {
     block.className = 'p-4 bg-white rounded-lg shadow-lg mb-6';
 
     block.innerHTML = `
-      <h3 class="text-xl font-semibold mb-3">${b.title}</h3>
+ <a href="battle.html?id=${b.id}" class="no-underline hover:underline">
+  <h3 class="text-xl font-semibold mb-3">${b.title}</h3>
+  </a>
 
       <!-- Обёртка с картинками и VS -->
       <div class="battle-images-wrapper mb-4">
