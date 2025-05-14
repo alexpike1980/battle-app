@@ -418,14 +418,19 @@
 </div>
 
 
-    <script>
-        document.getElementById('createBattleBtn').addEventListener('click', () => {
-            document.getElementById('createModal').classList.remove('hidden');
-        });
+<script>
+      // Открыть Create Modal
+      document.getElementById('createBattleBtn').addEventListener('click', () => {
+        document.getElementById('createModal').classList.remove('hidden');
+      });
 
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
-            document.getElementById('createModal').classList.add('hidden');
+      // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
+      const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+      if (cancelCreateBtn) {
+        cancelCreateBtn.addEventListener('click', () => {
+          document.getElementById('createModal').classList.add('hidden');
         });
+      }
     </script>
       <script type="module" src="./main.js" ></script>
 </body>
