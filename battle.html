@@ -4,6 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle Details</title>
+  <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const SUPABASE_URL     = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…ваш_ключ_сюда…';
+
+  // именно строка ANON_KEY без лишних пробелов или кавычек внутри
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // теперь можно вызывать любые методы supabase
+</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
    body {
@@ -384,11 +395,11 @@
         <div class="flex gap-4">
           <button onclick="openShareModal('${b.id}','votes1')"
                   class="bg-blue-600 text-white px-4 py-2 rounded">
-            Vote 👍
+            Vote 
           </button>
           <button onclick="openShareModal('${b.id}','votes2')"
                   class="bg-green-600 text-white px-4 py-2 rounded">
-            Vote 👍
+            Vote 
           </button>
         </div>
       `;
@@ -397,6 +408,6 @@
 
     loadBattle();
   </script>
-   <script type="module" src="./main.js" ></script>
+
 </body>
 </html>
