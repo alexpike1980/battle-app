@@ -4,406 +4,213 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Battle Details</title>
-  <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-  const SUPABASE_URL     = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-
-  // именно строка ANON_KEY без лишних пробелов или кавычек внутри
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  // теперь можно вызывать любые методы supabase
-</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-   body {
-    font-family: sans-serif;
-    background-color: #f8f9fa;
-}
-
-       .option-title {
-  /* от 0.8rem до 1.2rem, в зависимости от ширины контейнера */
-  font-size: clamp(0.8rem, 4vw, 1.2rem);
-  line-height: 1.2;
-  text-align: center;
-  word-wrap: break-word;
- padding: 0.6em 0 0.3em 0;
-}
- .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal.hidden {
-    display: none !important;
-}
-
-.modal-content {
-    background-color: #fff;
-    padding: 30px 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-    z-index: 1001;
-}
-
-
-.modal button {
-    background-color: #6c757d;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.2s;
-}
-
-.modal button:hover {
-    background-color: #5a6268;
-}
-/* Центрирование кнопок */
-.share-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-.share-btn img {
-  width: 24px;
-  height: 24px;
-  filter: brightness(0) invert(1); /* Делает иконки белыми */
-}
-/* Стили кнопок */
-.share-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    width: 140px;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-/* Иконки */
-.share-icon {
-    width: 24px;
-    height: 24px;
-    background-size: cover;
-    background-repeat: no-repeat;
-}
-
-/* Цвета для кнопок */
-.facebook {
-    background-color: #4267B2;
-}
-
-.twitter {
-    background-color: #1DA1F2;
-}
-
-.reddit {
-    background-color: #FF4500;
-}
-
-/* Иконки */
-.facebook-icon {
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg');
-}
-
-.twitter-icon {
-    background-image: url('https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg');
-}
-
-.reddit-icon {
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Reddit_Logo_V2.svg/2048px-Reddit_Logo_V2.svg.png');
-}
-
-/* Hover эффекты */
-.share-btn:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-}
-
-/* Мобильное расположение */
-@media (max-width: 768px) {
+    body { font-family: sans-serif; background-color: #f8f9fa; }
+    /* VS circle between images */
+    .battle-images-wrapper { position: relative; display: flex; gap: 1rem; align-items: center; }
+    .vs-circle {
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px; height: 40px;
+      background: #fff; color: #000;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 0.9rem; z-index: 2;
+    }
+    /* Option title responsive */
+    .option-title {
+      font-size: clamp(0.8rem, 4vw, 1.2rem);
+      line-height: 1.2; text-align: center; word-break: break-word;
+      margin-top: 0.5rem;
+    }
+    /* Progress bar */
+    .progress-bar-container {
+      display: flex; width: 100%; background: #e9ecef;
+      border-radius: 0.5rem; overflow: hidden; margin: 1rem 0; height: 1.5rem;
+    }
+    .progress-bar {
+      display: flex; align-items: center; color: #fff;
+      font-size: 0.75rem; white-space: nowrap; overflow: hidden;
+      padding: 0 0.5rem; flex-shrink: 0;
+    }
+    .progress-bar-blue { background: #007bff; }
+    .progress-bar-green { background: #28a745; }
+    .progress-bar.full { width: 100% !important; border-radius: 0.5rem; }
+    .text-left { text-align: left; flex: 1; }
+    .text-right { text-align: right; flex: 1; }
+    /* Modal base */
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); display: flex;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal.hidden { display: none !important; }
+    .modal-content {
+      background: #fff; padding: 1.5rem; border-radius: 0.75rem;
+      width: 90%; max-width: 400px; text-align: center;
+    }
     .share-buttons {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
+      display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1rem;
     }
     .share-btn {
-        width: 100%;
-        max-width: 300px;
+      display: flex; align-items: center; gap: 0.5rem;
+      color: #fff; padding: 0.5rem 1rem; border-radius: 0.5rem;
+      font-weight: bold; text-decoration: none; transition: transform .2s;
+      width: 120px; justify-content: center;
     }
-}
-
-/* Кнопка отмены */
-.cancel-btn {
-    background-color: #6c757d;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    width: 200px;
-    transition: background-color 0.2s;
-}
-
-.cancel-btn:hover {
-    background-color: #5a6268;
-}
-
-/* Для мобильных устройств */
-@media (max-width: 768px) {
+    .share-btn img { width: 1.25rem; height: 1.25rem; filter: brightness(0) invert(1); }
+    .facebook { background: #4267B2; }
+    .twitter  { background: #1DA1F2; }
+    .reddit   { background: #FF4500; }
+    .share-btn:hover { transform: translateY(-2px); }
     .cancel-btn {
-        width: 100%;
-        max-width: 300px;
+      background: #6c757d; color: #fff; padding: .5rem 1rem;
+      border: none; border-radius: .5rem; cursor: pointer;
     }
-}
-.progress-bar-container {
-    display: flex;
-    width: 100%;
-    background-color: #e9ecef;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    height: 30px;
-    position: relative;
-}
-
-/* Прогресс-бары */
-.progress-bar {
-    display: flex;
-    align-items: center;
-    color: white;
-    font-size: 14px;
-    line-height: 30px;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 0 10px;
-    position: relative;
-    flex-shrink: 0;
-    z-index: 1;
-}
-
-/* Полное заполнение */
-.progress-bar.full {
-    width: 100% !important;
-    border-radius: 12px !important;
-}
-
-/* Цвета прогресс-бара */
-.progress-bar-blue {
-    background-color: #007bff;
-}
-
-.progress-bar-green {
-    background-color: #28a745;
-}
-
-/* Текст всегда виден */
-.progress-text {
-    font-weight: bold;
-    width: 100%;
-}
-
-/* Выравнивание текста */
-.text-left {
-    text-align: left;
-    padding-left: 10px;
-}
-
-.text-right {
-    text-align: right;
-    padding-right: 10px;
-}
-
-    /* Зеленая кнопка Submit */
-.submit-btn {
-    background-color: #28a745;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
-    transition: background-color 0.2s;
-    font-weight: bold;
-}
-
-.submit-btn:hover {
-    background-color: #218838;
-}
-
-/* Поля ввода времени */
-#duration,
-#datetimePicker {
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-/* Прячем поле выбора даты по умолчанию */
-.hidden {
-    display: none;
-}
-/* Стили для табов времени */
-.time-selector {
-  margin-bottom: 1rem;
-}
-.time-selector .time-tabs {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  overflow-x: auto;       /* если слишком узко — можно промотать */
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 0.5rem;
-}
-
-.time-selector .time-tab {
-  flex: 1 1 auto;
-  min-width: 4.5rem;      /* табы не будут уже этой ширины */
-  padding: 0.4rem 0;      
-  font-size: 0.875rem;
-  text-align: center;
-  border-radius: 0.375rem;
-  white-space: nowrap;
-  cursor: pointer;
-  background: #777;
-  color: #fff;
-  border: none;
-  transition: background 0.2s;
-}
-
-.time-selector .time-tab.active {
-  background: #4CAF50;    /* цвет активного таба */
-}
-
-.time-selector .time-tab:hover:not(.active) {
-  background-color: #218838;
-  color: #fff;
-}
-
-/* Обёртка для картинок + VS */
-.battle-images-wrapper {
-  position: relative;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-/* Кружок VS */
-.vs-circle {
-  position: absolute;
-  left: 50%;
-  top: 35%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  background: #fff;
-  color: #000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-  z-index: 2;
-}
+    .cancel-btn:hover { background: #5a6268; }
   </style>
 </head>
 <body class="bg-gray-100">
+
   <div class="container mx-auto p-6">
     <button onclick="location.href='index.html'"
             class="mb-6 text-blue-500 hover:underline">
       ← Back to list
     </button>
-
     <div id="battleDetail"></div>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
+      <div class="share-buttons">
+        <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook"/>Facebook
+        </a>
+        <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/twitter.png" alt="X.com"/>X.com
+        </a>
+        <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit"/>Reddit
+        </a>
+      </div>
+      <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
+    </div>
   </div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-    const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+
+    const SUPABASE_URL     = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Утилиты (скопируйте из main.js)
-    function calculateTimeLeft(endTime) { /* ... */ }
-    function startLiveCountdown(id, endTime) { /* ... */ }
-    function renderProgressBar(v1, v2) { /* ... */ }
-    function uploadImage(file) { /* ... */ }
-    function openShareModal(battleId, option) { /* ... */ }
+    // Utilities
+    function calculateTimeLeft(endTime) {
+      let diff = new Date(endTime) - new Date();
+      if (diff <= 0) return '';
+      const days    = Math.floor(diff/86400000); diff %= 86400000;
+      const hours   = Math.floor(diff/3600000);   diff %= 3600000;
+      const minutes = Math.floor(diff/60000);     diff %= 60000;
+      const seconds = Math.floor(diff/1000);
+      const parts = [];
+      if (days)    parts.push(`${days} day${days>1?'s':''}`);
+      if (hours)   parts.push(`${hours} hour${hours>1?'s':''}`);
+      if (minutes) parts.push(`${minutes} min${minutes>1?'s':''}`);
+      if (seconds) parts.push(`${seconds} sec${seconds>1?'s':''}`);
+      return parts.join(' ');
+    }
 
-    // Парсим id из URL
-    const params = new URLSearchParams(window.location.search);
-    const battleId = params.get('id');
-
-    async function loadBattle() {
-      if (!battleId) {
-        document.getElementById('battleDetail').innerText = 'No battle ID';
-        return;
+    function startLiveCountdown(id,endTime){
+      const el = document.getElementById(`timer-${id}`);
+      function upd(){
+        const t = calculateTimeLeft(endTime);
+        if(!t){ el.textContent='Finished'; clearInterval(iv); }
+        else { el.textContent=`Time to Left: ${t}`; }
       }
-      const { data: b, error } = await supabase
-        .from('battles')
-        .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
-        .eq('id', battleId)
-        .single();
-      if (error) {
-        document.getElementById('battleDetail').innerText = error.message;
-        return;
-      }
+      const iv=setInterval(upd,1000); upd();
+    }
 
-      const active = new Date(b.ends_at) > new Date();
-      document.getElementById('battleDetail').innerHTML = `
+    function renderProgressBar(v1,v2){
+      const total=v1+v2, p1=total?Math.round(v1/total*100):50, p2=100-p1;
+      if(p1===100) return `
+        <div class="progress-bar-container">
+          <div class="progress-bar progress-bar-blue full"><span class="text-left">${v1} votes (100%)</span></div>
+        </div>`;
+      if(p2===100) return `
+        <div class="progress-bar-container">
+          <div class="progress-bar progress-bar-green full"><span class="text-right">${v2} votes (100%)</span></div>
+        </div>`;
+      return `
+        <div class="progress-bar-container">
+          <div class="progress-bar progress-bar-blue" style="width:${p1}%"><span class="text-left">${v1} (${p1}%)</span></div>
+          <div class="progress-bar progress-bar-green" style="width:${p2}%"><span class="text-right">${v2} (${p2}%)</span></div>
+        </div>`;
+    }
+
+    // Share modal logic
+    function openShareModal(battleId, option){
+      const m=document.getElementById('shareModal');
+      m.classList.remove('hidden');
+      const url=location.href, title='Make it count – share to vote!';
+      document.getElementById('facebookShare').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
+      document.getElementById('twitterShare').href =`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+      document.getElementById('redditShare').href  =`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+      // remove old handlers
+      document.querySelectorAll('#shareModal a').forEach(a=>{
+        const c=a.cloneNode(true); a.replaceWith(c); a=c;
+        a.onclick=async e=>{
+          e.preventDefault();
+          const col = option==='votes1'?'votes1':'votes2';
+          const { data,rowErr } = await supabase.from('battles').select(col).eq('id',battleId).single();
+          if(rowErr) throw rowErr;
+          const newV=(data[col]||0)+1;
+          await supabase.from('battles').update({[col]:newV}).eq('id',battleId);
+          await loadBattle(); m.classList.add('hidden');
+          window.open(a.href,'_blank');
+        };
+      });
+    }
+
+    // close share modal
+    window.addEventListener('load',()=>{
+      document.getElementById('shareCloseBtn').onclick=()=>document.getElementById('shareModal').classList.add('hidden');
+      document.getElementById('shareModal').onclick=e=>{ if(e.target.id==='shareModal') e.target.classList.add('hidden'); };
+    });
+
+    // Load one battle
+    const params=new URLSearchParams(location.search);
+    const battleId=params.get('id');
+    async function loadBattle(){
+      if(!battleId){ document.getElementById('battleDetail').innerText='No battle ID'; return; }
+      const { data:b, error }=await supabase.from('battles')
+        .select('id,title,option1,option2,votes1,votes2,ends_at,image1,image2')
+        .eq('id',battleId).single();
+      if(error){ document.getElementById('battleDetail').innerText=error.message; return; }
+      const active=new Date(b.ends_at)>new Date();
+      document.getElementById('battleDetail').innerHTML=`
         <h1 class="text-3xl font-bold mb-4">${b.title}</h1>
-        <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
-          <div class="text-center">
-            <img src="${b.image1}" class="mx-auto mb-2 w-64 h-64 object-cover rounded" />
-            <p class="font-semibold">${b.option1}</p>
+        <div class="battle-images-wrapper mb-4">
+          <div class="flex-1 text-center">
+            <img src="${b.image1}" class="mx-auto w-64 h-64 object-cover rounded"/>
+            <div class="option-title">${b.option1}</div>
+            <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" onclick="openShareModal('${b.id}','votes1')">Vote</button>
           </div>
-          <div class="text-4xl font-bold text-gray-500">VS</div>
-          <div class="text-center">
-            <img src="${b.image2}" class="mx-auto mb-2 w-64 h-64 object-cover rounded" />
-            <p class="font-semibold">${b.option2}</p>
+          <div class="vs-circle">VS</div>
+          <div class="flex-1 text-center">
+            <img src="${b.image2}" class="mx-auto w-64 h-64 object-cover rounded"/>
+            <div class="option-title">${b.option2}</div>
+            <button class="mt-2 bg-green-600 text-white px-4 py-2 rounded" onclick="openShareModal('${b.id}','votes2')">Vote</button>
           </div>
         </div>
-        <div class="mb-4">${renderProgressBar(b.votes1, b.votes2)}</div>
+        ${renderProgressBar(b.votes1,b.votes2)}
         <div id="timer-${b.id}" class="text-sm text-gray-600 mb-6">
-          ${ active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished' }
-        </div>
-        <div class="flex gap-4">
-          <button onclick="openShareModal('${b.id}','votes1')"
-                  class="bg-blue-600 text-white px-4 py-2 rounded">
-            Vote 
-          </button>
-          <button onclick="openShareModal('${b.id}','votes2')"
-                  class="bg-green-600 text-white px-4 py-2 rounded">
-            Vote 
-          </button>
+          ${active?`Time to Left: ${calculateTimeLeft(b.ends_at)}`:'Finished'}
         </div>
       `;
-      if (active) startLiveCountdown(b.id, b.ends_at);
+      if(active) startLiveCountdown(b.id,b.ends_at);
     }
 
     loadBattle();
