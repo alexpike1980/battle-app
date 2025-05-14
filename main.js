@@ -217,63 +217,77 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndRenderBattles();
   });
 
- // ——————————————————————————————————————————
-// Sharing-modal
-window.openShareModal = (battleId, option) => {
-  // Открываем модалку
-  const modal = document.getElementById('shareModal');
-  modal.classList.remove('hidden');
+  // ——————————————————————————————————————————
+  // Sharing-modal
+  window.openShareModal = (battleId, option) => {
+    // Открываем модалку
+    const modal = document.getElementById('shareModal');
+    modal.classList.remove('hidden');
 
-  // Готовим ссылки для шаринга
-  const url   = window.location.href;
-  const title = 'Make it count – share to vote!';
-  document.getElementById('facebookShare').href =
-    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-  document.getElementById('twitterShare').href =
-    `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-  document.getElementById('redditShare').href =
-    `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+    // Готовим ссылки для шаринга
+    const url   = window.location.href;
+    const title = 'Make it count – share to vote!';
+    document.getElementById('facebookShare').href =
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
+    document.getElementById('twitterShare').href =
+      `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+    document.getElementById('redditShare').href =
+      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
 
-  // 1) Сбрасываем старые обработчики: заменяем каждую ссылку её клоном
-  const shareLinks = document.querySelectorAll('#shareModal a');
-  shareLinks.forEach(link => {
-    const clone = link.cloneNode(true);
-    link.parentNode.replaceChild(clone, link);
-  });
+    // Сбрасываем старые обработчики
+    document.querySelectorAll('#shareModal a').forEach(link => {
+      const clone = link.cloneNode(true);
+      link.parentNode.replaceChild(clone, link);
+    });
 
-  // 2) Вешаем по одному обработчику на каждую ссылку
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    link.addEventListener('click', async event => {
-      event.preventDefault();
-      const shareUrl = link.href;
-      const column   = option === 'votes1' ? 'votes1' : 'votes2';
+    // Вешаем новый обработчик на каждую ссылку
+    document.querySelectorAll('#shareModal a').forEach(link => {
+      link.addEventListener('click', async event => {
+        event.preventDefault();
+        const shareUrl = link.href;
+        const column   = (option === 'votes1' ? 'votes1' : 'votes2');
 
-      try {
-        // а) читаем текущее число голосов
-        const { data: row, error: fe } = await supabase
-          .from('battles')
-          .select(column)
-          .eq('id', battleId)
-          .single();
-        if (fe) throw fe;
+        try {
+          // читаем текущее значение
+          const { data: row, error: fe } = await supabase
+            .from('battles')
+            .select(column)
+            .eq('id', battleId)
+            .single();
+          if (fe) throw fe;
 
-        // б) записываем +1
-        const newVotes = (row[column] || 0) + 1;
-        const { error: ue } = await supabase
-          .from('battles')
-          .update({ [column]: newVotes })
-          .eq('id', battleId);
-        if (ue) throw ue;
+          // записываем +1
+          const newVotes = (row[column] || 0) + 1;
+          const { error: ue } = await supabase
+            .from('battles')
+            .update({ [column]: newVotes })
+            .eq('id', battleId);
+          if (ue) throw ue;
 
-        // в) обновляем UI и закрываем модалку
-        await fetchAndRenderBattles();
-        modal.classList.add('hidden');
+          // обновляем UI и закрываем модалку
+          await fetchAndRenderBattles();
+          modal.classList.add('hidden');
 
-        // г) наконец — открываем окно шаринга
-        window.open(shareUrl, '_blank');
-      } catch (err) {
-        console.error('Ошибка добавления голоса:', err);
-      }
+          // открываем окно шаринга
+          window.open(shareUrl, '_blank');
+        } catch (err) {
+          console.error('Ошибка добавления голоса:', err);
+        }
+      });
+    });
+  }; // ← закрываем window.openShareModal
+
+  // ——————————————————————————————————————————
+  // Закрытие share-модалки по кнопке и по фону
+  window.addEventListener('load', () => {
+    const shareM = document.getElementById('shareModal');
+    const shareX = document.getElementById('shareCloseBtn');
+    if (shareX) {
+      shareX.addEventListener('click', () => shareM.classList.add('hidden'));
+    }
+    shareM.addEventListener('click', e => {
+      if (e.target === shareM) shareM.classList.add('hidden');
     });
   });
-}; // ← закрываем window.openShareModal
+
+}); // ← закрываем обработчик DOMContentLoaded
