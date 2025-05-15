@@ -131,26 +131,36 @@ block.innerHTML = `
   <h3 class="text-xl font-semibold mb-2">${b.title}</h3>
   <div class="flex gap-4 mb-4 items-center relative" style="min-height: 180px;">
     <div class="flex-1 flex flex-col items-center">
-      <img src="${b.image1 || 'https://via.placeholder.com/300x180?text=No+Image'}"
+      <div class="relative w-full flex items-center">
+        <img src="${b.image1 || 'https://via.placeholder.com/300x180?text=No+Image'}"
           alt="Option 1"
           class="w-full max-w-xs h-40 object-cover rounded-lg"
           style="aspect-ratio: 16/9;" />
+        <!-- VS кружок будет поверх, строго по центру между картинками -->
+        <div class="vs-circle flex items-center justify-center font-bold text-base"
+          style="position:absolute;left:100%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:#fff;color:#000;border-radius:50%;z-index:2;">
+          VS
+        </div>
+      </div>
       <div class="option-title mt-2 mb-2">${b.option1}</div>
       <button class="bg-blue-600 text-white py-3 px-4 rounded-lg w-full mt-2 text-lg font-semibold hover:bg-blue-700 transition"
               onclick="openShareModal('${b.id}','votes1')">Vote</button>
     </div>
-    <div class="vs-circle flex items-center justify-center font-bold text-base"
-        style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:#fff;color:#000;border-radius:50%;z-index:2;">
-      VS
-    </div>
     <div class="flex-1 flex flex-col items-center">
-      <img src="${b.image2 || 'https://via.placeholder.com/300x180?text=No+Image'}"
+      <div class="relative w-full flex items-center">
+        <img src="${b.image2 || 'https://via.placeholder.com/300x180?text=No+Image'}"
           alt="Option 2"
           class="w-full max-w-xs h-40 object-cover rounded-lg"
           style="aspect-ratio: 16/9;" />
+      </div>
       <div class="option-title mt-2 mb-2">${b.option2}</div>
       <button class="bg-green-600 text-white py-3 px-4 rounded-lg w-full mt-2 text-lg font-semibold hover:bg-green-700 transition"
               onclick="openShareModal('${b.id}','votes2')">Vote</button>
+    </div>
+    <!-- Абсолютно центрируем VS между двумя изображениями -->
+    <div class="vs-circle flex items-center justify-center font-bold text-base"
+      style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:#fff;color:#000;border-radius:50%;z-index:3;">
+      VS
     </div>
   </div>
   ${renderProgressBar(b.votes1, b.votes2, b.id)}
@@ -158,7 +168,6 @@ block.innerHTML = `
     ${ active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished' }
   </div>
 `;
-
       container.appendChild(block);
       if (active) startLiveCountdown(b.id, b.ends_at);
     });
