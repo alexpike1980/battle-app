@@ -414,12 +414,137 @@
       <span class="text-xs">Profile</span>
     </a>
   </nav>
+<!-- Create Battle Modal -->
+<div id="createModal" class="modal hidden">
+  <div class="modal-content">
+    <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
 
-  <!-- Create Battle Modal -->
-  <!-- ... (оставь без изменений) ... -->
+    <input
+      type="text"
+      id="title"
+      placeholder="Title"
+      class="w-full mb-3 p-2 border rounded"
+    />
 
-  <!-- Share Modal -->
-  <!-- ... (оставь без изменений) ... -->
+    <div class="mb-4">
+      <input
+        type="text"
+        id="option1"
+        placeholder="Option 1"
+        class="w-full mb-2 p-2 border rounded"
+      />
+      <!-- Upload button for image 1 -->
+      <label
+        for="image1File"
+        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
+      >
+        Upload Image 1
+      </label>
+      <input type="file" id="image1File" class="hidden" />
+    </div>
+
+    <div class="mb-4">
+      <input
+        type="text"
+        id="option2"
+        placeholder="Option 2"
+        class="w-full mb-2 p-2 border rounded"
+      />
+      <!-- Upload button for image 2 -->
+      <label
+        for="image2File"
+        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
+      >
+        Upload Image 2
+      </label>
+      <input type="file" id="image2File" class="hidden" />
+    </div>
+
+    <!-- Time selector -->
+    <div class="time-selector mb-4">
+      <div class="time-tabs">
+        <button type="button" class="time-tab active" data-unit="minutes">
+          Minutes
+        </button>
+        <button type="button" class="time-tab" data-unit="hours">
+          Hours
+        </button>
+        <button type="button" class="time-tab" data-unit="days">
+          Days
+        </button>
+        <button type="button" class="time-tab" data-unit="date">
+          Pick Date
+        </button>
+      </div>
+      <input
+        type="number"
+        id="duration"
+        placeholder="Enter minutes"
+        min="1"
+        class="p-2 border rounded w-full"
+      />
+      <input
+        type="datetime-local"
+        id="datetimePicker"
+        class="hidden p-2 border rounded w-full mt-2"
+      />
+    </div>
+
+    <!-- Action buttons -->
+    <div class="flex justify-end gap-2">
+      <button
+        id="cancelCreateBtn"
+        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+      >
+        Cancel
+      </button>
+      <button
+        id="submitBattleBtn"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div id="shareModal" class="modal hidden">
+  <div id="shareModalContent" class="modal-content">
+    <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
+    <div class="share-buttons">
+      <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
+        <span>Facebook</span>
+      </a>
+      <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
+        <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
+        <span>X.com</span>
+      </a>
+      <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
+        <span>Reddit</span>
+      </a>
+    </div>
+    <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
+  </div>
+</div>
+
+
+<script>
+      // Открыть Create Modal
+      document.getElementById('createBattleBtn').addEventListener('click', () => {
+        document.getElementById('createModal').classList.remove('hidden');
+      });
+
+      // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
+      const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+      if (cancelCreateBtn) {
+        cancelCreateBtn.addEventListener('click', () => {
+          document.getElementById('createModal').classList.add('hidden');
+        });
+      }
+    </script>
 
   <script>
     // Открыть Create Modal
