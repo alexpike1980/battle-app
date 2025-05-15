@@ -11,19 +11,24 @@
     html, body { min-height:100%; }
     body { font-family: 'Manrope',sans-serif; background: linear-gradient(120deg, #f7faff 70%, #f0f3ff 100%) !important; }
     .boxed { max-width: 1200px; margin: 0 auto; }
-    /* Плавающая кнопка для мобилы */
-    .fab { @apply fixed z-50 bottom-20 right-6 md:hidden bg-blue-600 text-white rounded-full w-16 h-16 shadow-lg flex items-center justify-center text-3xl transition hover:bg-blue-700; }
-    /* Скелетоны */
+    .tab-btn.active, .tab-btn[aria-selected="true"] {
+      color: #2563eb !important; /* blue-600 */
+      border-bottom-color: #2563eb;
+      font-weight: 700;
+    }
     .skeleton { background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 50%, #f4f4f4 75%); background-size: 400% 100%; animation: skeleton 1.4s ease infinite; border-radius: 0.5rem; }
     @keyframes skeleton { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
-    /* Анимация fade-in */
     .fade-in { animation: fadeIn .7s cubic-bezier(.39,.575,.565,1.000) both;}
     @keyframes fadeIn {0%{opacity:0;transform:translateY(25px);}100%{opacity:1;transform:none;}}
-    /* Фон watermark */
+    .option-title { font-size: clamp(0.8rem, 4vw, 1.2rem); line-height: 1.2; text-align: center; word-wrap: break-word; padding: 0.6em 0 0.3em 0; }
     .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
     @media (max-width:1024px){ .sidebar-right {display:none;} }
     @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
-        .option-title {
+    .vs-circle { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; z-index: 2; }
+    /* Нижнее меню мобильное */
+    .mobile-nav-btn.active { color: #2563eb; }
+
+       .option-title {
   /* от 0.8rem до 1.2rem, в зависимости от ширины контейнера */
   font-size: clamp(0.8rem, 4vw, 1.2rem);
   line-height: 1.2;
@@ -352,9 +357,8 @@
     </div>
   </header>
 
-  <!-- Основной layout -->
+  <!-- Main layout: три колонки -->
   <div class="boxed flex gap-8 pt-6 pb-16 md:pb-8 bg-transparent min-h-[85vh] relative">
-
     <!-- Левый сайдбар -->
     <aside class="sidebar-left w-18 md:w-56 hidden md:flex flex-col pt-3 border-r border-gray-200 min-h-[80vh]">
       <div>
@@ -380,210 +384,60 @@
     <main class="flex-1 max-w-[620px] w-full border-x border-gray-200 min-h-[80vh] bg-white relative">
       <!-- Tabs -->
       <div class="sticky top-[64px] z-10 bg-white pt-2 pb-1 border-b border-gray-200 flex items-center gap-1">
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active"
-                id="tab-featured">Featured</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-active">Active</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-finished">Finished</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active" id="tab-featured">Featured</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600" id="tab-active">Active</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600" id="tab-finished">Finished</button>
       </div>
       <!-- Лента батлов -->
-    <!-- Three columns -->
-<div class="max-w-screen-xl mx-auto flex gap-6 px-4 pt-8">
-  <!-- Left sidebar -->
-  <aside class="hidden md:flex flex-col gap-6 w-56 shrink-0">
-    <div class="text-2xl font-bold mb-6">FANSHARE</div>
-    <button id="createBattleBtn" class="mb-3 w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Create Battle</button>
-    <!-- Add menu/trends here -->
-    <nav class="flex flex-col gap-2 text-gray-600">
-      <a href="#" class="hover:text-blue-600 transition">Trending</a>
-      <a href="#" class="hover:text-blue-600 transition">Popular</a>
-      <a href="#" class="hover:text-blue-600 transition">My Battles</a>
-    </nav>
-  </aside>
+      <div id="battleSkeletons" class="flex flex-col gap-4 mt-4"></div>
+      <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
+      <div id="scrollEndMarker" class="h-10"></div>
+    </main>
 
-  <!-- Center column -->
-  <main class="flex-1 max-w-2xl mx-auto min-w-0">
-    <!-- TABS -->
-    <div class="flex items-center justify-between mb-2 sticky top-0 bg-white z-10 border-b border-gray-200">
-      <nav id="battleTabs" class="relative flex gap-2 w-full">
-        <button class="tab-btn font-semibold px-4 py-3 relative focus:outline-none transition-colors" data-tab="featured">Featured</button>
-        <button class="tab-btn font-semibold px-4 py-3 relative focus:outline-none transition-colors" data-tab="active">Active</button>
-        <button class="tab-btn font-semibold px-4 py-3 relative focus:outline-none transition-colors" data-tab="finished">Finished</button>
-        <span id="tabIndicator" class="absolute h-1 bg-blue-600 rounded-full transition-all duration-300" style="bottom:0; left:0; width:0;"></span>
-      </nav>
-      <button id="floatingCreateBtn" class="ml-4 hidden md:block bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition">+ Create</button>
-    </div>
-
-    <!-- SKELETONS -->
-    <div id="battleSkeletons" class="flex flex-col gap-4 mt-4">
-      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
-      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
-      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
-      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
-      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
-    </div>
-    <!-- BATTLE FEED -->
-    <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
-    <!-- Infinite scroll marker -->
-    <div id="scrollEndMarker" class="h-10"></div>
-  </main>
-
-  <!-- Right sidebar -->
-  <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6">
-    <div class="text-xl font-bold mb-3">Top Battles</div>
-    <!-- Тут рейтинги, реклама, погода... -->
-    <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
-    <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
-  </aside>
-</div>
-
+    <!-- Правый сайдбар -->
+    <aside class="sidebar-right hidden xl:flex flex-col w-72 shrink-0 gap-6">
+      <div class="text-xl font-bold mb-3">Top Battles</div>
+      <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
+      <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
+    </aside>
+  </div>
 
   <!-- Мобильное нижнее меню -->
   <nav class="fixed md:hidden bottom-0 left-0 w-full bg-white border-t flex justify-around py-2 z-50">
-    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
+    <a href="#" class="mobile-nav-btn flex flex-col items-center text-gray-700 hover:text-blue-600 active">
       <svg width="24" height="24" fill="none" class="mb-1"><path d="M4 10l8-6 8 6" stroke="currentColor" stroke-width="2"/><path d="M4 10v10h16V10" stroke="currentColor" stroke-width="2"/></svg>
       <span class="text-xs">Home</span>
     </a>
     <button id="navFab" class="bg-blue-600 text-white w-12 h-12 rounded-full -mt-8 shadow-lg flex items-center justify-center text-3xl">+</button>
-    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
+    <a href="#" class="mobile-nav-btn flex flex-col items-center text-gray-700 hover:text-blue-600">
       <svg width="24" height="24" fill="none" class="mb-1"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M6 20c0-2 4-4 6-4s6 2 6 4" stroke="currentColor" stroke-width="2"/></svg>
       <span class="text-xs">Profile</span>
     </a>
   </nav>
 
-<!-- Create Battle Modal -->
-<div id="createModal" class="modal hidden">
-  <div class="modal-content">
-    <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
+  <!-- Create Battle Modal -->
+  <!-- ... (оставь без изменений) ... -->
 
-    <input
-      type="text"
-      id="title"
-      placeholder="Title"
-      class="w-full mb-3 p-2 border rounded"
-    />
+  <!-- Share Modal -->
+  <!-- ... (оставь без изменений) ... -->
 
-    <div class="mb-4">
-      <input
-        type="text"
-        id="option1"
-        placeholder="Option 1"
-        class="w-full mb-2 p-2 border rounded"
-      />
-      <!-- Upload button for image 1 -->
-      <label
-        for="image1File"
-        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
-      >
-        Upload Image 1
-      </label>
-      <input type="file" id="image1File" class="hidden" />
-    </div>
-
-    <div class="mb-4">
-      <input
-        type="text"
-        id="option2"
-        placeholder="Option 2"
-        class="w-full mb-2 p-2 border rounded"
-      />
-      <!-- Upload button for image 2 -->
-      <label
-        for="image2File"
-        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
-      >
-        Upload Image 2
-      </label>
-      <input type="file" id="image2File" class="hidden" />
-    </div>
-
-    <!-- Time selector -->
-    <div class="time-selector mb-4">
-      <div class="time-tabs">
-        <button type="button" class="time-tab active" data-unit="minutes">
-          Minutes
-        </button>
-        <button type="button" class="time-tab" data-unit="hours">
-          Hours
-        </button>
-        <button type="button" class="time-tab" data-unit="days">
-          Days
-        </button>
-        <button type="button" class="time-tab" data-unit="date">
-          Pick Date
-        </button>
-      </div>
-      <input
-        type="number"
-        id="duration"
-        placeholder="Enter minutes"
-        min="1"
-        class="p-2 border rounded w-full"
-      />
-      <input
-        type="datetime-local"
-        id="datetimePicker"
-        class="hidden p-2 border rounded w-full mt-2"
-      />
-    </div>
-
-    <!-- Action buttons -->
-    <div class="flex justify-end gap-2">
-      <button
-        id="cancelCreateBtn"
-        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
-      >
-        Cancel
-      </button>
-      <button
-        id="submitBattleBtn"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        Submit
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Share Modal -->
-<div id="shareModal" class="modal hidden">
-  <div id="shareModalContent" class="modal-content">
-    <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
-    <div class="share-buttons">
-      <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
-        <span>Facebook</span>
-      </a>
-      <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
-        <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
-        <span>X.com</span>
-      </a>
-      <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
-        <span>Reddit</span>
-      </a>
-    </div>
-    <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
-  </div>
-</div>
-
-
-<script>
-      // Открыть Create Modal
-      document.getElementById('createBattleBtn').addEventListener('click', () => {
-        document.getElementById('createModal').classList.remove('hidden');
+  <script>
+    // Открыть Create Modal
+    document.getElementById('createBattleBtn').addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    // FAB на мобильном
+    const fab = document.getElementById('navFab');
+    if (fab) fab.onclick = () => document.getElementById('createModal').classList.remove('hidden');
+    // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
+    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+    if (cancelCreateBtn) {
+      cancelCreateBtn.addEventListener('click', () => {
+        document.getElementById('createModal').classList.add('hidden');
       });
-
-      // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
-      const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-      if (cancelCreateBtn) {
-        cancelCreateBtn.addEventListener('click', () => {
-          document.getElementById('createModal').classList.add('hidden');
-        });
-      }
-    </script>
+    }
+  </script>
   <script type="module" src="./main.js"></script>
-       <script type="module" src="./tabs.js"></script>
 </body>
 </html>
+
