@@ -1,0 +1,105 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battle App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: sans-serif; background-color: #f8f9fa; }
+    /* ... все ваши текущие стили остаются без изменений ... */
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Header -->
+  <header class="bg-white border-b">
+    <div class="max-w-screen-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="text-2xl font-bold">FANSHARE</a>
+      <button id="createBattleBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+        Create Battle
+      </button>
+    </div>
+  </header>
+
+  <!-- Main layout -->
+  <div class="max-w-screen-lg mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left nav -->
+    <aside class="hidden lg:block lg:col-span-2 space-y-6">
+      <!-- Зона авторизации / меню -->
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Menu</h2>
+        <ul class="space-y-1 text-gray-700">
+          <li><a href="#" class="hover:underline">Home</a></li>
+          <li><a href="#" class="hover:underline">Profile</a></li>
+          <li><a href="#" class="hover:underline">Settings</a></li>
+        </ul>
+      </div>
+      <!-- Популярные темы -->
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Trending</h2>
+        <p class="text-gray-600">#TomorrowWars</p>
+        <p class="text-gray-600">#SpaceBattle</p>
+      </div>
+    </aside>
+
+    <!-- Center feed -->
+    <main class="lg:col-span-7 space-y-4">
+      <!-- Tabs -->
+      <div class="flex items-center justify-between bg-white p-3 rounded shadow">
+        <div class="space-x-2">
+          <button id="tabFeatured" class="px-4 py-2 rounded bg-green-500 text-white">Featured</button>
+          <button id="tabFinished" class="px-4 py-2 rounded bg-gray-200 text-gray-700">Finished</button>
+        </div>
+        <button id="createBattleBtn2" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+          Create Battle
+        </button>
+      </div>
+
+      <!-- Список батлов -->
+      <div id="battleList" class="grid grid-cols-1 gap-6"></div>
+    </main>
+
+    <!-- Right sidebar -->
+    <aside class="hidden lg:block lg:col-span-3 space-y-6">
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="font-semibold mb-2">Widgets & Ads</h2>
+        <p class="text-gray-600">Здесь будет реклама или рейтинги</p>
+      </div>
+      <!-- другие элементы сайдбара… -->
+    </aside>
+  </div>
+
+  <!-- Create Modal -->
+  <!-- ... ваш существующий createModal без изменений ... -->
+
+  <!-- Share Modal -->
+  <!-- ... ваш существующий shareModal без изменений ... -->
+
+  <!-- Логирование (можно убрать после отладки) -->
+  <div id="logContainer" class="max-w-screen-lg mx-auto px-4 mt-6 bg-white p-4 rounded shadow">
+    <strong>Логи:</strong>
+  </div>
+
+  <!-- Скрипты управления модалками -->
+  <script>
+    // Открыть Create Modal
+    document.getElementById('createBattleBtn').addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    document.getElementById('createBattleBtn2').addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    // Закрыть Create Modal
+    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+    if (cancelCreateBtn) {
+      cancelCreateBtn.addEventListener('click', () => {
+        document.getElementById('createModal').classList.add('hidden');
+      });
+    }
+  </script>
+
+  <!-- Ваш основной модуль -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
