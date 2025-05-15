@@ -7,23 +7,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    html, body { min-height:100%; }
+<style>
+  html, body { min-height:100%; }
     body { font-family: 'Manrope',sans-serif; background: linear-gradient(120deg, #f7faff 70%, #f0f3ff 100%) !important; }
     .boxed { max-width: 1200px; margin: 0 auto; }
-    /* Плавающая кнопка для мобилы */
-    .fab { @apply fixed z-50 bottom-20 right-6 md:hidden bg-blue-600 text-white rounded-full w-16 h-16 shadow-lg flex items-center justify-center text-3xl transition hover:bg-blue-700; }
-    /* Скелетоны */
+    .tab-btn.active, .tab-btn[aria-selected="true"] {
+      color: #2563eb !important; /* blue-600 */
+      border-bottom-color: #2563eb;
+      font-weight: 700;
+    }
     .skeleton { background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 50%, #f4f4f4 75%); background-size: 400% 100%; animation: skeleton 1.4s ease infinite; border-radius: 0.5rem; }
     @keyframes skeleton { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
-    /* Анимация fade-in */
     .fade-in { animation: fadeIn .7s cubic-bezier(.39,.575,.565,1.000) both;}
     @keyframes fadeIn {0%{opacity:0;transform:translateY(25px);}100%{opacity:1;transform:none;}}
-    /* Фон watermark */
+    .option-title { font-size: clamp(0.8rem, 4vw, 1.2rem); line-height: 1.2; text-align: center; word-wrap: break-word; padding: 0.6em 0 0.3em 0; }
     .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
     @media (max-width:1024px){ .sidebar-right {display:none;} }
     @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
-        .option-title {
+    .vs-circle { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; z-index: 2; }
+    /* Нижнее меню мобильное */
+    .mobile-nav-btn.active { color: #2563eb; }
+
+       .option-title {
   /* от 0.8rem до 1.2rem, в зависимости от ширины контейнера */
   font-size: clamp(0.8rem, 4vw, 1.2rem);
   line-height: 1.2;
@@ -331,6 +336,9 @@
   font-size: 0.9rem;
   z-index: 2;
 }
+    .tab-btn.active {
+  color: #2563eb !important; /* blue-600 */
+}
   </style>
 </head>
 <body class="bg-white">
@@ -349,9 +357,8 @@
     </div>
   </header>
 
-  <!-- Основной layout -->
+  <!-- Main layout: три колонки -->
   <div class="boxed flex gap-8 pt-6 pb-16 md:pb-8 bg-transparent min-h-[85vh] relative">
-
     <!-- Левый сайдбар -->
     <aside class="sidebar-left w-18 md:w-56 hidden md:flex flex-col pt-3 border-r border-gray-200 min-h-[80vh]">
       <div>
@@ -377,60 +384,36 @@
     <main class="flex-1 max-w-[620px] w-full border-x border-gray-200 min-h-[80vh] bg-white relative">
       <!-- Tabs -->
       <div class="sticky top-[64px] z-10 bg-white pt-2 pb-1 border-b border-gray-200 flex items-center gap-1">
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active"
-                id="tab-featured">Featured</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-active">Active</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-finished">Finished</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active" id="tab-featured">Featured</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600" id="tab-active">Active</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600" id="tab-finished">Finished</button>
       </div>
       <!-- Лента батлов -->
-      <div id="battleList" class="fade-in"></div>
-      <!-- Infinite loader (по скроллу) -->
-      <div id="infiniteLoader" class="text-center py-5 hidden">
-        <div class="spinner mx-auto"></div>
-      </div>
-      <!-- Плавающая кнопка Create (только на мобиле) -->
-      <button class="fab" id="fabCreateBtn">+</button>
+      <div id="battleSkeletons" class="flex flex-col gap-4 mt-4"></div>
+      <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
+      <div id="scrollEndMarker" class="h-10"></div>
     </main>
 
     <!-- Правый сайдбар -->
-    <aside class="sidebar-right w-64 hidden lg:block pt-2 min-h-[80vh] border-l border-gray-200">
-      <div class="mb-6">
-        <div class="font-bold text-lg mb-2">Top-5 Battles</div>
-        <ul class="space-y-1 text-gray-700 text-sm">
-          <li>Battle 1</li>
-          <li>Battle 2</li>
-          <li>Battle 3</li>
-        </ul>
-      </div>
-      <div class="mb-6">
-        <div class="font-bold text-lg mb-2">Most Discussed</div>
-        <ul class="space-y-1 text-gray-700 text-sm">
-          <li>Battle A</li>
-          <li>Battle B</li>
-        </ul>
-      </div>
-      <div>
-        <div class="font-bold text-lg mb-2">Ads / Promo</div>
-        <div class="w-full h-24 bg-gray-100 rounded"></div>
-      </div>
+    <aside class="sidebar-right hidden xl:flex flex-col w-72 shrink-0 gap-6">
+      <div class="text-xl font-bold mb-3">Top Battles</div>
+      <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
+      <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
     </aside>
   </div>
 
   <!-- Мобильное нижнее меню -->
   <nav class="fixed md:hidden bottom-0 left-0 w-full bg-white border-t flex justify-around py-2 z-50">
-    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
+    <a href="#" class="mobile-nav-btn flex flex-col items-center text-gray-700 hover:text-blue-600 active">
       <svg width="24" height="24" fill="none" class="mb-1"><path d="M4 10l8-6 8 6" stroke="currentColor" stroke-width="2"/><path d="M4 10v10h16V10" stroke="currentColor" stroke-width="2"/></svg>
       <span class="text-xs">Home</span>
     </a>
     <button id="navFab" class="bg-blue-600 text-white w-12 h-12 rounded-full -mt-8 shadow-lg flex items-center justify-center text-3xl">+</button>
-    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
+    <a href="#" class="mobile-nav-btn flex flex-col items-center text-gray-700 hover:text-blue-600">
       <svg width="24" height="24" fill="none" class="mb-1"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M6 20c0-2 4-4 6-4s6 2 6 4" stroke="currentColor" stroke-width="2"/></svg>
       <span class="text-xs">Profile</span>
     </a>
   </nav>
-
 <!-- Create Battle Modal -->
 <div id="createModal" class="modal hidden">
   <div class="modal-content">
@@ -562,6 +545,24 @@
         });
       }
     </script>
+
+  <script>
+    // Открыть Create Modal
+    document.getElementById('createBattleBtn').addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    // FAB на мобильном
+    const fab = document.getElementById('navFab');
+    if (fab) fab.onclick = () => document.getElementById('createModal').classList.remove('hidden');
+    // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
+    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+    if (cancelCreateBtn) {
+      cancelCreateBtn.addEventListener('click', () => {
+        document.getElementById('createModal').classList.add('hidden');
+      });
+    }
+  </script>
   <script type="module" src="./main.js"></script>
+    <script type="module" src="./tabs.js"></script>
 </body>
 </html>
