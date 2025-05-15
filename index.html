@@ -327,146 +327,104 @@
 </head>
 <body>
 
-    <div id="logContainer" style="background-color: #f9f9f9; border: 1px solid #ccc; padding: 10px; margin-top: 20px; max-height: 200px; overflow-y: auto;">
-    <strong>Логи:</strong>
-</div>
-    <div class="container mx-auto p-6">
-        <h1 class="text-4xl font-bold text-center mb-8">Battle App</h1>
-        <button id="createBattleBtn" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-all">Create Battle</button>
-        <div id="battleList" class="boxed p-6 grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
-    </div>
+    
+  <!-- Главный контейнер: 2 колонки на десктопе, 1 на мобилках -->
+  <div class="boxed grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
 
-<!-- Create Battle Modal -->
-<div id="createModal" class="modal hidden">
-  <div class="modal-content">
-    <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
-
-    <input
-      type="text"
-      id="title"
-      placeholder="Title"
-      class="w-full mb-3 p-2 border rounded"
-    />
-
-    <div class="mb-4">
-      <input
-        type="text"
-        id="option1"
-        placeholder="Option 1"
-        class="w-full mb-2 p-2 border rounded"
-      />
-      <!-- Upload button for image 1 -->
-      <label
-        for="image1File"
-        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
-      >
-        Upload Image 1
-      </label>
-      <input type="file" id="image1File" class="hidden" />
-    </div>
-
-    <div class="mb-4">
-      <input
-        type="text"
-        id="option2"
-        placeholder="Option 2"
-        class="w-full mb-2 p-2 border rounded"
-      />
-      <!-- Upload button for image 2 -->
-      <label
-        for="image2File"
-        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
-      >
-        Upload Image 2
-      </label>
-      <input type="file" id="image2File" class="hidden" />
-    </div>
-
-    <!-- Time selector -->
-    <div class="time-selector mb-4">
-      <div class="time-tabs">
-        <button type="button" class="time-tab active" data-unit="minutes">
-          Minutes
-        </button>
-        <button type="button" class="time-tab" data-unit="hours">
-          Hours
-        </button>
-        <button type="button" class="time-tab" data-unit="days">
-          Days
-        </button>
-        <button type="button" class="time-tab" data-unit="date">
-          Pick Date
+    <!-- Main -->
+    <main>
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-4xl font-bold">Battle App</h1>
+        <button id="createBattleBtn"
+                class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+          Create Battle
         </button>
       </div>
-      <input
-        type="number"
-        id="duration"
-        placeholder="Enter minutes"
-        min="1"
-        class="p-2 border rounded w-full"
-      />
-      <input
-        type="datetime-local"
-        id="datetimePicker"
-        class="hidden p-2 border rounded w-full mt-2"
-      />
-    </div>
+      <!-- Лента батлов -->
+      <div id="battleList" class="space-y-6"></div>
+      <!-- Тут можно infinite scroll -->
+    </main>
 
-    <!-- Action buttons -->
-    <div class="flex justify-end gap-2">
-      <button
-        id="cancelCreateBtn"
-        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
-      >
-        Cancel
-      </button>
-      <button
-        id="submitBattleBtn"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        Submit
-      </button>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="space-y-6">
+      <div class="p-4 bg-white rounded shadow">
+        <h2 class="font-semibold mb-2">Реклама</h2>
+        <!-- Рекламные виджеты -->
+      </div>
+      <div class="p-4 bg-white rounded shadow">
+        <h2 class="font-semibold mb-2">Виджеты</h2>
+        <!-- Другие виджеты -->
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Create Battle Modal -->
+  <div id="createModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
+      <input type="text" id="title"    placeholder="Title"   class="w-full mb-3 p-2 border rounded" />
+      <div class="mb-4">
+        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-2 p-2 border rounded" />
+        <label for="image1File"
+               class="inline-block mb-2 px-4 py-2 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
+          Upload Image 1
+        </label>
+        <input type="file" id="image1File" class="hidden" />
+      </div>
+      <div class="mb-4">
+        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-2 p-2 border rounded" />
+        <label for="image2File"
+               class="inline-block mb-2 px-4 py-2 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
+          Upload Image 2
+        </label>
+        <input type="file" id="image2File" class="hidden" />
+      </div>
+      <!-- Time selector -->
+      <div class="time-selector mb-4">
+        <div class="time-tabs flex gap-2 mb-2">
+          <button class="time-tab active" data-unit="minutes">Minutes</button>
+          <button class="time-tab" data-unit="hours">Hours</button>
+          <button class="time-tab" data-unit="days">Days</button>
+          <button class="time-tab" data-unit="date">Pick Date</button>
+        </div>
+        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="w-full p-2 border rounded mb-2" />
+        <input type="datetime-local" id="datetimePicker" class="hidden w-full p-2 border rounded" />
+      </div>
+      <!-- Action buttons -->
+      <div class="flex justify-end gap-2">
+        <button id="cancelCreateBtn" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">
+          Cancel
+        </button>
+        <button id="submitBattleBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Submit
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Share Modal -->
-<div id="shareModal" class="modal hidden">
-  <div id="shareModalContent" class="modal-content">
-    <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
-    <div class="share-buttons">
-      <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
-        <span>Facebook</span>
-      </a>
-      <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
-        <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
-        <span>X.com</span>
-      </a>
-      <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
-        <span>Reddit</span>
-      </a>
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
+      <div class="share-buttons">
+        <a href="#" id="facebookShare" class="share-btn facebook"><img src="..." alt="FB"/><span>Facebook</span></a>
+        <a href="#" id="twitterShare"  class="share-btn twitter"><img src="..." alt="X"/><span>X.com</span></a>
+        <a href="#" id="redditShare"   class="share-btn reddit"><img src="..." alt="RD"/><span>Reddit</span></a>
+      </div>
+      <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
     </div>
-    <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
   </div>
-</div>
 
-
-<script>
-      // Открыть Create Modal
-      document.getElementById('createBattleBtn').addEventListener('click', () => {
-        document.getElementById('createModal').classList.remove('hidden');
-      });
-
-      // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
-      const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-      if (cancelCreateBtn) {
-        cancelCreateBtn.addEventListener('click', () => {
-          document.getElementById('createModal').classList.add('hidden');
-        });
-      }
-    </script>
+  <!-- Open/Close Create Modal -->
+  <script>
+    document.getElementById('createBattleBtn').addEventListener('click', () =>
+      document.getElementById('createModal').classList.remove('hidden')
+    );
+    document.getElementById('cancelCreateBtn').addEventListener('click', () =>
+      document.getElementById('createModal').classList.add('hidden')
+    );
+  </script>
       <script type="module" src="./main.js" ></script>
 </body>
 </html>
