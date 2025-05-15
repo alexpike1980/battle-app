@@ -117,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ——————————————————————————————————————————
 // Fetch & render all battles
 async function fetchAndRenderBattles() {
+
+  showSkeletons(); 
   const { data: battles, error } = await supabase
     .from('battles')
     .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
@@ -124,6 +126,7 @@ async function fetchAndRenderBattles() {
   if (error) {
     console.error('Ошибка загрузки батлов:', error.message);
     return;
+    
   }
 
   const container = document.getElementById('battleList');
@@ -181,6 +184,7 @@ async function fetchAndRenderBattles() {
 
     if (active) startLiveCountdown(b.id, b.ends_at);
   });
+  hideSkeletons();
 }
 
 // Запуск сразу после определения функции
