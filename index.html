@@ -6,7 +6,7 @@
   <title>FANSHARE Battles</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f8f9fa; }
+    body { background: #fff; }
     .option-title {
       font-size: clamp(0.8rem, 4vw, 1.2rem);
       line-height: 1.2;
@@ -21,330 +21,40 @@
       transform: translate(-50%, -50%);
       width: 40px; height: 40px;
       background: #fff;
-      color: #000;
+      color: #007bff;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 1rem;
       z-index: 2;
-      border: 2px solid #eee;
-      box-shadow: 0 0 4px #bbb2;
+      border: 2px solid #e5e7eb;
     }
     .battle-images-wrapper { position: relative; display: flex; gap: 1rem; align-items: center; }
-    /* Табы */
-    .tab-btn { @apply px-4 py-2 font-semibold rounded bg-gray-100 text-gray-700 transition; }
-    .tab-btn.active { @apply bg-blue-100 text-blue-700 border-b-4 border-blue-600; }
-    /* Card */
-    .battle-card { @apply p-4 bg-white border border-gray-200 rounded-lg mb-6 flex flex-col gap-2; }
-    .battle-card:hover { box-shadow: 0 2px 6px 0 #0001 }
-    /* Boxed: центрируем всю страницу */
-    .boxed { max-width: 1200px; margin-left: auto; margin-right: auto; }
-    /* Sidebar */
-    .sidebar-section { @apply bg-white border rounded-lg p-4 mb-4; }
-    /* Infinite scroll loader (spinner) */
+    .tab-btn { @apply px-4 py-2 font-semibold rounded-none bg-white text-gray-700 border-b-2 border-transparent transition; }
+    .tab-btn.active { @apply border-blue-600 text-blue-700 bg-white; }
+    .battle-card { @apply flex flex-col gap-2 border-b border-gray-200 bg-white p-0 pt-4; }
+    .battle-card:last-child { border-bottom: none; }
+    /* Главная ширина: */
+    .main-boxed { max-width: 1200px; margin-left:auto; margin-right:auto; }
+    .sidebar-section { @apply bg-white border-b border-gray-200 p-4 text-sm; }
+    .sidebar-section:last-child { border-bottom: none; }
     .spinner { border:4px solid #eee; border-top:4px solid #007bff; border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite; margin: 30px auto; }
-    @keyframes spin { 0% { transform:rotate(0); } 100% { transform:rotate(360deg); } }
-    /* Responsive: hide sidebars on mobile */
-    @media (max-width: 1024px) { .sidebar-right { display: none !important; } }
-    @media (max-width: 768px) { .sidebar-left { display: none !important; } .boxed { padding: 0 0.25rem; } }
-
-
-     .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal.hidden {
-    display: none !important;
-}
-
-.modal-content {
-    background-color: #fff;
-    padding: 30px 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-    z-index: 1001;
-}
-
-
-.modal button {
-    background-color: #6c757d;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.2s;
-}
-
-.modal button:hover {
-    background-color: #5a6268;
-}
-/* Центрирование кнопок */
-.share-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-.share-btn img {
-  width: 24px;
-  height: 24px;
-  filter: brightness(0) invert(1); /* Делает иконки белыми */
-}
-/* Стили кнопок */
-.share-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    width: 140px;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-/* Иконки */
-.share-icon {
-    width: 24px;
-    height: 24px;
-    background-size: cover;
-    background-repeat: no-repeat;
-}
-
-/* Цвета для кнопок */
-.facebook {
-    background-color: #4267B2;
-}
-
-.twitter {
-    background-color: #1DA1F2;
-}
-
-.reddit {
-    background-color: #FF4500;
-}
-
-/* Иконки */
-.facebook-icon {
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg');
-}
-
-.twitter-icon {
-    background-image: url('https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg');
-}
-
-.reddit-icon {
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Reddit_Logo_V2.svg/2048px-Reddit_Logo_V2.svg.png');
-}
-
-/* Hover эффекты */
-.share-btn:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-}
-
-/* Мобильное расположение */
-@media (max-width: 768px) {
-    .share-buttons {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-    .share-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-
-/* Кнопка отмены */
-.cancel-btn {
-    background-color: #6c757d;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    width: 200px;
-    transition: background-color 0.2s;
-}
-
-.cancel-btn:hover {
-    background-color: #5a6268;
-}
-
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-    .cancel-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-.progress-bar-container {
-    display: flex;
-    width: 100%;
-    background-color: #e9ecef;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    height: 30px;
-    position: relative;
-}
-
-/* Прогресс-бары */
-.progress-bar {
-    display: flex;
-    align-items: center;
-    color: white;
-    font-size: 14px;
-    line-height: 30px;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 0 10px;
-    position: relative;
-    flex-shrink: 0;
-    z-index: 1;
-}
-
-/* Полное заполнение */
-.progress-bar.full {
-    width: 100% !important;
-    border-radius: 12px !important;
-}
-
-/* Цвета прогресс-бара */
-.progress-bar-blue {
-    background-color: #007bff;
-}
-
-.progress-bar-green {
-    background-color: #28a745;
-}
-
-/* Текст всегда виден */
-.progress-text {
-    font-weight: bold;
-    width: 100%;
-}
-
-/* Выравнивание текста */
-.text-left {
-    text-align: left;
-    padding-left: 10px;
-}
-
-.text-right {
-    text-align: right;
-    padding-right: 10px;
-}
-
-    /* Зеленая кнопка Submit */
-.submit-btn {
-    background-color: #28a745;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
-    transition: background-color 0.2s;
-    font-weight: bold;
-}
-
-.submit-btn:hover {
-    background-color: #218838;
-}
-
-/* Поля ввода времени */
-#duration,
-#datetimePicker {
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-/* Прячем поле выбора даты по умолчанию */
-.hidden {
-    display: none;
-}
-/* Стили для табов времени */
-.time-selector {
-  margin-bottom: 1rem;
-}
-.time-selector .time-tabs {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  overflow-x: auto;       /* если слишком узко — можно промотать */
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 0.5rem;
-}
-
-.time-selector .time-tab {
-  flex: 1 1 auto;
-  min-width: 4.5rem;      /* табы не будут уже этой ширины */
-  padding: 0.4rem 0;      
-  font-size: 0.875rem;
-  text-align: center;
-  border-radius: 0.375rem;
-  white-space: nowrap;
-  cursor: pointer;
-  background: #777;
-  color: #fff;
-  border: none;
-  transition: background 0.2s;
-}
-
-.time-selector .time-tab.active {
-  background: #4CAF50;    /* цвет активного таба */
-}
-
-.time-selector .time-tab:hover:not(.active) {
-  background-color: #218838;
-  color: #fff;
-}
-
-/* Обёртка для картинок + VS */
-.battle-images-wrapper {
-  position: relative;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
+    @keyframes spin { 0%{transform:rotate(0);} 100%{transform:rotate(360deg);} }
+    @media (max-width:1024px) { .sidebar-right { display: none !important; } }
+    @media (max-width:768px) { .sidebar-left { display: none !important; } .main-boxed { padding:0 0.25rem; } }
   </style>
 </head>
 <body>
   <!-- Header -->
-  <header class="w-full bg-white border-b sticky top-0 z-30 shadow-sm">
-    <div class="boxed flex items-center justify-between px-4 py-2">
+  <header class="w-full bg-white border-b sticky top-0 z-30">
+    <div class="main-boxed flex items-center justify-between px-4 py-2 border-b border-gray-200">
       <!-- Logo -->
       <div class="text-2xl font-bold tracking-tight text-blue-700">FANSHARE</div>
-      <!-- Search (desktop only) -->
       <div class="hidden md:block flex-1 px-8">
-        <input type="text" placeholder="Search battles..." class="w-full max-w-md px-3 py-2 border rounded bg-gray-100 focus:outline-none focus:ring focus:ring-blue-200" />
+        <input type="text" placeholder="Search battles..." class="w-full max-w-md px-3 py-2 border border-gray-200 rounded bg-gray-50 focus:outline-none focus:ring focus:ring-blue-200" />
       </div>
-      <!-- Profile + Create -->
       <div class="flex gap-3 items-center">
         <button id="createBattleBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Create Battle</button>
         <div class="rounded-full bg-gray-200 w-9 h-9 flex items-center justify-center text-gray-600 font-bold">A</div>
@@ -352,16 +62,15 @@
     </div>
   </header>
 
-  <!-- Main layout (boxed, three columns) -->
-  <main class="boxed flex gap-8 py-6 min-h-[85vh]">
+  <main class="main-boxed flex gap-8 py-6 min-h-[85vh] bg-white">
     <!-- Left sidebar -->
-    <aside class="sidebar-left w-20 md:w-56 hidden md:flex flex-col gap-8 pt-3">
+    <aside class="sidebar-left w-20 md:w-56 hidden md:flex flex-col pt-3 border-r border-gray-200 min-h-[80vh]">
       <div>
         <div class="font-bold text-blue-700 text-xl mb-3">FANSHARE</div>
         <button class="w-full px-3 py-2 rounded bg-blue-100 text-blue-700 font-semibold mb-2">Log in</button>
         <button class="w-full px-3 py-2 rounded bg-gray-100">Menu</button>
       </div>
-      <div>
+      <div class="mt-8">
         <div class="font-semibold text-gray-500 text-xs mb-2">Trending</div>
         <ul class="text-sm space-y-1">
           <li>#Euro2024</li>
@@ -371,17 +80,17 @@
       </div>
     </aside>
 
-    <!-- Main feed: лента батлов -->
-    <section class="flex-1 max-w-[640px] w-full">
-      <!-- Табы и Create -->
-      <div class="sticky top-[58px] z-20 bg-white pt-2 pb-3 border-b mb-4 flex items-center gap-2">
+    <!-- Main feed -->
+    <section class="flex-1 max-w-[640px] w-full border-x border-gray-200 min-h-[80vh] bg-white">
+      <!-- Табы -->
+      <div class="sticky top-[58px] z-20 bg-white pt-2 pb-2 border-b border-gray-200 flex items-center gap-2">
         <button class="tab-btn active" id="tab-featured">Featured</button>
         <button class="tab-btn" id="tab-finished">Finished</button>
         <button class="ml-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition md:hidden" id="createBattleBtnMobile">+ Create</button>
       </div>
       <!-- Лента батлов -->
       <div id="battleList">
-        <!-- JS: батлы, прогрессбар, VS, таймеры -->
+        <!-- Карточки батлов здесь — без тени, только border-b -->
       </div>
       <!-- Infinite scroll loader -->
       <div id="infiniteLoader" style="display:none;">
@@ -390,10 +99,10 @@
     </section>
 
     <!-- Right sidebar -->
-    <aside class="sidebar-right w-64 hidden lg:block pt-2">
+    <aside class="sidebar-right w-64 hidden lg:block pt-2 min-h-[80vh] border-l border-gray-200">
       <div class="sidebar-section">
         <div class="font-semibold mb-2">Top Battles This Week</div>
-        <ul class="space-y-1 text-sm text-gray-700">
+        <ul class="space-y-1 text-gray-700">
           <li>Battle 1</li>
           <li>Battle 2</li>
           <li>Battle 3</li>
@@ -401,12 +110,12 @@
       </div>
       <div class="sidebar-section">
         <div class="font-semibold mb-2">Ads / Banner</div>
-        <div class="w-full h-24 bg-gray-200 rounded"></div>
+        <div class="w-full h-24 bg-gray-100 rounded"></div>
       </div>
-      <!-- Add more widgets here -->
     </aside>
   </main>
-<!-- Create Battle Modal -->
+
+ <!-- Create Battle Modal -->
 <div id="createModal" class="modal hidden">
   <div class="modal-content">
     <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
