@@ -113,6 +113,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>`;
   }
+function showSkeletons() {
+  const skeletons = document.getElementById('battleSkeletons');
+  const battleList = document.getElementById('battleList');
+  if (skeletons) skeletons.classList.remove('hidden');
+  if (battleList) battleList.classList.add('hidden');
+}
+function hideSkeletons() {
+  const skeletons = document.getElementById('battleSkeletons');
+  const battleList = document.getElementById('battleList');
+  if (skeletons) skeletons.classList.add('hidden');
+  if (battleList) battleList.classList.remove('hidden');
+}
 
   // ——————————————————————————————————————————
 // Fetch & render all battles
