@@ -331,6 +331,9 @@
   font-size: 0.9rem;
   z-index: 2;
 }
+    .tab-btn.active {
+  color: #2563eb !important; /* blue-600 */
+}
   </style>
 </head>
 <body class="bg-white">
@@ -385,38 +388,56 @@
                 id="tab-finished">Finished</button>
       </div>
       <!-- Лента батлов -->
-      <div id="battleList" class="fade-in"></div>
-      <!-- Infinite loader (по скроллу) -->
-      <div id="infiniteLoader" class="text-center py-5 hidden">
-        <div class="spinner mx-auto"></div>
-      </div>
-      <!-- Плавающая кнопка Create (только на мобиле) -->
-      <button class="fab" id="fabCreateBtn">+</button>
-    </main>
+    <!-- Three columns -->
+<div class="max-w-screen-xl mx-auto flex gap-6 px-4 pt-8">
+  <!-- Left sidebar -->
+  <aside class="hidden md:flex flex-col gap-6 w-56 shrink-0">
+    <div class="text-2xl font-bold mb-6">FANSHARE</div>
+    <button id="createBattleBtn" class="mb-3 w-full bg-blue-600 text-white py-2 rounded-lg font-semibold">Create Battle</button>
+    <!-- Add menu/trends here -->
+    <nav class="flex flex-col gap-2 text-gray-600">
+      <a href="#" class="hover:text-blue-600 transition">Trending</a>
+      <a href="#" class="hover:text-blue-600 transition">Popular</a>
+      <a href="#" class="hover:text-blue-600 transition">My Battles</a>
+    </nav>
+  </aside>
 
-    <!-- Правый сайдбар -->
-    <aside class="sidebar-right w-64 hidden lg:block pt-2 min-h-[80vh] border-l border-gray-200">
-      <div class="mb-6">
-        <div class="font-bold text-lg mb-2">Top-5 Battles</div>
-        <ul class="space-y-1 text-gray-700 text-sm">
-          <li>Battle 1</li>
-          <li>Battle 2</li>
-          <li>Battle 3</li>
-        </ul>
-      </div>
-      <div class="mb-6">
-        <div class="font-bold text-lg mb-2">Most Discussed</div>
-        <ul class="space-y-1 text-gray-700 text-sm">
-          <li>Battle A</li>
-          <li>Battle B</li>
-        </ul>
-      </div>
-      <div>
-        <div class="font-bold text-lg mb-2">Ads / Promo</div>
-        <div class="w-full h-24 bg-gray-100 rounded"></div>
-      </div>
-    </aside>
-  </div>
+  <!-- Center column -->
+  <main class="flex-1 max-w-2xl mx-auto min-w-0">
+    <!-- TABS -->
+    <div class="flex items-center justify-between mb-2 sticky top-0 bg-white z-10 border-b border-gray-200">
+      <nav id="battleTabs" class="relative flex gap-2 w-full">
+        <button class="tab-btn font-semibold px-4 py-3 relative focus:outline-none transition-colors" data-tab="featured">Featured</button>
+        <button class="tab-btn font-semibold px-4 py-3 relative focus:outline-none transition-colors" data-tab="active">Active</button>
+        <button class="tab-btn font-semibold px-4 py-3 relative focus:outline-none transition-colors" data-tab="finished">Finished</button>
+        <span id="tabIndicator" class="absolute h-1 bg-blue-600 rounded-full transition-all duration-300" style="bottom:0; left:0; width:0;"></span>
+      </nav>
+      <button id="floatingCreateBtn" class="ml-4 hidden md:block bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold shadow-md hover:bg-blue-700 transition">+ Create</button>
+    </div>
+
+    <!-- SKELETONS -->
+    <div id="battleSkeletons" class="flex flex-col gap-4 mt-4">
+      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
+      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
+      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
+      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
+      <div class="h-44 w-full rounded-lg bg-gray-200 animate-pulse"></div>
+    </div>
+    <!-- BATTLE FEED -->
+    <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
+    <!-- Infinite scroll marker -->
+    <div id="scrollEndMarker" class="h-10"></div>
+  </main>
+
+  <!-- Right sidebar -->
+  <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6">
+    <div class="text-xl font-bold mb-3">Top Battles</div>
+    <!-- Тут рейтинги, реклама, погода... -->
+    <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
+    <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
+  </aside>
+</div>
+
 
   <!-- Мобильное нижнее меню -->
   <nav class="fixed md:hidden bottom-0 left-0 w-full bg-white border-t flex justify-around py-2 z-50">
