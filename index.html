@@ -1,22 +1,57 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Battle App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FANSHARE Battles</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: sans-serif; background-color: #f8f9fa; }
+    body { background: #f8f9fa; }
     .option-title {
-  /* от 0.8rem до 1.2rem, в зависимости от ширины контейнера */
-  font-size: clamp(0.8rem, 4vw, 1.2rem);
-  line-height: 1.2;
-  text-align: center;
-  word-wrap: break-word;
- padding: 0.6em 0 0.3em 0;
-}
- .modal {
+      font-size: clamp(0.8rem, 4vw, 1.2rem);
+      line-height: 1.2;
+      text-align: center;
+      word-wrap: break-word;
+      padding: 0.6em 0 0.3em 0;
+    }
+    .vs-circle {
+      position: absolute;
+      left: 50%;
+      top: 35%;
+      transform: translate(-50%, -50%);
+      width: 40px; height: 40px;
+      background: #fff;
+      color: #000;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.9rem;
+      z-index: 2;
+      border: 2px solid #eee;
+      box-shadow: 0 0 4px #bbb2;
+    }
+    .battle-images-wrapper { position: relative; display: flex; gap: 1rem; align-items: center; }
+    /* Табы */
+    .tab-btn { @apply px-4 py-2 font-semibold rounded bg-gray-100 text-gray-700 transition; }
+    .tab-btn.active { @apply bg-blue-100 text-blue-700 border-b-4 border-blue-600; }
+    /* Card */
+    .battle-card { @apply p-4 bg-white border border-gray-200 rounded-lg mb-6 flex flex-col gap-2; }
+    .battle-card:hover { box-shadow: 0 2px 6px 0 #0001 }
+    /* Boxed: центрируем всю страницу */
+    .boxed { max-width: 1200px; margin-left: auto; margin-right: auto; }
+    /* Sidebar */
+    .sidebar-section { @apply bg-white border rounded-lg p-4 mb-4; }
+    /* Infinite scroll loader (spinner) */
+    .spinner { border:4px solid #eee; border-top:4px solid #007bff; border-radius:50%; width:30px; height:30px; animation:spin 1s linear infinite; margin: 30px auto; }
+    @keyframes spin { 0% { transform:rotate(0); } 100% { transform:rotate(360deg); } }
+    /* Responsive: hide sidebars on mobile */
+    @media (max-width: 1024px) { .sidebar-right { display: none !important; } }
+    @media (max-width: 768px) { .sidebar-left { display: none !important; } .boxed { padding: 0 0.25rem; } }
+
+
+     .modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -297,87 +332,80 @@
   gap: 1rem;
   align-items: center;
 }
-
-/* Кружок VS */
-.vs-circle {
-  position: absolute;
-  left: 50%;
-  top: 35%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  background: #fff;
-  color: #000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-  z-index: 2;
-}
-
   </style>
 </head>
-<body class="bg-gray-100">
+<body>
   <!-- Header -->
-  <header class="bg-white border-b">
-    <div class="max-w-screen-lg mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="index.html" class="text-2xl font-bold">FANSHARE</a>
-      <button id="createBattleBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-        Create Battle
-      </button>
+  <header class="w-full bg-white border-b sticky top-0 z-30 shadow-sm">
+    <div class="boxed flex items-center justify-between px-4 py-2">
+      <!-- Logo -->
+      <div class="text-2xl font-bold tracking-tight text-blue-700">FANSHARE</div>
+      <!-- Search (desktop only) -->
+      <div class="hidden md:block flex-1 px-8">
+        <input type="text" placeholder="Search battles..." class="w-full max-w-md px-3 py-2 border rounded bg-gray-100 focus:outline-none focus:ring focus:ring-blue-200" />
+      </div>
+      <!-- Profile + Create -->
+      <div class="flex gap-3 items-center">
+        <button id="createBattleBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Create Battle</button>
+        <div class="rounded-full bg-gray-200 w-9 h-9 flex items-center justify-center text-gray-600 font-bold">A</div>
+      </div>
     </div>
   </header>
 
-  <!-- Main layout -->
-  <div class="max-w-screen-lg mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-    <!-- Left nav -->
-    <aside class="hidden lg:block lg:col-span-2 space-y-6">
-      <!-- Зона авторизации / меню -->
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-semibold mb-2">Menu</h2>
-        <ul class="space-y-1 text-gray-700">
-          <li><a href="#" class="hover:underline">Home</a></li>
-          <li><a href="#" class="hover:underline">Profile</a></li>
-          <li><a href="#" class="hover:underline">Settings</a></li>
+  <!-- Main layout (boxed, three columns) -->
+  <main class="boxed flex gap-8 py-6 min-h-[85vh]">
+    <!-- Left sidebar -->
+    <aside class="sidebar-left w-20 md:w-56 hidden md:flex flex-col gap-8 pt-3">
+      <div>
+        <div class="font-bold text-blue-700 text-xl mb-3">FANSHARE</div>
+        <button class="w-full px-3 py-2 rounded bg-blue-100 text-blue-700 font-semibold mb-2">Log in</button>
+        <button class="w-full px-3 py-2 rounded bg-gray-100">Menu</button>
+      </div>
+      <div>
+        <div class="font-semibold text-gray-500 text-xs mb-2">Trending</div>
+        <ul class="text-sm space-y-1">
+          <li>#Euro2024</li>
+          <li>#MusicBattles</li>
+          <li>#Fashion</li>
         </ul>
       </div>
-      <!-- Популярные темы -->
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-semibold mb-2">Trending</h2>
-        <p class="text-gray-600">#TomorrowWars</p>
-        <p class="text-gray-600">#SpaceBattle</p>
-      </div>
     </aside>
 
-    <!-- Center feed -->
-    <main class="lg:col-span-7 space-y-4">
-      <!-- Tabs -->
-      <div class="flex items-center justify-between bg-white p-3 rounded shadow">
-        <div class="space-x-2">
-          <button id="tabFeatured" class="px-4 py-2 rounded bg-green-500 text-white">Featured</button>
-          <button id="tabFinished" class="px-4 py-2 rounded bg-gray-200 text-gray-700">Finished</button>
-        </div>
-        <button id="createBattleBtn2" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-          Create Battle
-        </button>
+    <!-- Main feed: лента батлов -->
+    <section class="flex-1 max-w-[640px] w-full">
+      <!-- Табы и Create -->
+      <div class="sticky top-[58px] z-20 bg-white pt-2 pb-3 border-b mb-4 flex items-center gap-2">
+        <button class="tab-btn active" id="tab-featured">Featured</button>
+        <button class="tab-btn" id="tab-finished">Finished</button>
+        <button class="ml-auto bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition md:hidden" id="createBattleBtnMobile">+ Create</button>
       </div>
-
-      <!-- Список батлов -->
-      <div id="battleList" class="grid grid-cols-1 gap-6"></div>
-    </main>
+      <!-- Лента батлов -->
+      <div id="battleList">
+        <!-- JS: батлы, прогрессбар, VS, таймеры -->
+      </div>
+      <!-- Infinite scroll loader -->
+      <div id="infiniteLoader" style="display:none;">
+        <div class="spinner"></div>
+      </div>
+    </section>
 
     <!-- Right sidebar -->
-    <aside class="hidden lg:block lg:col-span-3 space-y-6">
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-semibold mb-2">Widgets & Ads</h2>
-        <p class="text-gray-600">Здесь будет реклама или рейтинги</p>
+    <aside class="sidebar-right w-64 hidden lg:block pt-2">
+      <div class="sidebar-section">
+        <div class="font-semibold mb-2">Top Battles This Week</div>
+        <ul class="space-y-1 text-sm text-gray-700">
+          <li>Battle 1</li>
+          <li>Battle 2</li>
+          <li>Battle 3</li>
+        </ul>
       </div>
-      <!-- другие элементы сайдбара… -->
+      <div class="sidebar-section">
+        <div class="font-semibold mb-2">Ads / Banner</div>
+        <div class="w-full h-24 bg-gray-200 rounded"></div>
+      </div>
+      <!-- Add more widgets here -->
     </aside>
-  </div>
-
+  </main>
 <!-- Create Battle Modal -->
 <div id="createModal" class="modal hidden">
   <div class="modal-content">
@@ -494,30 +522,22 @@
   </div>
 </div>
 
-  <!-- Логирование (можно убрать после отладки) -->
-  <div id="logContainer" class="max-w-screen-lg mx-auto px-4 mt-6 bg-white p-4 rounded shadow">
-    <strong>Логи:</strong>
-  </div>
 
-  <!-- Скрипты управления модалками -->
-  <script>
-    // Открыть Create Modal
-    document.getElementById('createBattleBtn').addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    document.getElementById('createBattleBtn2').addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    // Закрыть Create Modal
-    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-    if (cancelCreateBtn) {
-      cancelCreateBtn.addEventListener('click', () => {
-        document.getElementById('createModal').classList.add('hidden');
+<script>
+      // Открыть Create Modal
+      document.getElementById('createBattleBtn').addEventListener('click', () => {
+        document.getElementById('createModal').classList.remove('hidden');
       });
-    }
-  </script>
 
-  <!-- Ваш основной модуль -->
+      // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
+      const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+      if (cancelCreateBtn) {
+        cancelCreateBtn.addEventListener('click', () => {
+          document.getElementById('createModal').classList.add('hidden');
+        });
+      }
+    </script>
+
   <script type="module" src="./main.js"></script>
 </body>
 </html>
