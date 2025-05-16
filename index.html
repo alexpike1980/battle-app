@@ -7,346 +7,54 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-<style>
-  html, body { min-height:100%; }
+  <style>
+    html, body { min-height:100%; }
     body { font-family: 'Manrope',sans-serif; background: linear-gradient(120deg, #f7faff 70%, #f0f3ff 100%) !important; }
     .boxed { max-width: 1200px; margin: 0 auto; }
-    .tab-btn.active, .tab-btn[aria-selected="true"] {
-      color: #2563eb !important; /* blue-600 */
-      border-bottom-color: #2563eb;
-      font-weight: 700;
-    }
-    .skeleton { background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 50%, #f4f4f4 75%); background-size: 400% 100%; animation: skeleton 1.4s ease infinite; border-radius: 0.5rem; }
-    @keyframes skeleton { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
-    .fade-in { animation: fadeIn .7s cubic-bezier(.39,.575,.565,1.000) both;}
-    @keyframes fadeIn {0%{opacity:0;transform:translateY(25px);}100%{opacity:1;transform:none;}}
-    .option-title { font-size: clamp(0.8rem, 4vw, 1.2rem); line-height: 1.2; text-align: center; word-wrap: break-word; padding: 0.6em 0 0.3em 0; }
     .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
     @media (max-width:1024px){ .sidebar-right {display:none;} }
     @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
-    .vs-circle { position: absolute; left: 50%; top: 35%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #fff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; z-index: 2; }
-    /* Нижнее меню мобильное */
-    .mobile-nav-btn.active { color: #2563eb; }
-
-       .option-title {
-  /* от 0.8rem до 1.2rem, в зависимости от ширины контейнера */
-  font-size: clamp(0.8rem, 4vw, 1.2rem);
-  line-height: 1.2;
-  text-align: center;
-  word-wrap: break-word;
- padding: 0.6em 0 0.3em 0;
-}
- .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal.hidden {
-    display: none !important;
-}
-
-.modal-content {
-    background-color: #fff;
-    padding: 30px 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-    z-index: 1001;
-}
-
-
-.modal button {
-    background-color: #6c757d;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.2s;
-}
-
-.modal button:hover {
-    background-color: #5a6268;
-}
-/* Центрирование кнопок */
-.share-buttons {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-.share-btn img {
-  width: 24px;
-  height: 24px;
-  filter: brightness(0) invert(1); /* Делает иконки белыми */
-}
-/* Стили кнопок */
-.share-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    width: 140px;
-    transition: background-color 0.2s, transform 0.2s;
-}
-
-/* Иконки */
-.share-icon {
-    width: 24px;
-    height: 24px;
-    background-size: cover;
-    background-repeat: no-repeat;
-}
-
-/* Цвета для кнопок */
-.facebook {
-    background-color: #4267B2;
-}
-
-.twitter {
-    background-color: #1DA1F2;
-}
-
-.reddit {
-    background-color: #FF4500;
-}
-
-/* Иконки */
-.facebook-icon {
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg');
-}
-
-.twitter-icon {
-    background-image: url('https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg');
-}
-
-.reddit-icon {
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Reddit_Logo_V2.svg/2048px-Reddit_Logo_V2.svg.png');
-}
-
-/* Hover эффекты */
-.share-btn:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-}
-
-/* Мобильное расположение */
-@media (max-width: 768px) {
-    .share-buttons {
-        flex-direction: column;
-        align-items: center;
-        width: 100%;
-    }
-    .share-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-
-/* Кнопка отмены */
-.cancel-btn {
-    background-color: #6c757d;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    width: 200px;
-    transition: background-color 0.2s;
-}
-
-.cancel-btn:hover {
-    background-color: #5a6268;
-}
-
-/* Для мобильных устройств */
-@media (max-width: 768px) {
-    .cancel-btn {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-.progress-bar-container {
-    display: flex;
-    width: 100%;
-    background-color: #e9ecef;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    height: 30px;
-    position: relative;
-}
-
-/* Прогресс-бары */
-.progress-bar {
-    display: flex;
-    align-items: center;
-    color: white;
-    font-size: 14px;
-    line-height: 30px;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 0 10px;
-    position: relative;
-    flex-shrink: 0;
-    z-index: 1;
-}
-
-/* Полное заполнение */
-.progress-bar.full {
-    width: 100% !important;
-    border-radius: 12px !important;
-}
-
-/* Цвета прогресс-бара */
-.progress-bar-blue {
-    background-color: #007bff;
-}
-
-.progress-bar-green {
-    background-color: #28a745;
-}
-
-/* Текст всегда виден */
-.progress-text {
-    font-weight: bold;
-    width: 100%;
-}
-
-/* Выравнивание текста */
-.text-left {
-    text-align: left;
-    padding-left: 10px;
-}
-
-.text-right {
-    text-align: right;
-    padding-right: 10px;
-}
-
-    /* Зеленая кнопка Submit */
-.submit-btn {
-    background-color: #28a745;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    margin-top: 20px;
-    width: 100%;
-    transition: background-color 0.2s;
-    font-weight: bold;
-}
-
-.submit-btn:hover {
-    background-color: #218838;
-}
-
-/* Поля ввода времени */
-#duration,
-#datetimePicker {
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 14px;
-}
-
-/* Прячем поле выбора даты по умолчанию */
-.hidden {
-    display: none;
-}
-/* Стили для табов времени */
-.time-selector {
-  margin-bottom: 1rem;
-}
-.time-selector .time-tabs {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  overflow-x: auto;       /* если слишком узко — можно промотать */
-  -webkit-overflow-scrolling: touch;
-  margin-bottom: 0.5rem;
-}
-
-.time-selector .time-tab {
-  flex: 1 1 auto;
-  min-width: 4.5rem;      /* табы не будут уже этой ширины */
-  padding: 0.4rem 0;      
-  font-size: 0.875rem;
-  text-align: center;
-  border-radius: 0.375rem;
-  white-space: nowrap;
-  cursor: pointer;
-  background: #777;
-  color: #fff;
-  border: none;
-  transition: background 0.2s;
-}
-
-.time-selector .time-tab.active {
-  background: #4CAF50;    /* цвет активного таба */
-}
-
-.time-selector .time-tab:hover:not(.active) {
-  background-color: #218838;
-  color: #fff;
-}
-
-/* Обёртка для картинок + VS */
-.battle-images-wrapper {
-  position: relative;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-/* Кружок VS */
-.vs-circle {
-  position: absolute;
-  left: 50%;
-  top: 35%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  background: #fff;
-  color: #000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-  z-index: 2;
-}
-    .tab-btn.active {
-  color: #2563eb !important; /* blue-600 */
-}
+    .option-title { font-size: clamp(0.8rem, 4vw, 1.2rem); line-height: 1.2; text-align: center; word-wrap: break-word; padding: 0.6em 0 0.3em 0;}
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;}
+    .modal.hidden { display: none !important;}
+    .modal-content { background-color: #fff; padding: 30px 20px; border-radius: 12px; width: 90%; max-width: 500px; text-align: center; z-index: 1001;}
+    .share-buttons { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap;}
+    .share-btn img { width: 24px; height: 24px; filter: brightness(0) invert(1);}
+    .share-btn { display: flex; align-items: center; justify-content: center; gap: 10px; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; width: 140px; transition: background-color 0.2s, transform 0.2s;}
+    .facebook { background-color: #4267B2; }
+    .twitter { background-color: #1DA1F2; }
+    .reddit { background-color: #FF4500; }
+    .share-btn:hover { transform: translateY(-3px); filter: brightness(1.1);}
+    @media (max-width: 768px) { .share-buttons { flex-direction: column; align-items: center; width: 100%;} .share-btn { width: 100%; max-width: 300px;} }
+    .cancel-btn { background-color: #6c757d; color: white; padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; width: 200px; transition: background-color 0.2s;}
+    .cancel-btn:hover { background-color: #5a6268;}
+    @media (max-width: 768px) { .cancel-btn { width: 100%; max-width: 300px; } }
+    .progress-bar-container { display: flex; width: 100%; background-color: #e9ecef; border-radius: 12px; overflow: hidden; margin-bottom: 16px; height: 30px; position: relative;}
+    .progress-bar { display: flex; align-items: center; color: white; font-size: 14px; line-height: 30px; white-space: nowrap; overflow: hidden; padding: 0 10px; position: relative; flex-shrink: 0; z-index: 1;}
+    .progress-bar.full { width: 100% !important; border-radius: 12px !important; }
+    .progress-bar-blue { background-color: #007bff;}
+    .progress-bar-green { background-color: #28a745;}
+    .progress-text { font-weight: bold; width: 100%;}
+    .text-left { text-align: left; padding-left: 10px;}
+    .text-right { text-align: right; padding-right: 10px;}
+    .submit-btn { background-color: #28a745; color: white; padding: 12px 30px; border-radius: 8px; border: none; cursor: pointer; margin-top: 20px; width: 100%; transition: background-color 0.2s; font-weight: bold;}
+    .submit-btn:hover { background-color: #218838;}
+    #duration, #datetimePicker { margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px;}
+    .hidden { display: none;}
+    .time-selector { margin-bottom: 1rem;}
+    .time-selector .time-tabs { display: flex; flex-wrap: nowrap; gap: 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 0.5rem;}
+    .time-selector .time-tab { flex: 1 1 auto; min-width: 4.5rem; padding: 0.4rem 0; font-size: 0.875rem; text-align: center; border-radius: 0.375rem; white-space: nowrap; cursor: pointer; background: #777; color: #fff; border: none; transition: background 0.2s;}
+    .time-selector .time-tab.active { background: #4CAF50;}
+    .time-selector .time-tab:hover:not(.active) { background-color: #218838; color: #fff;}
+    .battle-images-wrapper { position: relative; display: flex; gap: 1rem; align-items: center;}
+    .vs-circle { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 48px; height: 48px; background: #fff; color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; z-index: 2;}
+    .tab-btn.active { color: #2563eb !important;}
   </style>
 </head>
 <body class="bg-white">
 
-  <!-- Watermark -->
   <div class="watermark select-none text-blue-700 hidden md:block">FANSHARE</div>
 
-  <!-- Header -->
   <header class="bg-white border-b sticky top-0 z-30">
     <div class="boxed flex items-center justify-between py-3 px-4 md:px-8">
       <div class="text-2xl font-extrabold tracking-tight text-blue-700">FANSHARE</div>
@@ -357,9 +65,8 @@
     </div>
   </header>
 
-  <!-- Main layout: три колонки -->
   <div class="boxed flex gap-8 pt-6 pb-16 md:pb-8 bg-transparent min-h-[85vh] relative">
-    <!-- Левый сайдбар -->
+
     <aside class="sidebar-left w-18 md:w-56 hidden md:flex flex-col pt-3 border-r border-gray-200 min-h-[80vh]">
       <div>
         <button class="w-full px-3 py-2 mb-4 rounded bg-blue-100 text-blue-700 font-semibold">Create Battle</button>
@@ -380,190 +87,95 @@
       </div>
     </aside>
 
-    <!-- Центральная колонка -->
     <main class="flex-1 max-w-[620px] w-full border-x border-gray-200 min-h-[80vh] bg-white relative">
-      <!-- Tabs -->
       <div class="sticky top-[64px] z-10 bg-white pt-2 pb-1 border-b border-gray-200 flex items-center gap-1">
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active" id="tab-featured">Featured</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600" id="tab-active">Active</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600" id="tab-finished">Finished</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active"
+                id="tab-featured">Featured</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
+                id="tab-active">Active</button>
+        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
+                id="tab-finished">Finished</button>
+        <span id="tabIndicator" class="absolute h-1 bg-blue-600 rounded-full transition-all duration-300" style="bottom:0; left:0; width:0;"></span>
       </div>
-      <!-- Лента батлов -->
-      <div id="battleSkeletons" class="flex flex-col gap-4 mt-4"></div>
       <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
       <div id="scrollEndMarker" class="h-10"></div>
     </main>
 
-    <!-- Правый сайдбар -->
-    <aside class="sidebar-right hidden xl:flex flex-col w-72 shrink-0 gap-6">
+    <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6">
       <div class="text-xl font-bold mb-3">Top Battles</div>
       <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
       <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
     </aside>
   </div>
 
-  <!-- Мобильное нижнее меню -->
   <nav class="fixed md:hidden bottom-0 left-0 w-full bg-white border-t flex justify-around py-2 z-50">
-    <a href="#" class="mobile-nav-btn flex flex-col items-center text-gray-700 hover:text-blue-600 active">
+    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
       <svg width="24" height="24" fill="none" class="mb-1"><path d="M4 10l8-6 8 6" stroke="currentColor" stroke-width="2"/><path d="M4 10v10h16V10" stroke="currentColor" stroke-width="2"/></svg>
       <span class="text-xs">Home</span>
     </a>
     <button id="navFab" class="bg-blue-600 text-white w-12 h-12 rounded-full -mt-8 shadow-lg flex items-center justify-center text-3xl">+</button>
-    <a href="#" class="mobile-nav-btn flex flex-col items-center text-gray-700 hover:text-blue-600">
+    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
       <svg width="24" height="24" fill="none" class="mb-1"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M6 20c0-2 4-4 6-4s6 2 6 4" stroke="currentColor" stroke-width="2"/></svg>
       <span class="text-xs">Profile</span>
     </a>
   </nav>
-<!-- Create Battle Modal -->
-<div id="createModal" class="modal hidden">
-  <div class="modal-content">
-    <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
 
-    <input
-      type="text"
-      id="title"
-      placeholder="Title"
-      class="w-full mb-3 p-2 border rounded"
-    />
-
-    <div class="mb-4">
-      <input
-        type="text"
-        id="option1"
-        placeholder="Option 1"
-        class="w-full mb-2 p-2 border rounded"
-      />
-      <!-- Upload button for image 1 -->
-      <label
-        for="image1File"
-        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
-      >
-        Upload Image 1
-      </label>
-      <input type="file" id="image1File" class="hidden" />
-    </div>
-
-    <div class="mb-4">
-      <input
-        type="text"
-        id="option2"
-        placeholder="Option 2"
-        class="w-full mb-2 p-2 border rounded"
-      />
-      <!-- Upload button for image 2 -->
-      <label
-        for="image2File"
-        class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition"
-      >
-        Upload Image 2
-      </label>
-      <input type="file" id="image2File" class="hidden" />
-    </div>
-
-    <!-- Time selector -->
-    <div class="time-selector mb-4">
-      <div class="time-tabs">
-        <button type="button" class="time-tab active" data-unit="minutes">
-          Minutes
-        </button>
-        <button type="button" class="time-tab" data-unit="hours">
-          Hours
-        </button>
-        <button type="button" class="time-tab" data-unit="days">
-          Days
-        </button>
-        <button type="button" class="time-tab" data-unit="date">
-          Pick Date
-        </button>
+  <!-- Create Battle Modal -->
+  <div id="createModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
+      <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded" />
+      <div class="mb-4">
+        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-2 p-2 border rounded"/>
+        <label for="image1File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 1</label>
+        <input type="file" id="image1File" class="hidden" />
       </div>
-      <input
-        type="number"
-        id="duration"
-        placeholder="Enter minutes"
-        min="1"
-        class="p-2 border rounded w-full"
-      />
-      <input
-        type="datetime-local"
-        id="datetimePicker"
-        class="hidden p-2 border rounded w-full mt-2"
-      />
-    </div>
-
-    <!-- Action buttons -->
-    <div class="flex justify-end gap-2">
-      <button
-        id="cancelCreateBtn"
-        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
-      >
-        Cancel
-      </button>
-      <button
-        id="submitBattleBtn"
-        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-      >
-        Submit
-      </button>
+      <div class="mb-4">
+        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-2 p-2 border rounded"/>
+        <label for="image2File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 2</label>
+        <input type="file" id="image2File" class="hidden" />
+      </div>
+      <div class="time-selector mb-4">
+        <div class="time-tabs">
+          <button type="button" class="time-tab active" data-unit="minutes">Minutes</button>
+          <button type="button" class="time-tab" data-unit="hours">Hours</button>
+          <button type="button" class="time-tab" data-unit="days">Days</button>
+          <button type="button" class="time-tab" data-unit="date">Pick Date</button>
+        </div>
+        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="p-2 border rounded w-full"/>
+        <input type="datetime-local" id="datetimePicker" class="hidden p-2 border rounded w-full mt-2"/>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button id="cancelCreateBtn" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition">Cancel</button>
+        <button id="submitBattleBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Submit</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Share Modal -->
-<div id="shareModal" class="modal hidden">
-  <div id="shareModalContent" class="modal-content">
-    <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
-    <div class="share-buttons">
-      <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
-        <span>Facebook</span>
-      </a>
-      <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
-        <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
-        <span>X.com</span>
-      </a>
-      <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
-        <span>Reddit</span>
-      </a>
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal hidden">
+    <div id="shareModalContent" class="modal-content">
+      <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
+      <div class="share-buttons">
+        <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
+          <span>Facebook</span>
+        </a>
+        <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
+          <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
+          <span>X.com</span>
+        </a>
+        <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
+          <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
+          <span>Reddit</span>
+        </a>
+      </div>
+      <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
     </div>
-    <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
   </div>
-</div>
 
-
-<script>
-      // Открыть Create Modal
-      document.getElementById('createBattleBtn').addEventListener('click', () => {
-        document.getElementById('createModal').classList.remove('hidden');
-      });
-
-      // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
-      const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-      if (cancelCreateBtn) {
-        cancelCreateBtn.addEventListener('click', () => {
-          document.getElementById('createModal').classList.add('hidden');
-        });
-      }
-    </script>
-
-  <script>
-    // Открыть Create Modal
-    document.getElementById('createBattleBtn').addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    // FAB на мобильном
-    const fab = document.getElementById('navFab');
-    if (fab) fab.onclick = () => document.getElementById('createModal').classList.remove('hidden');
-    // Закрыть Create Modal — именно по кнопке с id="cancelCreateBtn"
-    const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-    if (cancelCreateBtn) {
-      cancelCreateBtn.addEventListener('click', () => {
-        document.getElementById('createModal').classList.add('hidden');
-      });
-    }
-  </script>
+  <!-- Без обработчиков, все только в main.js -->
   <script type="module" src="./main.js"></script>
-    <script type="module" src="./tabs.js"></script>
+  <script type="module" src="./tabs.js"></script>
 </body>
 </html>
-
