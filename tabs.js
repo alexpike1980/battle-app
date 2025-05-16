@@ -1,49 +1,29 @@
-// --- Animated Tabs ---
 document.addEventListener('DOMContentLoaded', () => {
-  const tabs = document.querySelectorAll('#battleTabs .tab-btn');
+  const tabBtns = document.querySelectorAll('.tab-btn');
   const indicator = document.getElementById('tabIndicator');
-  let activeTab = 0;
+  if (!indicator || tabBtns.length === 0) return;
 
-  function updateIndicator(idx) {
-    const btn = tabs[idx];
-    indicator.style.left = btn.offsetLeft + "px";
-    indicator.style.width = btn.offsetWidth + "px";
+  function updateIndicator() {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (!activeTab) return;
+    const nav = activeTab.parentElement;
+    const rect = nav.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
+    indicator.style.width = `${tabRect.width}px`;
+    indicator.style.left = `${tabRect.left - rect.left}px`;
   }
 
-  function activateTab(idx) {
-    tabs.forEach((tab, i) => tab.classList.toggle('active', i === idx));
-    activeTab = idx;
-    updateIndicator(idx);
-
-    // Скрываем ленту, показываем скелетоны
-    showSkeletons();
-    // Здесь можно отфильтровать батлы, когда будешь делать фильтрацию по статусу
-    setTimeout(() => {
-      hideSkeletons();
-      // renderBattles(tab.dataset.tab) // вставь свою функцию фильтрации батлов
-    }, 800); // имитация загрузки
+  function activateTab(tab) {
+    tabBtns.forEach(btn => btn.classList.remove('active'));
+    tab.classList.add('active');
+    updateIndicator();
+    // можно вызывать свою подгрузку батлов для нужной вкладки
   }
 
-  tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => activateTab(i));
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => activateTab(btn));
   });
 
-  // Init
-  setTimeout(() => updateIndicator(0), 200); // для корректного расчета ширины
-  activateTab(0);
-
-  // Create Battle (дублируем кнопку сверху)
-  document.getElementById('floatingCreateBtn').onclick = () =>
-    document.getElementById('createModal').classList.remove('hidden');
+  // По умолчанию активируем первый таб
+  activateTab(tabBtns[0]);
 });
-
-// --- Skeleton logic ---
-function showSkeletons() {
-  document.getElementById('battleList').classList.add('hidden');
-  document.getElementById('battleSkeletons').classList.remove('hidden');
-}
-function hideSkeletons() {
-  document.getElementById('battleList').classList.remove('hidden');
-  document.getElementById('battleSkeletons').classList.add('hidden');
-}
-
