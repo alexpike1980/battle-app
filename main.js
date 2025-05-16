@@ -149,9 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchAndRenderBattles();
 
   // Cancel-button для Create-Battle
-  const cancelBtn = document.getElementById('cancelCreateBtn');
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
+ const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+  if (cancelCreateBtn) {
+    cancelCreateBtn.addEventListener('click', () => {
       document.getElementById('createModal').classList.add('hidden');
     });
   }
