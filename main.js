@@ -1,42 +1,21 @@
 console.log("Скрипт main.js загружен");
 
+// Подключение к Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'; // подставь свой актуальный ключ!
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Открытие Create Modal с любой кнопки
-  ['createBattleBtn', 'createBattleBtnSidebar', 'floatingCreateBtn', 'navFab'].forEach(id => {
-    const btn = document.getElementById(id);
-    if (btn) btn.addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-  });
+  // ——————————————————————————————————————————
+  // Elements for time selection
+  const durationInput   = document.getElementById('duration');
+  const datetimePicker  = document.getElementById('datetimePicker');
+  const timeTabs        = document.querySelectorAll('.time-tab');
+  let selectedUnit      = 'minutes'; // default
 
-  // Закрытие модалки
-  const cancelBtn = document.getElementById('cancelCreateBtn');
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-      document.getElementById('createModal').classList.add('hidden');
-    });
-  }
-
-  // Tabs: Активный таб
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-blue-600'));
-      this.classList.add('active', 'border-blue-600');
-      // Здесь логика фильтрации батлов, если нужно (фильтрация в fetchAndRenderBattles)
-    });
-  });
-
-  // Time input tabs (время окончания батла)
-  const durationInput = document.getElementById('duration');
-  const datetimePicker = document.getElementById('datetimePicker');
-  const timeTabs = document.querySelectorAll('.time-tab');
-  let selectedUnit = 'minutes';
+  // Switch time-tab
   timeTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       timeTabs.forEach(t => t.classList.remove('active'));
@@ -52,12 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+  // Activate minutes by default
   document.querySelector(".time-tab[data-unit='minutes']").click();
 
-  // Image upload
+  // ——————————————————————————————————————————
+  // Upload image helper
   async function uploadImage(file) {
     const fileName = `${Date.now()}-${file.name}`;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .storage
       .from('battle-images')
       .upload(fileName, file, { cacheControl: '3600', upsert: false });
@@ -68,23 +49,24 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${SUPABASE_URL}/storage/v1/object/public/battle-images/${fileName}`;
   }
 
-  // Human time
+  // ——————————————————————————————————————————
+  // Calculate human-readable time difference
   function calculateTimeLeft(endTime) {
     let diff = new Date(endTime) - new Date();
     if (diff <= 0) return '';
-    const days = Math.floor(diff / 86400000); diff %= 86400000;
-    const hours = Math.floor(diff / 3600000); diff %= 3600000;
-    const minutes = Math.floor(diff / 60000); diff %= 60000;
+    const days    = Math.floor(diff / 86400000); diff %= 86400000;
+    const hours   = Math.floor(diff / 3600000);   diff %= 3600000;
+    const minutes = Math.floor(diff / 60000);     diff %= 60000;
     const seconds = Math.floor(diff / 1000);
     const parts = [];
-    if (days) parts.push(`${days} day${days > 1 ? 's' : ''}`);
-    if (hours) parts.push(`${hours} hour${hours > 1 ? 's' : ''}`);
-    if (minutes) parts.push(`${minutes} min${minutes > 1 ? 's' : ''}`);
-    if (seconds) parts.push(`${seconds} sec${seconds > 1 ? 's' : ''}`);
+    if (days)    parts.push(`${days} day${days>1?'s':''}`);
+    if (hours)   parts.push(`${hours} hour${hours>1?'s':''}`);
+    if (minutes) parts.push(`${minutes} min${minutes>1?'s':''}`);
+    if (seconds) parts.push(`${seconds} sec${seconds>1?'s':''}`);
     return parts.join(' ');
   }
 
-  // Таймер для батла
+  // Live countdown per battle
   function startLiveCountdown(battleId, endTime) {
     const el = document.getElementById(`timer-${battleId}`);
     function update() {
@@ -100,30 +82,28 @@ document.addEventListener('DOMContentLoaded', () => {
     update();
   }
 
-  // Прогресс-бар
+  // ——————————————————————————————————————————
+  // ВОССТАНАВЛИВАЕМ ПРОГРЕСС-БАР!
   function renderProgressBar(v1 = 0, v2 = 0, id) {
     const total = v1 + v2;
     const p1 = total ? Math.round((v1 / total) * 100) : 50;
     const p2 = total ? Math.round((v2 / total) * 100) : 50;
-    if (p1 === 100) {
-      return `<div id="progress-bar-${id}" class="progress-bar-container"><div class="progress-bar progress-bar-blue full"><span class="progress-text text-left">${v1} votes (100%)</span></div></div>`;
-    }
-    if (p2 === 100) {
-      return `<div id="progress-bar-${id}" class="progress-bar-container"><div class="progress-bar progress-bar-green full"><span class="progress-text text-right">${v2} votes (100%)</span></div></div>`;
-    }
-    return `<div id="progress-bar-${id}" class="progress-bar-container">
-      <div class="progress-bar progress-bar-blue" style="width:${p1}%">
-        <span class="progress-text text-left">${v1} votes (${p1}%)</span>
+
+    return `
+      <div class="progress-bar-container mt-3 mb-2 flex rounded-lg overflow-hidden" style="height: 40px;">
+        <div class="progress-bar progress-bar-blue flex items-center justify-center text-white font-bold text-base" style="width:${p1}%;background:#2563eb;">
+          ${v1} (${p1}%)
+        </div>
+        <div class="progress-bar progress-bar-green flex items-center justify-center text-white font-bold text-base" style="width:${p2}%;background:#22c55e;">
+          ${v2} (${p2}%)
+        </div>
       </div>
-      <div class="progress-bar progress-bar-green" style="width:${p2}%">
-        <span class="progress-text text-right">${v2} votes (${p2}%)</span>
-      </div>
-    </div>`;
+    `;
   }
 
-  // Основной рендер батлов
+  // ——————————————————————————————————————————
+  // Fetch & render all battles
   async function fetchAndRenderBattles() {
-    // Можно добавить фильтрацию по табу если нужно
     const { data: battles, error } = await supabase
       .from('battles')
       .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
@@ -137,28 +117,27 @@ document.addEventListener('DOMContentLoaded', () => {
     battles.forEach(b => {
       const active = new Date(b.ends_at) > new Date();
       const block = document.createElement('div');
-      block.className = 'battle-card border-b border-gray-200 py-4 px-2';
+      block.id = `battle-${b.id}`;
+      block.className = 'mb-8 pb-4 border-b border-gray-200 fade-in';
       block.innerHTML = `
-        <div class="px-4 pt-2 pb-2">
-          <h3 class="text-lg font-bold mb-2">${b.title}</h3>
-        </div>
-        <div class="battle-images-wrapper flex items-center justify-center mb-2 relative">
+        <h2 class="text-2xl font-semibold mb-2">${b.title}</h2>
+        <div class="flex flex-col md:flex-row gap-2 justify-center items-center relative">
           <div class="flex-1 flex flex-col items-center">
-            <img src="${b.image1 || 'https://via.placeholder.com/150'}" alt="" class="object-cover w-full max-w-xs rounded-lg" />
+            <img src="${b.image1||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[260px] h-[180px] md:w-[260px] md:h-[180px]"/>
             <div class="option-title mt-2">${b.option1}</div>
-            <button class="bg-blue-600 text-white py-2 mt-2 w-full rounded-lg font-semibold" onclick="openShareModal('${b.id}','votes1')">Vote</button>
+            <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700"
+                    onclick="openShareModal('${b.id}','votes1')">Vote</button>
           </div>
-          <div class="vs-circle">VS</div>
+          <div class="vs-circle flex items-center justify-center text-lg font-bold bg-white shadow-none border-0 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 z-10">VS</div>
           <div class="flex-1 flex flex-col items-center">
-            <img src="${b.image2 || 'https://via.placeholder.com/150'}" alt="" class="object-cover w-full max-w-xs rounded-lg" />
+            <img src="${b.image2||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[260px] h-[180px] md:w-[260px] md:h-[180px]"/>
             <div class="option-title mt-2">${b.option2}</div>
-            <button class="bg-green-600 text-white py-2 mt-2 w-full rounded-lg font-semibold" onclick="openShareModal('${b.id}','votes2')">Vote</button>
+            <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700"
+                    onclick="openShareModal('${b.id}','votes2')">Vote</button>
           </div>
         </div>
         ${renderProgressBar(b.votes1, b.votes2, b.id)}
-        <div id="timer-${b.id}" class="text-xs text-gray-500">
-          ${active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}
-        </div>
+        <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
       `;
       container.appendChild(block);
       if (active) startLiveCountdown(b.id, b.ends_at);
@@ -166,14 +145,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   fetchAndRenderBattles();
 
-  // Создание батла
+  // ——————————————————————————————————————————
+  // Cancel-button для Create-Battle
+  const cancelBtn = document.getElementById('cancelCreateBtn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      document.getElementById('createModal').classList.add('hidden');
+    });
+  }
+
+  // Create-Battle submit
   document.getElementById('submitBattleBtn').addEventListener('click', async () => {
-    const title = document.getElementById('title').value.trim();
+    const title   = document.getElementById('title').value.trim();
     const option1 = document.getElementById('option1').value.trim();
     const option2 = document.getElementById('option2').value.trim();
     if (!title || !option1 || !option2) {
       return alert('Please fill all required fields');
     }
+
+    // calculate ends_at
     let ends_at;
     if (selectedUnit === 'date') {
       const dt = datetimePicker.value;
@@ -183,15 +173,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const val = parseInt(durationInput.value.trim(), 10);
       if (!val || val <= 0) return alert(`Enter valid ${selectedUnit}`);
       let ms = val * 60000;
-      if (selectedUnit === 'hours') ms *= 60;
-      if (selectedUnit === 'days') ms *= 1440;
-      ends_at = new Date(Date.now() + ms).toISOString();
+      if (selectedUnit==='hours') ms*=60;
+      if (selectedUnit==='days')  ms*=1440;
+      ends_at = new Date(Date.now()+ms).toISOString();
     }
+
     // upload images
     const file1 = document.getElementById('image1File').files[0];
     const file2 = document.getElementById('image2File').files[0];
     const image1 = file1 ? await uploadImage(file1) : '';
     const image2 = file2 ? await uploadImage(file2) : '';
+
     // insert to supabase
     const { error } = await supabase.from('battles').insert({
       title,
@@ -206,15 +198,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (error) {
       return alert('Error creating battle: ' + error.message);
     }
+
     document.getElementById('createModal').classList.add('hidden');
     fetchAndRenderBattles();
   });
 
-  // Модальное окно шаринга
+  // ——————————————————————————————————————————
+  // Sharing-modal
   window.openShareModal = (battleId, option) => {
+    // Открываем модалку
     const modal = document.getElementById('shareModal');
     modal.classList.remove('hidden');
-    const url = window.location.href;
+
+    // Готовим ссылки для шаринга
+    const url   = window.location.href;
     const title = 'Make it count – share to vote!';
     document.getElementById('facebookShare').href =
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
@@ -222,41 +219,52 @@ document.addEventListener('DOMContentLoaded', () => {
       `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
     document.getElementById('redditShare').href =
       `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-    // Сброс старых обработчиков
+
+    // Сбрасываем старые обработчики
     document.querySelectorAll('#shareModal a').forEach(link => {
       const clone = link.cloneNode(true);
       link.parentNode.replaceChild(clone, link);
     });
-    // Навешиваем новый обработчик
+
+    // Вешаем новый обработчик на каждую ссылку
     document.querySelectorAll('#shareModal a').forEach(link => {
       link.addEventListener('click', async event => {
         event.preventDefault();
         const shareUrl = link.href;
-        const column = (option === 'votes1' ? 'votes1' : 'votes2');
+        const column   = (option === 'votes1' ? 'votes1' : 'votes2');
+
         try {
+          // читаем текущее значение
           const { data: row, error: fe } = await supabase
             .from('battles')
             .select(column)
             .eq('id', battleId)
             .single();
           if (fe) throw fe;
+
+          // записываем +1
           const newVotes = (row[column] || 0) + 1;
           const { error: ue } = await supabase
             .from('battles')
             .update({ [column]: newVotes })
             .eq('id', battleId);
           if (ue) throw ue;
+
+          // обновляем UI и закрываем модалку
           await fetchAndRenderBattles();
           modal.classList.add('hidden');
+
+          // открываем окно шаринга
           window.open(shareUrl, '_blank');
         } catch (err) {
           console.error('Ошибка добавления голоса:', err);
         }
       });
     });
-  };
+  }; // ← закрываем window.openShareModal
 
-  // Закрытие share-модалки
+  // ——————————————————————————————————————————
+  // Закрытие share-модалки по кнопке и по фону
   window.addEventListener('load', () => {
     const shareM = document.getElementById('shareModal');
     const shareX = document.getElementById('shareCloseBtn');
@@ -268,5 +276,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-});
-
+}); // ← закрываем обработчик DOMContentLoaded
