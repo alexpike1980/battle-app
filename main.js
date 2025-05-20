@@ -82,19 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
     update();
   }
 
-  // ——————————————————————————————————————————
-  // ВОССТАНАВЛИВАЕМ ПРОГРЕСС-БАР!
+  // Render progress bar
   function renderProgressBar(v1 = 0, v2 = 0, id) {
     const total = v1 + v2;
     const p1 = total ? Math.round((v1 / total) * 100) : 50;
     const p2 = total ? Math.round((v2 / total) * 100) : 50;
-
     return `
-      <div class="progress-bar-container mt-3 mb-2 flex rounded-lg overflow-hidden" style="height: 40px;">
-        <div class="progress-bar progress-bar-blue flex items-center justify-center text-white font-bold text-base" style="width:${p1}%;background:#2563eb;">
+      <div class="flex w-full rounded-lg overflow-hidden mt-4 mb-2" style="min-height:38px;">
+        <div class="flex items-center justify-center bg-blue-600 text-white font-semibold text-base transition-all" style="width:${p1}%; min-width:70px;">
           ${v1} (${p1}%)
         </div>
-        <div class="progress-bar progress-bar-green flex items-center justify-center text-white font-bold text-base" style="width:${p2}%;background:#22c55e;">
+        <div class="flex items-center justify-center bg-green-600 text-white font-semibold text-base transition-all" style="width:${p2}%; min-width:70px;">
           ${v2} (${p2}%)
         </div>
       </div>
@@ -117,11 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
     battles.forEach(b => {
       const active = new Date(b.ends_at) > new Date();
       const block = document.createElement('div');
-      block.id = `battle-${b.id}`;
-      block.className = 'mb-8 pb-4 border-b border-gray-200 fade-in';
+      block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
       block.innerHTML = `
         <h2 class="text-2xl font-semibold mb-2">${b.title}</h2>
-        <div class="flex flex-col md:flex-row gap-2 justify-center items-center relative">
+        <div class="flex flex-row gap-2 justify-center items-center relative">
           <div class="flex-1 flex flex-col items-center">
             <img src="${b.image1||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[260px] h-[180px] md:w-[260px] md:h-[180px]"/>
             <div class="option-title mt-2">${b.option1}</div>
