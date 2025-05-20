@@ -1,7 +1,7 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // ваш ключ
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function calculateTimeLeft(endTime) {
@@ -57,7 +57,6 @@ async function fetchAndRenderBattles() {
     const active = new Date(b.ends_at) > new Date();
     const block = document.createElement('div');
     block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
-
     block.innerHTML = `
       <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
       <div class="relative flex flex-row gap-2 justify-center items-center">
@@ -82,14 +81,18 @@ async function fetchAndRenderBattles() {
     if (active) startLiveCountdown(b.id, b.ends_at);
   });
 
+  // === КРИТИЧЕСКИЙ момент ===
   document.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.onclick = () => openShareModal(btn.dataset.battle, btn.dataset.opt);
+    btn.onclick = function() {
+      window.openShareModal(this.dataset.battle, this.dataset.opt);
+    };
   });
 }
+
 fetchAndRenderBattles();
 
-// Логика vote/share modal
-window.openShareModal = (battleId, option) => {
+// Глобальная функция для Vote
+window.openShareModal = function(battleId, option) {
   const modal = document.getElementById('shareModal');
   modal.classList.remove('hidden');
   const url=location.href, title='Make it count – share to vote!';
