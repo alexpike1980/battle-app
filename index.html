@@ -4,32 +4,24 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FANSHARE Battles</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html, body { min-height:100%; }
     body { font-family: 'Manrope',sans-serif; background: linear-gradient(120deg, #f7faff 70%, #f0f3ff 100%) !important; }
     .boxed { max-width: 1200px; margin: 0 auto; }
-    /* Адаптив и прочее — ... (оставь из прошлых версий) */
-    .battle-images-wrapper { position:relative; display:flex; gap:1rem; align-items:center; justify-content:center;}
-    .vs-circle {
-      position:absolute; left:50%; top:50%;
-      transform:translate(-50%,-50%);
-      width:40px; height:40px; background:#fff; color:#000;
-      border-radius:50%; display:flex; align-items:center; justify-content:center;
-      font-weight:bold; font-size:0.9rem; z-index:2;
-      border:2px solid #e0e0e0;
-    }
-    /* ... другие стили ... */
+    .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
+    @media (max-width:1024px){ .sidebar-right {display:none;} }
+    @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
+    .vs-circle { display:flex; align-items:center; justify-content:center; border-radius:9999px; font-size:1.2rem; font-weight:bold; border:2px solid #fff; width:56px; height:56px; background:#fff; z-index:20; }
+    @media (max-width: 640px) { .vs-circle{ width:42px;height:42px;font-size:1rem; } }
+    .tab-btn.active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
+    #tabIndicator { transition: left 0.28s cubic-bezier(.6,1.2,.4,1), width 0.28s cubic-bezier(.6,1.2,.4,1); height: 3px !important; background: #2563eb !important; border-radius: 2px; bottom: 0; }
   </style>
 </head>
 <body class="bg-white">
 
-  <!-- Watermark -->
   <div class="watermark select-none text-blue-700 hidden md:block">FANSHARE</div>
-
-  <!-- Header -->
   <header class="bg-white border-b sticky top-0 z-30">
     <div class="boxed flex items-center justify-between py-3 px-4 md:px-8">
       <div class="text-2xl font-extrabold tracking-tight text-blue-700">FANSHARE</div>
@@ -41,10 +33,9 @@
   </header>
 
   <div class="boxed flex gap-8 pt-6 pb-16 md:pb-8 bg-transparent min-h-[85vh] relative">
-    <!-- Left Sidebar -->
     <aside class="sidebar-left w-18 md:w-56 hidden md:flex flex-col pt-3 border-r border-gray-200 min-h-[80vh]">
       <div>
-        <button id="createBattleBtnSidebar" class="w-full px-3 py-2 mb-4 rounded bg-blue-100 text-blue-700 font-semibold">Create Battle</button>
+        <button id="createBattleBtn2" class="w-full px-3 py-2 mb-4 rounded bg-blue-100 text-blue-700 font-semibold">Create Battle</button>
         <div class="font-bold mb-2">Menu</div>
         <ul class="space-y-2 text-gray-600">
           <li><a href="#" class="hover:text-blue-600">Home</a></li>
@@ -62,33 +53,26 @@
       </div>
     </aside>
 
-    <!-- Central Feed -->
     <main class="flex-1 max-w-[620px] w-full border-x border-gray-200 min-h-[80vh] bg-white relative">
-      <!-- Tabs -->
       <div class="sticky top-[64px] z-10 bg-white pt-2 pb-1 border-b border-gray-200 flex items-center gap-1">
         <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active"
-                id="tab-featured">Featured</button>
+                id="tab-featured" data-tab="featured">Featured</button>
         <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-active">Active</button>
+                id="tab-active" data-tab="active">Active</button>
         <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-finished">Finished</button>
+                id="tab-finished" data-tab="finished">Finished</button>
+        <span id="tabIndicator" class="absolute h-1 bg-blue-600 rounded-full transition-all duration-300" style="bottom:0; left:0; width:0;"></span>
       </div>
-      <!-- SKELETONS -->
-      <div id="battleSkeletons" class="flex flex-col gap-4 mt-4"></div>
-      <!-- FEED -->
       <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
-      <div id="scrollEndMarker" class="h-10"></div>
     </main>
 
-    <!-- Right Sidebar -->
-    <aside class="hidden xl:flex flex-col w-72 shrink-0 gap-6">
+    <aside class="sidebar-right hidden xl:flex flex-col w-72 shrink-0 gap-6">
       <div class="text-xl font-bold mb-3">Top Battles</div>
       <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
       <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
     </aside>
   </div>
 
-  <!-- FAB mobile -->
   <nav class="fixed md:hidden bottom-0 left-0 w-full bg-white border-t flex justify-around py-2 z-50">
     <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
       <svg width="24" height="24" fill="none" class="mb-1"><path d="M4 10l8-6 8 6" stroke="currentColor" stroke-width="2"/><path d="M4 10v10h16V10" stroke="currentColor" stroke-width="2"/></svg>
@@ -101,22 +85,20 @@
     </a>
   </nav>
 
-  <!-- Create Battle Modal -->
   <div id="createModal" class="modal hidden">
     <div class="modal-content">
       <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
-      <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded" />
+      <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded"/>
       <div class="mb-4">
-        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-2 p-2 border rounded" />
+        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-2 p-2 border rounded"/>
         <label for="image1File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 1</label>
         <input type="file" id="image1File" class="hidden" />
       </div>
       <div class="mb-4">
-        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-2 p-2 border rounded" />
+        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-2 p-2 border rounded"/>
         <label for="image2File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 2</label>
         <input type="file" id="image2File" class="hidden" />
       </div>
-      <!-- Time selector -->
       <div class="time-selector mb-4">
         <div class="time-tabs">
           <button type="button" class="time-tab active" data-unit="minutes">Minutes</button>
@@ -124,8 +106,8 @@
           <button type="button" class="time-tab" data-unit="days">Days</button>
           <button type="button" class="time-tab" data-unit="date">Pick Date</button>
         </div>
-        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="p-2 border rounded w-full" />
-        <input type="datetime-local" id="datetimePicker" class="hidden p-2 border rounded w-full mt-2" />
+        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="p-2 border rounded w-full"/>
+        <input type="datetime-local" id="datetimePicker" class="hidden p-2 border rounded w-full mt-2"/>
       </div>
       <div class="flex justify-end gap-2">
         <button id="cancelCreateBtn" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition">Cancel</button>
@@ -134,7 +116,6 @@
     </div>
   </div>
 
-  <!-- Share Modal -->
   <div id="shareModal" class="modal hidden">
     <div id="shareModalContent" class="modal-content">
       <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
@@ -155,7 +136,23 @@
       <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
     </div>
   </div>
-
+  <script>
+    document.getElementById('createBattleBtn')?.addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    document.getElementById('createBattleBtn2')?.addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    document.getElementById('floatingCreateBtn')?.addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    document.getElementById('navFab')?.addEventListener('click', () => {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+    document.getElementById('cancelCreateBtn')?.addEventListener('click', () => {
+      document.getElementById('createModal').classList.add('hidden');
+    });
+  </script>
   <script type="module" src="./main.js"></script>
   <script type="module" src="./tabs.js"></script>
 </body>
