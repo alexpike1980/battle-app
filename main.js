@@ -1,7 +1,9 @@
+// main.js
+
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'; // ваш ключ
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 function calculateTimeLeft(endTime) {
@@ -18,17 +20,19 @@ function calculateTimeLeft(endTime) {
   if (seconds) parts.push(`${seconds} sec${seconds>1?'s':''}`);
   return parts.join(' ');
 }
-function startLiveCountdown(id,endTime){
+
+function startLiveCountdown(id, endTime) {
   const el = document.getElementById(`timer-${id}`);
-  function upd(){
+  function upd() {
     const t = calculateTimeLeft(endTime);
-    if(!t){ el.textContent='Finished'; clearInterval(iv); }
-    else { el.textContent=`Time to Left: ${t}`; }
+    if (!t) { el.textContent = 'Finished'; clearInterval(iv); }
+    else    { el.textContent = `Time to Left: ${t}`; }
   }
-  const iv=setInterval(upd,1000); upd();
+  const iv = setInterval(upd, 1000); upd();
 }
-function renderProgressBar(v1=0,v2=0,id){
-  const total = v1+v2, p1 = total?Math.round(v1/total*100):50, p2 = 100-p1;
+
+function renderProgressBar(v1=0, v2=0, id) {
+  const total = v1+v2, p1 = total ? Math.round(v1/total*100) : 50, p2 = 100-p1;
   return `
     <div class="flex w-full gap-0 mt-3">
       <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${p1}%;">
@@ -81,7 +85,7 @@ async function fetchAndRenderBattles() {
     if (active) startLiveCountdown(b.id, b.ends_at);
   });
 
-  // === КРИТИЧЕСКИЙ момент ===
+  // ====== ВЕШАЕМ обработчики для vote-btn ======
   document.querySelectorAll('.vote-btn').forEach(btn => {
     btn.onclick = function() {
       window.openShareModal(this.dataset.battle, this.dataset.opt);
@@ -91,7 +95,7 @@ async function fetchAndRenderBattles() {
 
 fetchAndRenderBattles();
 
-// Глобальная функция для Vote
+// --- Глобальная функция для Vote
 window.openShareModal = function(battleId, option) {
   const modal = document.getElementById('shareModal');
   modal.classList.remove('hidden');
@@ -99,10 +103,12 @@ window.openShareModal = function(battleId, option) {
   document.getElementById('facebookShare').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
   document.getElementById('twitterShare').href =`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
   document.getElementById('redditShare').href  =`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+  // Сбросить старые обработчики
   document.querySelectorAll('#shareModal a').forEach(link => {
     const clone = link.cloneNode(true);
     link.parentNode.replaceChild(clone, link);
   });
+  // Вешаем новые
   document.querySelectorAll('#shareModal a').forEach(link => {
     link.onclick = async event => {
       event.preventDefault();
@@ -129,6 +135,8 @@ window.openShareModal = function(battleId, option) {
     };
   });
 };
+
+// --- Закрытие share-modal
 window.addEventListener('load', () => {
   document.getElementById('shareCloseBtn')?.addEventListener('click', () => {
     document.getElementById('shareModal').classList.add('hidden');
