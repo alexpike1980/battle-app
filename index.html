@@ -13,7 +13,20 @@
     .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
     @media (max-width:1024px){ .sidebar-right {display:none;} }
     @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
-    .vs-circle { display:flex; align-items:center; justify-content:center; border-radius:9999px; font-size:1.2rem; font-weight:bold; border:2px solid #fff; width:56px; height:56px; background:#fff; z-index:20; }
+    .vs-circle { 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      border-radius:9999px; 
+      font-size:1.2rem; 
+      font-weight:bold; 
+      border:2px solid #fff; 
+      width:56px; 
+      height:56px; 
+      background:#fff; 
+      z-index:20; 
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
     @media (max-width: 640px) { .vs-circle{ width:42px;height:42px;font-size:1rem; } }
     .tab-btn.active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
     #tabIndicator { transition: left 0.28s cubic-bezier(.6,1.2,.4,1), width 0.28s cubic-bezier(.6,1.2,.4,1); height: 3px !important; background: #2563eb !important; border-radius: 2px; bottom: 0; }
