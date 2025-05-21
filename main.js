@@ -142,9 +142,128 @@ function setupTabs() {
   });
 }
 
+// Handle create battle form submission
+function setupCreateBattleForm() {
+  const submitBtn = document.getElementById('submitBattleBtn');
+  const timeTabs = document.querySelectorAll('.time-tab');
+  const durationInput = document.getElementById('duration');
+  const datetimePicker = document.getElementById('datetimePicker');
+  
+  // Set up time unit tabs
+  timeTabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      timeTabs.forEach(t => {
+        t.classList.remove('active');
+      });
+      this.classList.add('active');
+      
+      const unit = this.dataset.unit;
+      if (unit === 'date') {
+        durationInput.classList.add('hidden');
+        datetimePicker.classList.remove('hidden');
+        datetimePicker.value = new Date(Date.now() + 24*60*60*1000)
+          .toISOString().slice(0, 16); // Tomorrow
+      } else {
+        durationInput.classList.remove('hidden');
+        datetimePicker.classList.add('hidden');
+        
+        // Update placeholder based on selected time unit
+        if (unit === 'minutes') {
+          durationInput.placeholder = 'Enter minutes';
+          durationInput.value = '60'; // Default 60 minutes
+        } else if (unit === 'hours') {
+          durationInput.placeholder = 'Enter hours';
+          durationInput.value = '24'; // Default 24 hours
+        } else if (unit === 'days') {
+          durationInput.placeholder = 'Enter days';
+          durationInput.value = '7'; // Default 7 days
+        }
+      }
+    });
+  });
+
+  // Handle form submission
+  submitBtn.addEventListener('click', async function() {
+    const title = document.getElementById('title').value;
+    const option1 = document.getElementById('option1').value;
+    const option2 = document.getElementById('option2').value;
+    
+    // Basic validation
+    if (!title || !option1 || !option2) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    
+    // Calculate end time
+    let endsAt;
+    const activeTab = document.querySelector('.time-tab.active');
+    if (activeTab.dataset.unit === 'date') {
+      endsAt = new Date(datetimePicker.value);
+    } else {
+      const now = new Date();
+      const duration = parseInt(durationInput.value) || 60;
+      
+      if (activeTab.dataset.unit === 'minutes') {
+        endsAt = new Date(now.getTime() + duration * 60 * 1000);
+      } else if (activeTab.dataset.unit === 'hours') {
+        endsAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
+      } else if (activeTab.dataset.unit === 'days') {
+        endsAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
+      }
+    }
+    
+    // Get image values (for simplicity we'll use placeholder URLs in this example)
+    // In a real app, you'd upload the actual images first
+    const image1 = 'https://via.placeholder.com/300';
+    const image2 = 'https://via.placeholder.com/300';
+    
+    // Create the battle
+    try {
+      const { data, error } = await supabase.from('battles').insert([
+        {
+          title,
+          option1,
+          option2,
+          image1,
+          image2,
+          votes1: 0,
+          votes2: 0,
+          ends_at: endsAt.toISOString(),
+          created_at: new Date().toISOString()
+        }
+      ]);
+      
+      if (error) throw error;
+      
+      // Close modal and refresh battles
+      document.getElementById('createModal').classList.add('hidden');
+      document.getElementById('title').value = '';
+      document.getElementById('option1').value = '';
+      document.getElementById('option2').value = '';
+      
+      // Set current tab to featured and refresh
+      currentTab = 'featured';
+      document.querySelectorAll('.tab-btn').forEach(t => {
+        t.classList.remove('active');
+        if (t.dataset.tab === 'featured') {
+          t.classList.add('active');
+        }
+      });
+      
+      await fetchAndRenderBattles();
+      alert('Battle created successfully!');
+      
+    } catch (err) {
+      console.error('Error creating battle:', err);
+      alert('Could not create battle. Please try again.');
+    }
+  });
+}
+
 // Initialize app
 window.addEventListener('load', () => {
   setupTabs();
+  setupCreateBattleForm();
   fetchAndRenderBattles();
   
   // Modal close handlers
@@ -174,37 +293,51 @@ window.openShareModal = function(battleId, option) {
     link.parentNode.replaceChild(clone, link);
   });
   
-  // Add new handlers with confirmation step
+  // Add new handlers that count votes immediately (simpler UX for testing)
   document.querySelectorAll('#shareModal a').forEach(link => {
     link.onclick = async event => {
       event.preventDefault();
-      const shareWindow = window.open(link.href, '_blank', 'width=600,height=400');
       
-      // Add vote only after confirmation
-      const confirmVote = confirm('Did you share the battle? Click OK to confirm your vote.');
-      if (confirmVote) {
-        const col = (option === 'votes1' ? 'votes1' : 'votes2');
-        try {
-          const { data: row, error: fe } = await supabase
-            .from('battles')
-            .select(col)
-            .eq('id', battleId)
-            .single();
-          if (fe) throw fe;
+      // Which vote column to update
+      const col = (option === 'votes1' ? 'votes1' : 'votes2');
+      try {
+        // First, get the current battle data
+        const { data: battle, error: fe } = await supabase
+          .from('battles')
+          .select('*')
+          .eq('id', battleId)
+          .single();
           
-          const newVotes = (row[col] || 0) + 1;
-          const { error: ue } = await supabase
-            .from('battles')
-            .update({ [col]: newVotes })
-            .eq('id', battleId);
-          if (ue) throw ue;
+        if (fe) throw fe;
+        
+        // Update the vote count locally first (optimistic UI update)
+        const battleCard = document.querySelector(`[data-battle="${battleId}"]`).closest('.bg-white');
+        const progressBar = battleCard.querySelector('.flex.w-full.gap-0.mt-3');
+        
+        // Calculate new vote counts
+        const newVotes = (battle[col] || 0) + 1;
+        const votes1 = col === 'votes1' ? newVotes : battle.votes1;
+        const votes2 = col === 'votes2' ? newVotes : battle.votes2;
+        
+        // Immediately update the UI with new progress bar
+        progressBar.outerHTML = renderProgressBar(votes1, votes2, battleId);
+        
+        // Open share window
+        window.open(link.href, '_blank');
+        
+        // Update the database
+        const { error: ue } = await supabase
+          .from('battles')
+          .update({ [col]: newVotes })
+          .eq('id', battleId);
           
-          await fetchAndRenderBattles();
-          modal.classList.add('hidden');
-        } catch (err) {
-          console.error('Error adding vote:', err);
-          alert('Could not add your vote. Please try again.');
-        }
+        if (ue) throw ue;
+        
+        // Close the modal
+        modal.classList.add('hidden');
+      } catch (err) {
+        console.error('Error adding vote:', err);
+        alert('Could not add your vote. Please try again.');
       }
     };
   });
