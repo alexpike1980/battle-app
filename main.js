@@ -13,6 +13,23 @@ let currentFilters = {
 
 // DOM ready function
 document.addEventListener('DOMContentLoaded', async function() {
+  // Track window size for responsive layouts
+  window.isMobile = window.innerWidth < 768;
+  
+  // Update mobile status on resize
+  window.addEventListener('resize', function() {
+    const wasMobile = window.isMobile;
+    window.isMobile = window.innerWidth < 768;
+    
+    // If mobile status changed, re-render battles
+    if (wasMobile !== window.isMobile && currentBattles.length > 0) {
+      const battlesList = document.getElementById('battlesList');
+      if (battlesList) {
+        renderBattles(currentBattles, battlesList);
+      }
+    }
+  });
+  
   try {
     console.log('Initializing app...');
     
@@ -360,7 +377,25 @@ function setupEventHandlers() {
     });
   }
   
-  // Setup voting
+  // Delegate click events from battlesList to vote buttons
+  const battlesList = document.getElementById('battlesList');
+  if (battlesList) {
+    battlesList.addEventListener('click', function(e) {
+      // Find closest vote button if clicked on or within a vote button
+      const voteBtn = e.target.closest('.vote-btn');
+      if (voteBtn) {
+        const battleId = voteBtn.dataset.battle;
+        const voteOpt = voteBtn.dataset.opt;
+        
+        // Call openShareModal with the battle ID and option
+        if (typeof window.openShareModal === 'function') {
+          window.openShareModal(battleId, voteOpt);
+        }
+      }
+    });
+  }
+  
+  // Setup openShareModal function
   window.openShareModal = function(battleId, option) {
     const modal = document.getElementById('shareModal');
     if (!modal) return;
@@ -397,19 +432,10 @@ function setupEventHandlers() {
             
           if (fe) throw fe;
           
-          // Update the vote count locally first (optimistic UI update)
-          const battleCard = document.querySelector(`[data-battle="${battleId}"]`).closest('.battle-item');
-          const progressBar = battleCard.querySelector(`#progress-${battleId}`);
-          
           // Calculate new vote counts
           const newVotes = (battle[col] || 0) + 1;
           const votes1 = col === 'votes1' ? newVotes : battle.votes1;
           const votes2 = col === 'votes2' ? newVotes : battle.votes2;
-          
-          // Immediately update the UI with new progress bar
-          if (progressBar) {
-            progressBar.innerHTML = renderProgressBar(votes1, votes2, battleId);
-          }
           
           // Open share window
           window.open(link.href, '_blank');
@@ -424,6 +450,13 @@ function setupEventHandlers() {
           
           // Close the modal
           modal.classList.add('hidden');
+          
+          // Update the UI - find the progress bar and update it
+          const progressBar = document.getElementById(`progress-${battleId}`);
+          if (progressBar) {
+            progressBar.innerHTML = renderProgressBar(votes1, votes2, battleId);
+          }
+          
         } catch (err) {
           console.error('Error adding vote:', err);
           alert('Could not add your vote. Please try again.');
@@ -493,47 +526,102 @@ function renderProgressBar(v1=0, v2=0, id) {
 
 // Render a single battle item
 function renderBattleItem(b, active = true) {
+  // Check if we're on mobile
+  const isMobile = window.innerWidth < 768;
+  
   return `
     <div class="battle-item border-b pb-6 hover:bg-gray-50 transition-colors duration-300 rounded-lg p-4">
-      <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
+      <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-4 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
       
-      <!-- VS image layout with table-like structure for perfect alignment -->
-      <div class="relative flex items-center justify-center mt-4">
-        <table class="vs-battle-table w-full">
-          <tr>
-            <td class="w-1/2 pr-4 text-center align-middle">
-              <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block hover:shadow-lg transition-shadow duration-300" />
-            </td>
-            <td class="w-1/2 pl-4 text-center align-middle">
-              <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block hover:shadow-lg transition-shadow duration-300" />
-            </td>
-          </tr>
-        </table>
+      <!-- Mobile-optimized layout -->
+      ${isMobile ? `
+        <!-- Mobile layout with stacked images -->
+        <div class="flex flex-col gap-4 relative">
+          <div class="w-full">
+            <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-full h-48 hover:shadow-lg transition-shadow duration-300" />
+            <div class="option-title mt-2 text-center font-semibold">${b.option1}</div>
+            <button class="bg-blue-600 text-white py-3 mt-2 rounded-lg font-bold w-full text-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-md vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
+          </div>
+          
+          <!-- VS circle between images -->
+          <div class="flex justify-center relative my-2">
+            <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-md">VS</div>
+          </div>
+          
+          <div class="w-full">
+            <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-full h-48 hover:shadow-lg transition-shadow duration-300" />
+            <div class="option-title mt-2 text-center font-semibold">${b.option2}</div>
+            <button class="bg-green-600 text-white py-3 mt-2 rounded-lg font-bold w-full text-lg transition-all duration-300 hover:bg-green-700 hover:shadow-md vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
+          </div>
+        </div>
+      ` : `
+        <!-- Desktop layout with side-by-side images -->
+        <div class="relative flex items-center justify-center mt-4">
+          <table class="vs-battle-table w-full">
+            <tr>
+              <td class="w-1/2 pr-4 text-center align-middle">
+                <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block hover:shadow-lg transition-shadow duration-300" />
+              </td>
+              <td class="w-1/2 pl-4 text-center align-middle">
+                <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block hover:shadow-lg transition-shadow duration-300" />
+              </td>
+            </tr>
+          </table>
 
-        <!-- VS circle positioned absolutely in the center -->
-        <div class="absolute" style="z-index: 20;">
-          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
+          <!-- VS circle positioned absolutely in the center -->
+          <div class="absolute" style="z-index: 20;">
+            <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
+          </div>
         </div>
-      </div>
+        
+        <!-- Options and vote buttons for desktop -->
+        <div class="flex mt-4">
+          <div class="flex flex-col items-center flex-1">
+            <div class="option-title mb-2">${b.option1}</div>
+            <button class="bg-blue-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-md vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
+          </div>
+          <div class="flex flex-col items-center flex-1">
+            <div class="option-title mb-2">${b.option2}</div>
+            <button class="bg-green-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition-all duration-300 hover:bg-green-700 hover:shadow-md vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
+          </div>
+        </div>
+      `}
       
-      <!-- Options and vote buttons -->
-      <div class="flex mt-4">
-        <div class="flex flex-col items-center flex-1">
-          <div class="option-title mb-2">${b.option1}</div>
-          <button class="bg-blue-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-md vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
-        </div>
-        <div class="flex flex-col items-center flex-1">
-          <div class="option-title mb-2">${b.option2}</div>
-          <button class="bg-green-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition-all duration-300 hover:bg-green-700 hover:shadow-md vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
-        </div>
-      </div>
-      
-      <div id="progress-${b.id}" class="progress-bar-container">
+      <div id="progress-${b.id}" class="progress-bar-container mt-6">
         ${renderProgressBar(b.votes1, b.votes2, b.id)}
       </div>
       <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
     </div>
   `;
+}
+}
+
+// Helper function to render battles to the DOM
+function renderBattles(battles, container) {
+  // Clear the container first to prevent duplicates
+  container.innerHTML = '';
+  console.log('Rendering', battles.length, 'battles');
+  
+  // Render each battle item
+  battles.forEach(battle => {
+    const isActive = new Date(battle.ends_at) > new Date();
+    const battleItem = document.createElement('div');
+    battleItem.classList.add('battle-item', 'py-6');
+    battleItem.innerHTML = renderBattleItem(battle, isActive);
+    container.appendChild(battleItem);
+    
+    // Set up timer for active battles
+    if (isActive) {
+      timers[battle.id] = setInterval(() => {
+        const timerEl = document.getElementById(`timer-${battle.id}`);
+        if (timerEl) {
+          timerEl.textContent = `Time Left: ${calculateTimeLeft(battle.ends_at)}`;
+        } else {
+          clearInterval(timers[battle.id]);
+        }
+      }, 1000);
+    }
+  });
 }
 
 // Fetch and render battles based on current tab
@@ -614,30 +702,8 @@ async function fetchAndRenderBattles() {
       return;
     }
     
-    // Clear the container first to prevent duplicates
-    battlesList.innerHTML = '';
-    console.log('Rendering', currentBattles.length, 'battles');
-    
-    // Render each battle item
-    currentBattles.forEach(battle => {
-      const isActive = new Date(battle.ends_at) > new Date();
-      const battleItem = document.createElement('div');
-      battleItem.classList.add('battle-item', 'py-6');
-      battleItem.innerHTML = renderBattleItem(battle, isActive);
-      battlesList.appendChild(battleItem);
-      
-      // Set up timer for active battles
-      if (isActive) {
-        timers[battle.id] = setInterval(() => {
-          const timerEl = document.getElementById(`timer-${battle.id}`);
-          if (timerEl) {
-            timerEl.textContent = `Time Left: ${calculateTimeLeft(battle.ends_at)}`;
-          } else {
-            clearInterval(timers[battle.id]);
-          }
-        }, 1000);
-      }
-    });
+    // Use the helper function to render battles
+    renderBattles(currentBattles, battlesList);
     
   } catch (err) {
     console.error('Error fetching battles:', err);
