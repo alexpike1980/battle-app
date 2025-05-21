@@ -1,6 +1,6 @@
 // Initialize Supabase client
 const supabaseUrl = 'https://oihsflhoynwnuhmkqshl.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9paHNmbGhveW53bnVobWtxc2hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU4OTQyNzAsImV4cCI6MjAzMTQ3MDI3MH0.7eLsn_q2OXdlOvIWGzw7v5XmE73U4bpG4PZEE0wt_QI';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Global variables
