@@ -1,189 +1,46 @@
-// main.js
+// Initialize Supabase client
+const supabaseUrl = 'https://oihsflhoynwnuhmkqshl.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9paHNmbGhveW53bnVobWtxc2hsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU4OTQyNzAsImV4cCI6MjAzMTQ3MDI3MH0.7eLsn_q2OXdlOvIWGzw7v5XmE73U4bpG4PZEE0wt_QI';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Current active tab
+// Global variables
 let currentTab = 'featured';
+let currentBattles = [];
+const timers = {};
 
-function calculateTimeLeft(endTime) {
-  let diff = new Date(endTime) - new Date();
-  if (diff <= 0) return '';
-  const days    = Math.floor(diff / 86400000); diff %= 86400000;
-  const hours   = Math.floor(diff / 3600000);   diff %= 3600000;
-  const minutes = Math.floor(diff / 60000);     diff %= 60000;
-  const seconds = Math.floor(diff / 1000);
-  const parts = [];
-  if (days)    parts.push(`${days} day${days>1?'s':''}`);
-  if (hours)   parts.push(`${hours} hour${hours>1?'s':''}`);
-  if (minutes) parts.push(`${minutes} min${minutes>1?'s':''}`);
-  if (seconds) parts.push(`${seconds} sec${seconds>1?'s':''}`);
-  return parts.join(' ');
-}
+// DOM ready function
+document.addEventListener('DOMContentLoaded', async function() {
+  // Setup tab navigation
+  setupTabs();
+  
+  // Set up battle creation form
+  setupCreateBattleForm();
+  
+  // Set up share and vote handling
+  setupEventHandlers();
+  
+  // Fetch initial battles
+  await fetchAndRenderBattles();
+  
+  // Set up timer to refresh battles periodically
+  setInterval(fetchAndRenderBattles, 60000); // Every minute
+});
 
-function startLiveCountdown(id, endTime) {
-  const el = document.getElementById(`timer-${id}`);
-  if (!el) return;
-  
-  function upd() {
-    const t = calculateTimeLeft(endTime);
-    if (!t) { el.textContent = 'Finished'; clearInterval(iv); }
-    else    { el.textContent = `Time Left: ${t}`; }
-  }
-  const iv = setInterval(upd, 1000); upd();
-}
-
-function renderProgressBar(v1=0, v2=0, id) {
-  const total = v1 + v2;
-  
-  // Handle zero votes case
-  if (total === 0) {
-    return `
-      <div class="flex w-full gap-0 mt-3">
-        <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:50%;">
-          0 (0%)
-        </div>
-        <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:50%;">
-          0 (0%)
-        </div>
-      </div>
-    `;
-  }
-  
-  const p1 = Math.round(v1/total*100);
-  const p2 = 100-p1;
-  
-  // Ensure both bars are visible when they have votes
-  const minWidth = 20; // Minimum width in pixels to ensure visibility
-  const w1 = p1 === 0 ? minWidth : `${p1}%`;
-  const w2 = p2 === 0 ? minWidth : `${p2}%`;
-  
-  return `
-    <div class="flex w-full gap-0 mt-3">
-      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${w1};">
-        ${v1} (${p1}%)
-      </div>
-      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold ${p2===100?'rounded-l-full':''}" style="width:${w2};">
-        ${v2} (${p2}%)
-      </div>
-    </div>
-  `;
-}
-
-async function fetchAndRenderBattles() {
-  const { data: battles, error } = await supabase
-    .from('battles')
-    .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2, created_at')
-    .order('created_at', { ascending: false });
-    
-  if (error) {
-    console.error('Error loading battles:', error.message);
-    return;
-  }
-  
-  const container = document.getElementById('battleList');
-  container.innerHTML = '';
-  
-  // Filter battles based on tab
-  const now = new Date();
-  let filteredBattles = battles;
-  
-  if (currentTab === 'active') {
-    filteredBattles = battles.filter(b => new Date(b.ends_at) > now);
-  } else if (currentTab === 'finished') {
-    filteredBattles = battles.filter(b => new Date(b.ends_at) <= now);
-  } else {
-    // For featured tab, we'll show first 5 battles regardless of status
-    filteredBattles = battles.slice(0, 5);
-  }
-  
-  if (filteredBattles.length === 0) {
-    container.innerHTML = `
-      <div class="py-16 text-center text-gray-500">
-        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <p class="text-xl font-semibold">No battles found</p>
-        <p class="mt-2">Create a new battle to get started!</p>
-      </div>
-    `;
-    return;
-  }
-
-  filteredBattles.forEach(b => {
-    const active = new Date(b.ends_at) > now;
-    const block = document.createElement('div');
-    block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
-    block.innerHTML = `
-      <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
-      <!-- Battle container with improved structure for perfect centering -->
-      <div class="flex flex-col gap-2 mb-6">
-        <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
-        
-        <!-- VS image layout with table-like structure for perfect alignment -->
-        <div class="relative flex items-center justify-center">
-          <table class="vs-battle-table w-full">
-            <tr>
-              <td class="w-1/2 pr-4 text-center align-middle">
-                <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block" />
-              </td>
-              <td class="w-1/2 pl-4 text-center align-middle">
-                <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block" />
-              </td>
-            </tr>
-          </table>
-
-          <!-- VS circle positioned absolutely in the center -->
-          <div class="absolute" style="z-index: 20;">
-            <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
-          </div>
-        </div>
-        
-        <!-- Options and vote buttons -->
-        <div class="flex">
-          <div class="flex flex-col items-center flex-1">
-            <div class="option-title mb-2">${b.option1}</div>
-            <button class="bg-blue-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
-          </div>
-          <div class="flex flex-col items-center flex-1">
-            <div class="option-title mb-2">${b.option2}</div>
-            <button class="bg-green-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
-          </div>
-        </div>
-        
-        ${renderProgressBar(b.votes1, b.votes2, b.id)}
-        <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
-      </div>
-      ${renderProgressBar(b.votes1, b.votes2, b.id)}
-      <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
-    `;
-    container.appendChild(block);
-    if (active) startLiveCountdown(b.id, b.ends_at);
-  });
-
-  // Add event listeners for vote buttons
-  document.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.onclick = function() {
-      window.openShareModal(this.dataset.battle, this.dataset.opt);
-    };
-  });
-}
-
-// Tab handling
+// Set up tab navigation
 function setupTabs() {
-  const tabs = document.querySelectorAll('.tab-btn');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', function() {
-      // Update UI
-      tabs.forEach(t => t.classList.remove('active'));
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const tab = this.dataset.tab;
+      
+      // Update active state
+      tabButtons.forEach(b => b.classList.remove('active'));
       this.classList.add('active');
       
-      // Update current tab and refresh battles
-      currentTab = this.dataset.tab;
-      fetchAndRenderBattles();
+      // Update current tab and refresh
+      currentTab = tab;
+      await fetchAndRenderBattles();
     });
   });
 }
@@ -383,85 +240,276 @@ function setupCreateBattleForm() {
   });
 }
 
-// Initialize app
-window.addEventListener('load', () => {
-  setupTabs();
-  setupCreateBattleForm();
-  fetchAndRenderBattles();
-  
-  // Modal close handlers
-  document.getElementById('shareCloseBtn')?.addEventListener('click', () => {
-    document.getElementById('shareModal').classList.add('hidden');
-  });
-  document.getElementById('shareModal').addEventListener('click', e => {
-    if (e.target.id === 'shareModal') e.target.classList.add('hidden');
-  });
-});
-
-// Share modal handling
-window.openShareModal = function(battleId, option) {
-  const modal = document.getElementById('shareModal');
-  modal.classList.remove('hidden');
-  
-  const url = `${location.origin}${location.pathname}?battle=${battleId}`;
-  const title = 'FANSHARE: Vote in this battle!';
-  
-  document.getElementById('facebookShare').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-  document.getElementById('twitterShare').href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-  document.getElementById('redditShare').href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-  
-  // Reset old handlers
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    const clone = link.cloneNode(true);
-    link.parentNode.replaceChild(clone, link);
+// Set up event handlers for share and vote
+function setupEventHandlers() {
+  // Open create modal
+  document.getElementById('createBtn').addEventListener('click', function() {
+    document.getElementById('createModal').classList.remove('hidden');
   });
   
-  // Add new handlers that count votes immediately (simpler UX for testing)
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    link.onclick = async event => {
-      event.preventDefault();
+  // Close modals
+  document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.getElementById(this.dataset.modal).classList.add('hidden');
+    });
+  });
+  
+  // Share battle
+  document.getElementById('battlesList').addEventListener('click', function(e) {
+    if (e.target.classList.contains('share-btn') || e.target.closest('.share-btn')) {
+      const btn = e.target.classList.contains('share-btn') ? e.target : e.target.closest('.share-btn');
+      const battleId = btn.dataset.battle;
+      document.getElementById('shareModal').classList.remove('hidden');
       
-      // Which vote column to update
-      const col = (option === 'votes1' ? 'votes1' : 'votes2');
+      // Set up share buttons
+      const battle = currentBattles.find(b => b.id === parseInt(battleId));
+      if (battle) {
+        const battleUrl = `${window.location.origin}${window.location.pathname}?battle=${battleId}`;
+        const shareText = `Vote for ${battle.option1} vs ${battle.option2} in this battle!`;
+        
+        // Set up share links
+        document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(battleUrl)}`;
+        document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(battleUrl)}`;
+        document.getElementById('shareReddit').href = `https://www.reddit.com/submit?url=${encodeURIComponent(battleUrl)}&title=${encodeURIComponent(shareText)}`;
+      }
+    }
+  });
+  
+  // Vote for battle
+  document.getElementById('battlesList').addEventListener('click', async function(e) {
+    if (e.target.classList.contains('vote-btn')) {
+      const battleId = e.target.dataset.battle;
+      const voteOpt = e.target.dataset.opt;
+      
       try {
-        // First, get the current battle data
-        const { data: battle, error: fe } = await supabase
+        // Check if user already voted
+        const userId = localStorage.getItem('userId') || `user_${Math.random().toString(36).substring(2)}`;
+        localStorage.setItem('userId', userId);
+        
+        const voteKey = `vote_${battleId}`;
+        if (localStorage.getItem(voteKey)) {
+          alert('You have already voted on this battle!');
+          return;
+        }
+        
+        // Update vote in database
+        const { data, error } = await supabase
           .from('battles')
-          .select('*')
+          .select(voteOpt)
           .eq('id', battleId)
           .single();
           
-        if (fe) throw fe;
+        if (error) throw error;
         
-        // Update the vote count locally first (optimistic UI update)
-        const battleCard = document.querySelector(`[data-battle="${battleId}"]`).closest('.bg-white');
-        const progressBar = battleCard.querySelector('.flex.w-full.gap-0.mt-3');
+        const currentVotes = data[voteOpt] || 0;
+        const updateObj = {};
+        updateObj[voteOpt] = currentVotes + 1;
         
-        // Calculate new vote counts
-        const newVotes = (battle[col] || 0) + 1;
-        const votes1 = col === 'votes1' ? newVotes : battle.votes1;
-        const votes2 = col === 'votes2' ? newVotes : battle.votes2;
-        
-        // Immediately update the UI with new progress bar
-        progressBar.outerHTML = renderProgressBar(votes1, votes2, battleId);
-        
-        // Open share window
-        window.open(link.href, '_blank');
-        
-        // Update the database
-        const { error: ue } = await supabase
+        const { error: updateError } = await supabase
           .from('battles')
-          .update({ [col]: newVotes })
+          .update(updateObj)
           .eq('id', battleId);
           
-        if (ue) throw ue;
+        if (updateError) throw updateError;
         
-        // Close the modal
-        modal.classList.add('hidden');
+        // Mark as voted
+        localStorage.setItem(voteKey, voteOpt);
+        
+        // Refresh battles
+        await fetchAndRenderBattles();
+        
       } catch (err) {
-        console.error('Error adding vote:', err);
-        alert('Could not add your vote. Please try again.');
+        console.error('Error voting:', err);
+        alert('Could not register vote. Please try again.');
       }
-    };
+    }
   });
-};
+}
+
+// Calculate time left for a battle
+function calculateTimeLeft(endsAt) {
+  const now = new Date();
+  const end = new Date(endsAt);
+  const diff = end - now;
+  
+  if (diff <= 0) return 'Ended';
+  
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+  
+  return `${days} day${days !== 1 ? 's' : ''} ${hours} hour${hours !== 1 ? 's' : ''} ${minutes} min${minutes !== 1 ? 's' : ''} ${seconds} sec${seconds !== 1 ? 's' : ''}`;
+}
+
+// Render progress bar for votes
+function renderProgressBar(v1=0, v2=0, id) {
+  const total = v1 + v2;
+  
+  // Handle zero votes case
+  if (total === 0) {
+    return `
+      <div class="flex w-full gap-0 mt-3">
+        <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:50%;">
+          0 (0%)
+        </div>
+        <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:50%;">
+          0 (0%)
+        </div>
+      </div>
+    `;
+  }
+  
+  const p1 = Math.round(v1/total*100);
+  const p2 = 100-p1;
+  
+  // Ensure both bars are visible when they have votes
+  const minWidth = 60; // Minimum width in pixels to ensure visibility
+  let w1 = p1 === 0 ? minWidth : `${p1}%`;
+  let w2 = p2 === 0 ? minWidth : `${p2}%`;
+  
+  // If one percentage is very small, ensure it still shows up
+  if (p1 < 10 && p1 > 0) w1 = '10%';
+  if (p2 < 10 && p2 > 0) w2 = '10%';
+  
+  return `
+    <div class="flex w-full gap-0 mt-3">
+      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${w1};">
+        ${v1} (${p1}%)
+      </div>
+      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold ${p2===100?'rounded-l-full':''}" style="width:${w2};">
+        ${v2} (${p2}%)
+      </div>
+    </div>
+  `;
+}
+
+// Render a single battle item
+function renderBattleItem(b, active = true) {
+  return `
+    <div class="border-b pb-6">
+      <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
+      
+      <!-- VS image layout with table-like structure for perfect alignment -->
+      <div class="relative flex items-center justify-center mt-4">
+        <table class="vs-battle-table w-full">
+          <tr>
+            <td class="w-1/2 pr-4 text-center align-middle">
+              <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block" />
+            </td>
+            <td class="w-1/2 pl-4 text-center align-middle">
+              <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block" />
+            </td>
+          </tr>
+        </table>
+
+        <!-- VS circle positioned absolutely in the center -->
+        <div class="absolute" style="z-index: 20;">
+          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
+        </div>
+      </div>
+      
+      <!-- Options and vote buttons -->
+      <div class="flex mt-4">
+        <div class="flex flex-col items-center flex-1">
+          <div class="option-title mb-2">${b.option1}</div>
+          <button class="bg-blue-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
+        </div>
+        <div class="flex flex-col items-center flex-1">
+          <div class="option-title mb-2">${b.option2}</div>
+          <button class="bg-green-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
+        </div>
+      </div>
+      
+      ${renderProgressBar(b.votes1, b.votes2, b.id)}
+      <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
+    </div>
+  `;
+}
+
+// Fetch and render battles based on current tab
+async function fetchAndRenderBattles() {
+  const battlesList = document.getElementById('battlesList');
+  battlesList.innerHTML = '<div class="p-4 text-center">Loading battles...</div>';
+  
+  try {
+    const now = new Date().toISOString();
+    let query = supabase.from('battles').select('*');
+    
+    // Filter by tab
+    if (currentTab === 'featured') {
+      // Featured: most votes in the last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      query = query
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('votes1', { ascending: false })
+        .order('votes2', { ascending: false })
+        .limit(10);
+    } else if (currentTab === 'active') {
+      // Active: not ended yet
+      query = query
+        .gt('ends_at', now)
+        .order('created_at', { ascending: false });
+    } else if (currentTab === 'finished') {
+      // Finished: already ended
+      query = query
+        .lte('ends_at', now)
+        .order('created_at', { ascending: false });
+    }
+    
+    // Execute query
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    currentBattles = data || [];
+    
+    // Clear existing timers
+    Object.keys(timers).forEach(key => {
+      clearInterval(timers[key]);
+    });
+    
+    // Render battles
+    if (currentBattles.length === 0) {
+      battlesList.innerHTML = `
+        <div class="p-4 text-center text-gray-500">
+          No battles found in the ${currentTab} category.
+        </div>
+      `;
+      return;
+    }
+    
+    // Clear the container first to prevent duplicates
+    battlesList.innerHTML = '';
+    
+    // Render each battle item
+    currentBattles.forEach(battle => {
+      const isActive = new Date(battle.ends_at) > new Date();
+      const battleItem = document.createElement('div');
+      battleItem.classList.add('battle-item', 'py-6');
+      battleItem.innerHTML = renderBattleItem(battle, isActive);
+      battlesList.appendChild(battleItem);
+      
+      // Set up timer for active battles
+      if (isActive) {
+        timers[battle.id] = setInterval(() => {
+          const timerEl = document.getElementById(`timer-${battle.id}`);
+          if (timerEl) {
+            timerEl.textContent = `Time Left: ${calculateTimeLeft(battle.ends_at)}`;
+          } else {
+            clearInterval(timers[battle.id]);
+          }
+        }, 1000);
+      }
+    });
+    
+  } catch (err) {
+    console.error('Error fetching battles:', err);
+    battlesList.innerHTML = `
+      <div class="p-4 text-center text-red-500">
+        Could not load battles. Please try again later.
+      </div>
+    `;
+  }
+}
