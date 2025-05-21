@@ -5,20 +5,37 @@ const timers = {};
 
 // DOM ready function
 document.addEventListener('DOMContentLoaded', async function() {
-  // Check if Supabase is available
-  if (typeof supabase === 'undefined') {
-    console.error('Error: Supabase client is not loaded. Make sure to include the Supabase script in your HTML.');
-    showErrorMessage('Could not connect to the database. Please try again later.');
-    return;
-  }
-  
   try {
-    // Initialize Supabase client
-    const supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-    window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('Initializing app...');
+    // Check if Supabase client is loaded
+    if (typeof supabase === 'undefined') {
+      console.error('Error: Supabase client is not loaded');
+      const battlesList = document.getElementById('battlesList');
+      if (battlesList) {
+        battlesList.innerHTML = `
+          <div class="p-4 text-center text-red-500">
+            Error: Supabase client is not loaded. Make sure you've included the Supabase script in your HTML.
+          </div>
+        `;
+      }
+      return;
+    }
     
-    console.log('Supabase initialized');
+    // Initialize Supabase client
+    console.log('Initializing Supabase client...');
+    window.supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+    window.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+    window.supabaseClient = supabase.createClient(window.supabaseUrl, window.supabaseKey);
+    
+    // Test Supabase connection
+    const { data, error } = await window.supabaseClient.from('battles').select('count');
+    if (error) {
+      console.error('Supabase connection test failed:', error);
+      throw new Error(`Supabase connection failed: ${error.message}`);
+    }
+    
+    console.log('Supabase test query result:', data);
+    console.log('Supabase initialized successfully');
     
     // Setup tab navigation
     setupTabs();
@@ -36,7 +53,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     setInterval(fetchAndRenderBattles, 60000); // Every minute
   } catch (err) {
     console.error('Initialization error:', err);
-    showErrorMessage('There was a problem loading the application. Please try again later.');
+    const battlesList = document.getElementById('battlesList');
+    if (battlesList) {
+      battlesList.innerHTML = `
+        <div class="p-4 text-center text-red-500">
+          Error initializing app: ${err.message}
+        </div>
+      `;
+    }
   }
 });
 
@@ -107,13 +131,14 @@ function setupCreateBattleForm() {
   const durationInput = document.getElementById('duration');
   const datetimePicker = document.getElementById('datetimePicker');
   
-  // Preview uploaded images
+  // Preview uploaded images - declare variables outside to make them available throughout the function
   const image1File = document.getElementById('image1File');
   const image2File = document.getElementById('image2File');
+  let image1Preview, image2Preview;
   
   if (image1File && image2File) {
-    const image1Preview = document.createElement('div');
-    const image2Preview = document.createElement('div');
+    image1Preview = document.createElement('div');
+    image2Preview = document.createElement('div');
     
     // Add preview containers after file inputs
     image1File.parentNode.appendChild(image1Preview);
@@ -246,13 +271,16 @@ function setupCreateBattleForm() {
         document.getElementById('option1').value = '';
         document.getElementById('option2').value = '';
         
-        if (image1Preview && image2Preview) {
+        // Clear image previews if they exist
+        if (image1Preview) {
           image1Preview.innerHTML = '';
+        }
+        if (image2Preview) {
           image2Preview.innerHTML = '';
         }
         
-        image1File.value = '';
-        image2File.value = '';
+        if (image1File) image1File.value = '';
+        if (image2File) image2File.value = '';
         
         // Set current tab to featured and refresh
         currentTab = 'featured';
@@ -475,13 +503,26 @@ function renderBattleItem(b, active = true) {
 // Fetch and render battles based on current tab
 async function fetchAndRenderBattles() {
   const battlesList = document.getElementById('battlesList');
-  if (!battlesList) return;
+  if (!battlesList) {
+    console.error('Battles list container not found');
+    return;
+  }
   
   battlesList.innerHTML = '<div class="p-4 text-center">Loading battles...</div>';
   
   try {
+    console.log('Fetching battles for tab:', currentTab);
+    
+    // Make sure supabaseClient is properly initialized
+    if (!window.supabaseClient) {
+      throw new Error('Supabase client not initialized');
+    }
+    
     const now = new Date().toISOString();
     let query = window.supabaseClient.from('battles').select('*');
+    
+    // Log table name and query
+    console.log('Querying table: battles');
     
     // Filter by tab
     if (currentTab === 'featured') {
@@ -505,11 +546,16 @@ async function fetchAndRenderBattles() {
         .order('created_at', { ascending: false });
     }
     
+    console.log('Executing query...');
     // Execute query
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase query error:', error);
+      throw error;
+    }
     
+    console.log('Received data:', data);
     currentBattles = data || [];
     
     // Clear existing timers
@@ -518,17 +564,29 @@ async function fetchAndRenderBattles() {
     });
     
     // Render battles
-    if (currentBattles.length === 0) {
+    if (!currentBattles || currentBattles.length === 0) {
+      console.log('No battles found for tab:', currentTab);
       battlesList.innerHTML = `
         <div class="p-4 text-center text-gray-500">
-          No battles found in the ${currentTab} category.
+          No battles found in the ${currentTab} category. <a href="#" id="addBattleLink" class="text-blue-500 underline">Create your first battle</a>
         </div>
       `;
+      
+      // Add event listener for creating a battle
+      const addBattleLink = document.getElementById('addBattleLink');
+      if (addBattleLink) {
+        addBattleLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          document.getElementById('createModal').classList.remove('hidden');
+        });
+      }
+      
       return;
     }
     
     // Clear the container first to prevent duplicates
     battlesList.innerHTML = '';
+    console.log('Rendering', currentBattles.length, 'battles');
     
     // Render each battle item
     currentBattles.forEach(battle => {
@@ -555,7 +613,7 @@ async function fetchAndRenderBattles() {
     console.error('Error fetching battles:', err);
     battlesList.innerHTML = `
       <div class="p-4 text-center text-red-500">
-        Could not load battles. Please try again later.
+        Could not load battles. Error: ${err.message}. Please check the console for more details.
       </div>
     `;
   }
