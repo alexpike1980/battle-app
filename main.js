@@ -185,8 +185,10 @@ function fetchAndRenderBattles() {
             <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${battle.id}" data-opt="votes2">Vote</button>
           </div>
         </div>
-        <div id="progress-${battle.id}" class="flex w-full gap-0 mt-3">
-          ${renderProgressBar(battle.votes1, battle.votes2)}
+        <div class="progress-container w-full mt-3">
+          <div id="progress-${battle.id}" class="flex w-full">
+            ${renderProgressBar(battle.votes1, battle.votes2)}
+          </div>
         </div>
         <div id="timer-${battle.id}" class="text-xs text-gray-500 pt-1">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : 'Finished'}</div>
       `;
@@ -290,6 +292,10 @@ function openShareModal(battleId, option) {
         
         // Close modal
         modal.classList.add('hidden');
+        
+        // Add animation effect to progress bar
+        addProgressBarAnimation(progressBar);
+        
       } catch (err) {
         console.error('Error voting:', err);
         alert('Could not register vote: ' + err.message);
@@ -298,21 +304,80 @@ function openShareModal(battleId, option) {
   });
 }
 
+// Add animation effect to progress bar
+function addProgressBarAnimation(element) {
+  if (!element) return;
+  
+  // Add animation class
+  element.classList.add('progress-updated');
+  
+  // Remove animation class after animation completes
+  setTimeout(() => {
+    element.classList.remove('progress-updated');
+  }, 1000);
+}
+
 // Render progress bar
 function renderProgressBar(votes1, votes2) {
   const total = votes1 + votes2;
-  let p1 = 50, p2 = 50;
   
-  if (total > 0) {
-    p1 = Math.round((votes1 / total) * 100);
-    p2 = 100 - p1;
+  // Handle zero votes case properly
+  if (total === 0) {
+    return `
+      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:50%;">
+        0 (0%)
+      </div>
+      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:50%;">
+        0 (0%)
+      </div>
+    `;
   }
   
+  // Calculate percentages
+  const p1 = Math.round((votes1 / total) * 100);
+  const p2 = 100 - p1;
+  
+  // Set minimum width to ensure visibility
+  const minWidth = 10; // 10% minimum width to display text
+  let w1 = `${p1}%`;
+  let w2 = `${p2}%`;
+  
+  // Handle edge cases with small or zero percentages
+  if (p1 === 0) {
+    w1 = `${minWidth}%`;
+    w2 = `${100 - minWidth}%`;
+  } else if (p2 === 0) {
+    w1 = `${100 - minWidth}%`;
+    w2 = `${minWidth}%`;
+  } else if (p1 < minWidth) {
+    w1 = `${minWidth}%`;
+    w2 = `${100 - minWidth}%`;
+  } else if (p2 < minWidth) {
+    w1 = `${100 - minWidth}%`;
+    w2 = `${minWidth}%`;
+  }
+  
+  // Special case when one side has 100%
+  if (p1 === 100) {
+    return `
+      <div class="flex-1 rounded-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:100%;">
+        ${votes1} (100%)
+      </div>
+    `;
+  } else if (p2 === 100) {
+    return `
+      <div class="flex-1 rounded-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:100%;">
+        ${votes2} (100%)
+      </div>
+    `;
+  }
+  
+  // Normal case with both sides having votes
   return `
-    <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${p1}%;">
+    <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:${w1};">
       ${votes1} (${p1}%)
     </div>
-    <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold ${p2===100?'rounded-l-full':''}" style="width:${p2}%;">
+    <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:${w2};">
       ${votes2} (${p2}%)
     </div>
   `;
