@@ -868,7 +868,22 @@
                 const progressBar = document.getElementById(`progress-${battleId}`);
                 
                 if (progressBar) {
+                  // Prepare the bar for animation
+                  progressBar.classList.add('progress-updating');
+                  
+                  // Update the HTML
                   progressBar.innerHTML = renderProgressBar(votes1, votes2);
+                  
+                  // Add animation class
+                  setTimeout(() => {
+                    progressBar.classList.remove('progress-updating');
+                    progressBar.classList.add('progress-updated');
+                    
+                    // Remove animation class after animation completes
+                    setTimeout(() => {
+                      progressBar.classList.remove('progress-updated');
+                    }, 1000);
+                  }, 50);
                 }
                 
                 // Open share window
@@ -910,29 +925,45 @@
     votes2 = parseInt(votes2) || 0;
     const total = votes1 + votes2;
     
-    // Default to 50/50 if no votes
-    let p1 = 50, p2 = 50;
+    // Calculate percentages
+    let p1 = 0, p2 = 0;
     
-    if (total > 0) {
+    if (total === 0) {
+      // No votes yet, show 50/50
+      p1 = 50;
+      p2 = 50;
+    } else {
+      // Calculate actual percentages
       p1 = Math.round((votes1 / total) * 100);
       p2 = 100 - p1;
     }
     
-    // Ensure minimum width for display
-    const minWidth = total > 0 ? 10 : 50;
+    // Ensure minimum visible width (prevent 0% from disappearing)
+    const minVisibleWidth = 8; // 8% minimum to show text
     let w1 = `${p1}%`;
     let w2 = `${p2}%`;
     
-    // Adjust for small percentages
-    if (p1 < minWidth && total > 0) w1 = `${minWidth}%`;
-    if (p2 < minWidth && total > 0) w2 = `${minWidth}%`;
+    // Only apply minimum width if there are votes
+    if (total > 0) {
+      if (p1 === 0) w1 = `${minVisibleWidth}%`;
+      if (p2 === 0) w2 = `${minVisibleWidth}%`;
+      
+      // Adjust the other side to maintain 100% total
+      if (p1 === 0) w2 = `${100 - minVisibleWidth}%`;
+      if (p2 === 0) w1 = `${100 - minVisibleWidth}%`;
+    }
+    
+    // Show percentages only when there are votes
+    const showPercent = total > 0;
+    const percent1 = showPercent ? `(${p1}%)` : '';
+    const percent2 = showPercent ? `(${p2}%)` : '';
     
     return `
-      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:${w1};">
-        ${votes1} (${p1}%)
+      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold transition-all duration-500 ease-in-out" style="width:${w1};">
+        ${votes1} ${percent1}
       </div>
-      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:${w2};">
-        ${votes2} (${p2}%)
+      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold transition-all duration-500 ease-in-out" style="width:${w2};">
+        ${votes2} ${percent2}
       </div>
     `;
   }
