@@ -119,25 +119,45 @@ async function fetchAndRenderBattles() {
     block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
     block.innerHTML = `
       <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
-      <div class="battle-container relative flex flex-row gap-2 justify-center">
+      <div class="battle-container relative flex flex-row gap-2 justify-center items-start">
         <div class="flex flex-col items-center flex-1">
-          <div class="relative">
+          <div class="relative" style="height: 180px;">
             <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
           </div>
           <div class="option-title mt-2">${b.option1}</div>
           <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
         </div>
-        <div class="vs-container absolute" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+        <div class="vs-container absolute z-20">
           <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
-          <div class="relative">
+          <div class="relative" style="height: 180px;">
             <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
           </div>
           <div class="option-title mt-2">${b.option2}</div>
           <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
         </div>
       </div>
+      
+      <script>
+        // Position the VS circle in the exact center
+        setTimeout(() => {
+          const container = document.querySelector('.battle-container:last-child');
+          const vsContainer = container.querySelector('.vs-container');
+          const img1 = container.querySelector('.flex-col:first-child img');
+          
+          if (img1 && vsContainer) {
+            const imgRect = img1.getBoundingClientRect();
+            const imgHeight = imgRect.height;
+            const imgOffsetTop = img1.offsetTop;
+            
+            // Position at exact center of the image height
+            vsContainer.style.left = '50%';
+            vsContainer.style.top = (imgOffsetTop + imgHeight/2) + 'px';
+            vsContainer.style.transform = 'translate(-50%, -50%)';
+          }
+        }, 100);
+      </script>
       ${renderProgressBar(b.votes1, b.votes2, b.id)}
       <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
     `;
