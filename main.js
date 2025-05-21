@@ -37,14 +37,37 @@ function startLiveCountdown(id, endTime) {
 }
 
 function renderProgressBar(v1=0, v2=0, id) {
-  const total = v1+v2, p1 = total ? Math.round(v1/total*100) : 50, p2 = 100-p1;
+  const total = v1 + v2;
+  
+  // Handle zero votes case
+  if (total === 0) {
+    return `
+      <div class="flex w-full gap-0 mt-3">
+        <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold" style="width:50%;">
+          0 (0%)
+        </div>
+        <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold" style="width:50%;">
+          0 (0%)
+        </div>
+      </div>
+    `;
+  }
+  
+  const p1 = Math.round(v1/total*100);
+  const p2 = 100-p1;
+  
+  // Ensure both bars are visible when they have votes
+  const minWidth = 20; // Minimum width in pixels to ensure visibility
+  const w1 = p1 === 0 ? minWidth : `${p1}%`;
+  const w2 = p2 === 0 ? minWidth : `${p2}%`;
+  
   return `
     <div class="flex w-full gap-0 mt-3">
-      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${p1}%;">
-        ${v1 ? `${v1} (${p1}%)` : ''}
+      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${w1};">
+        ${v1} (${p1}%)
       </div>
-      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold ${p2===100?'rounded-l-full':''}" style="width:${p2}%;">
-        ${v2 ? `${v2} (${p2}%)` : ''}
+      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold ${p2===100?'rounded-l-full':''}" style="width:${w2};">
+        ${v2} (${p2}%)
       </div>
     </div>
   `;
@@ -96,7 +119,7 @@ async function fetchAndRenderBattles() {
     block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
     block.innerHTML = `
       <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
-      <div class="relative flex flex-row gap-2 justify-center">
+      <div class="battle-container relative flex flex-row gap-2 justify-center">
         <div class="flex flex-col items-center flex-1">
           <div class="relative">
             <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
@@ -104,8 +127,8 @@ async function fetchAndRenderBattles() {
           <div class="option-title mt-2">${b.option1}</div>
           <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
         </div>
-        <div class="absolute z-20" style="left: 50%; top: 90px; transform: translateX(-50%);">
-          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-lg">VS</div>
+        <div class="vs-container absolute" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
           <div class="relative">
