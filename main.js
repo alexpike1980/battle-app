@@ -6,6 +6,9 @@ const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Current active tab
+let currentTab = 'featured';
+
 function calculateTimeLeft(endTime) {
   let diff = new Date(endTime) - new Date();
   if (diff <= 0) return '';
@@ -23,10 +26,12 @@ function calculateTimeLeft(endTime) {
 
 function startLiveCountdown(id, endTime) {
   const el = document.getElementById(`timer-${id}`);
+  if (!el) return;
+  
   function upd() {
     const t = calculateTimeLeft(endTime);
     if (!t) { el.textContent = 'Finished'; clearInterval(iv); }
-    else    { el.textContent = `Time to Left: ${t}`; }
+    else    { el.textContent = `Time Left: ${t}`; }
   }
   const iv = setInterval(upd, 1000); upd();
 }
@@ -48,24 +53,52 @@ function renderProgressBar(v1=0, v2=0, id) {
 async function fetchAndRenderBattles() {
   const { data: battles, error } = await supabase
     .from('battles')
-    .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2')
+    .select('id, title, option1, option2, votes1, votes2, ends_at, image1, image2, created_at')
     .order('created_at', { ascending: false });
+    
   if (error) {
-    console.error('Ошибка загрузки батлов:', error.message);
+    console.error('Error loading battles:', error.message);
     return;
   }
+  
   const container = document.getElementById('battleList');
   container.innerHTML = '';
+  
+  // Filter battles based on tab
+  const now = new Date();
+  let filteredBattles = battles;
+  
+  if (currentTab === 'active') {
+    filteredBattles = battles.filter(b => new Date(b.ends_at) > now);
+  } else if (currentTab === 'finished') {
+    filteredBattles = battles.filter(b => new Date(b.ends_at) <= now);
+  } else {
+    // For featured tab, we'll show first 5 battles regardless of status
+    filteredBattles = battles.slice(0, 5);
+  }
+  
+  if (filteredBattles.length === 0) {
+    container.innerHTML = `
+      <div class="py-16 text-center text-gray-500">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-xl font-semibold">No battles found</p>
+        <p class="mt-2">Create a new battle to get started!</p>
+      </div>
+    `;
+    return;
+  }
 
-  battles.forEach(b => {
-    const active = new Date(b.ends_at) > new Date();
+  filteredBattles.forEach(b => {
+    const active = new Date(b.ends_at) > now;
     const block = document.createElement('div');
     block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
     block.innerHTML = `
       <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
       <div class="relative flex flex-row gap-2 justify-center items-center">
         <div class="flex flex-col items-center flex-1">
-          <img src="${b.image1||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+          <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
           <div class="option-title mt-2">${b.option1}</div>
           <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
         </div>
@@ -73,19 +106,19 @@ async function fetchAndRenderBattles() {
           <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-none">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
-          <img src="${b.image2||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+          <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
           <div class="option-title mt-2">${b.option2}</div>
           <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
         </div>
       </div>
       ${renderProgressBar(b.votes1, b.votes2, b.id)}
-      <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
+      <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
     `;
     container.appendChild(block);
     if (active) startLiveCountdown(b.id, b.ends_at);
   });
 
-  // ====== ВЕШАЕМ обработчики для vote-btn ======
+  // Add event listeners for vote buttons
   document.querySelectorAll('.vote-btn').forEach(btn => {
     btn.onclick = function() {
       window.openShareModal(this.dataset.battle, this.dataset.opt);
@@ -93,51 +126,28 @@ async function fetchAndRenderBattles() {
   });
 }
 
-fetchAndRenderBattles();
-
-// --- Глобальная функция для Vote
-window.openShareModal = function(battleId, option) {
-  const modal = document.getElementById('shareModal');
-  modal.classList.remove('hidden');
-  const url=location.href, title='Make it count – share to vote!';
-  document.getElementById('facebookShare').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-  document.getElementById('twitterShare').href =`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-  document.getElementById('redditShare').href  =`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-  // Сбросить старые обработчики
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    const clone = link.cloneNode(true);
-    link.parentNode.replaceChild(clone, link);
+// Tab handling
+function setupTabs() {
+  const tabs = document.querySelectorAll('.tab-btn');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      // Update UI
+      tabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Update current tab and refresh battles
+      currentTab = this.dataset.tab;
+      fetchAndRenderBattles();
+    });
   });
-  // Вешаем новые
-  document.querySelectorAll('#shareModal a').forEach(link => {
-    link.onclick = async event => {
-      event.preventDefault();
-      const col = (option === 'votes1' ? 'votes1' : 'votes2');
-      try {
-        const { data: row, error: fe } = await supabase
-          .from('battles')
-          .select(col)
-          .eq('id', battleId)
-          .single();
-        if (fe) throw fe;
-        const newVotes = (row[col] || 0) + 1;
-        const { error: ue } = await supabase
-          .from('battles')
-          .update({ [col]: newVotes })
-          .eq('id', battleId);
-        if (ue) throw ue;
-        await fetchAndRenderBattles();
-        modal.classList.add('hidden');
-        window.open(link.href, '_blank');
-      } catch (err) {
-        console.error('Ошибка добавления голоса:', err);
-      }
-    };
-  });
-};
+}
 
-// --- Закрытие share-modal
+// Initialize app
 window.addEventListener('load', () => {
+  setupTabs();
+  fetchAndRenderBattles();
+  
+  // Modal close handlers
   document.getElementById('shareCloseBtn')?.addEventListener('click', () => {
     document.getElementById('shareModal').classList.add('hidden');
   });
@@ -145,3 +155,57 @@ window.addEventListener('load', () => {
     if (e.target.id === 'shareModal') e.target.classList.add('hidden');
   });
 });
+
+// Share modal handling
+window.openShareModal = function(battleId, option) {
+  const modal = document.getElementById('shareModal');
+  modal.classList.remove('hidden');
+  
+  const url = `${location.origin}${location.pathname}?battle=${battleId}`;
+  const title = 'FANSHARE: Vote in this battle!';
+  
+  document.getElementById('facebookShare').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
+  document.getElementById('twitterShare').href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+  document.getElementById('redditShare').href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+  
+  // Reset old handlers
+  document.querySelectorAll('#shareModal a').forEach(link => {
+    const clone = link.cloneNode(true);
+    link.parentNode.replaceChild(clone, link);
+  });
+  
+  // Add new handlers with confirmation step
+  document.querySelectorAll('#shareModal a').forEach(link => {
+    link.onclick = async event => {
+      event.preventDefault();
+      const shareWindow = window.open(link.href, '_blank', 'width=600,height=400');
+      
+      // Add vote only after confirmation
+      const confirmVote = confirm('Did you share the battle? Click OK to confirm your vote.');
+      if (confirmVote) {
+        const col = (option === 'votes1' ? 'votes1' : 'votes2');
+        try {
+          const { data: row, error: fe } = await supabase
+            .from('battles')
+            .select(col)
+            .eq('id', battleId)
+            .single();
+          if (fe) throw fe;
+          
+          const newVotes = (row[col] || 0) + 1;
+          const { error: ue } = await supabase
+            .from('battles')
+            .update({ [col]: newVotes })
+            .eq('id', battleId);
+          if (ue) throw ue;
+          
+          await fetchAndRenderBattles();
+          modal.classList.add('hidden');
+        } catch (err) {
+          console.error('Error adding vote:', err);
+          alert('Could not add your vote. Please try again.');
+        }
+      }
+    };
+  });
+};
