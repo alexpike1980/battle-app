@@ -7,17 +7,57 @@ const timers = {};
 document.addEventListener('DOMContentLoaded', async function() {
   try {
     console.log('Initializing app...');
+    
+    // Debug HTML structure
+    console.log('== HTML Structure Debug ==');
+    console.log('Document title:', document.title);
+    console.log('All divs on page:', document.querySelectorAll('div').length);
+    console.log('Main container exists:', !!document.querySelector('main'));
+    console.log('Tabs container exists:', !!document.querySelector('.tabs'));
+    console.log('Active tab button:', document.querySelector('.tab-btn.active')?.dataset?.tab || 'None');
+    
+    // Find potential battle containers
+    const potentialContainers = Array.from(document.querySelectorAll('div')).filter(div => 
+      div.id?.includes('battle') || 
+      div.className?.includes('battle') || 
+      div.className?.includes('list') ||
+      div.className?.includes('content')
+    );
+    
+    console.log('Potential battle containers:', potentialContainers.map(el => ({
+      id: el.id, 
+      class: el.className,
+      children: el.children.length
+    })));
+    
+    // If battlesList doesn't exist, let's create it
+    let battlesList = document.getElementById('battlesList');
+    
+    if (!battlesList) {
+      console.log('Creating battlesList element');
+      // Find the most likely container to append to
+      const mainContent = document.querySelector('main') || 
+                         document.querySelector('.content') || 
+                         document.querySelector('.container') ||
+                         document.body;
+      
+      battlesList = document.createElement('div');
+      battlesList.id = 'battlesList';
+      battlesList.className = 'battles-container mx-auto p-4';
+      
+      // Add it to the page
+      mainContent.appendChild(battlesList);
+      console.log('Added battlesList to:', mainContent.tagName, mainContent.className);
+    }
+    
     // Check if Supabase client is loaded
     if (typeof supabase === 'undefined') {
       console.error('Error: Supabase client is not loaded');
-      const battlesList = document.getElementById('battlesList');
-      if (battlesList) {
-        battlesList.innerHTML = `
-          <div class="p-4 text-center text-red-500">
-            Error: Supabase client is not loaded. Make sure you've included the Supabase script in your HTML.
-          </div>
-        `;
-      }
+      battlesList.innerHTML = `
+        <div class="p-4 text-center text-red-500">
+          Error: Supabase client is not loaded. Make sure you've included the Supabase script in your HTML.
+        </div>
+      `;
       return;
     }
     
