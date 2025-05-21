@@ -1,11 +1,5 @@
-// Initialize Supabase
-function initializeSupabase() {
-  window.supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-  window.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-  window.supabaseClient = supabase.createClient(window.supabaseUrl, window.supabaseKey);
-  
-  console.log('Supabase initialized');
-}
+// Import Supabase client
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 // Global variables
 let currentTab = 'featured';
@@ -33,7 +27,14 @@ document.addEventListener('DOMContentLoaded', async function() {
   setInterval(fetchAndRenderBattles, 60000); // Every minute
 });
 
-
+// Initialize Supabase
+function initializeSupabase() {
+  window.supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+  window.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+  window.supabaseClient = createClient(window.supabaseUrl, window.supabaseKey);
+  
+  console.log('Supabase initialized');
+}
 
 // Set up tab navigation
 function setupTabs() {
