@@ -1,14 +1,3 @@
-// Import Supabase client
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-// Initialize Supabase
-function initializeSupabase() {
-  window.supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-  window.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-  window.supabaseClient = createClient(window.supabaseUrl, window.supabaseKey);
-  
-  console.log('Supabase initialized');
-}
-
 // Global variables
 let currentTab = 'featured';
 let currentBattles = [];
@@ -16,26 +5,52 @@ const timers = {};
 
 // DOM ready function
 document.addEventListener('DOMContentLoaded', async function() {
-  // Initialize Supabase client
-  initializeSupabase();
+  // Check if Supabase is available
+  if (typeof supabase === 'undefined') {
+    console.error('Error: Supabase client is not loaded. Make sure to include the Supabase script in your HTML.');
+    showErrorMessage('Could not connect to the database. Please try again later.');
+    return;
+  }
   
-  // Setup tab navigation
-  setupTabs();
-  
-  // Set up battle creation form
-  setupCreateBattleForm();
-  
-  // Set up share and vote handling
-  setupEventHandlers();
-  
-  // Fetch initial battles
-  await fetchAndRenderBattles();
-  
-  // Set up timer to refresh battles periodically
-  setInterval(fetchAndRenderBattles, 60000); // Every minute
+  try {
+    // Initialize Supabase client
+    const supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+    window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    console.log('Supabase initialized');
+    
+    // Setup tab navigation
+    setupTabs();
+    
+    // Set up battle creation form
+    setupCreateBattleForm();
+    
+    // Set up share and vote handling
+    setupEventHandlers();
+    
+    // Fetch initial battles
+    await fetchAndRenderBattles();
+    
+    // Set up timer to refresh battles periodically
+    setInterval(fetchAndRenderBattles, 60000); // Every minute
+  } catch (err) {
+    console.error('Initialization error:', err);
+    showErrorMessage('There was a problem loading the application. Please try again later.');
+  }
 });
 
-
+// Show error message on the page
+function showErrorMessage(message) {
+  const battlesList = document.getElementById('battlesList');
+  if (battlesList) {
+    battlesList.innerHTML = `
+      <div class="p-4 text-center text-red-500 font-bold">
+        ${message}
+      </div>
+    `;
+  }
+}
 
 // Set up tab navigation
 function setupTabs() {
@@ -95,11 +110,12 @@ function setupCreateBattleForm() {
   // Preview uploaded images
   const image1File = document.getElementById('image1File');
   const image2File = document.getElementById('image2File');
-  const image1Preview = document.createElement('div');
-  const image2Preview = document.createElement('div');
   
-  // Add preview containers after file inputs
   if (image1File && image2File) {
+    const image1Preview = document.createElement('div');
+    const image2Preview = document.createElement('div');
+    
+    // Add preview containers after file inputs
     image1File.parentNode.appendChild(image1Preview);
     image2File.parentNode.appendChild(image2Preview);
     
@@ -126,37 +142,39 @@ function setupCreateBattleForm() {
   }
   
   // Set up time unit tabs
-  timeTabs.forEach(tab => {
-    tab.addEventListener('click', function() {
-      timeTabs.forEach(t => {
-        t.classList.remove('active');
-      });
-      this.classList.add('active');
-      
-      const unit = this.dataset.unit;
-      if (unit === 'date') {
-        durationInput.classList.add('hidden');
-        datetimePicker.classList.remove('hidden');
-        datetimePicker.value = new Date(Date.now() + 24*60*60*1000)
-          .toISOString().slice(0, 16); // Tomorrow
-      } else {
-        durationInput.classList.remove('hidden');
-        datetimePicker.classList.add('hidden');
+  if (timeTabs.length > 0) {
+    timeTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        timeTabs.forEach(t => {
+          t.classList.remove('active');
+        });
+        this.classList.add('active');
         
-        // Update placeholder based on selected time unit
-        if (unit === 'minutes') {
-          durationInput.placeholder = 'Enter minutes';
-          durationInput.value = '60'; // Default 60 minutes
-        } else if (unit === 'hours') {
-          durationInput.placeholder = 'Enter hours';
-          durationInput.value = '24'; // Default 24 hours
-        } else if (unit === 'days') {
-          durationInput.placeholder = 'Enter days';
-          durationInput.value = '7'; // Default 7 days
+        const unit = this.dataset.unit;
+        if (unit === 'date') {
+          durationInput.classList.add('hidden');
+          datetimePicker.classList.remove('hidden');
+          datetimePicker.value = new Date(Date.now() + 24*60*60*1000)
+            .toISOString().slice(0, 16); // Tomorrow
+        } else {
+          durationInput.classList.remove('hidden');
+          datetimePicker.classList.add('hidden');
+          
+          // Update placeholder based on selected time unit
+          if (unit === 'minutes') {
+            durationInput.placeholder = 'Enter minutes';
+            durationInput.value = '60'; // Default 60 minutes
+          } else if (unit === 'hours') {
+            durationInput.placeholder = 'Enter hours';
+            durationInput.value = '24'; // Default 24 hours
+          } else if (unit === 'days') {
+            durationInput.placeholder = 'Enter days';
+            durationInput.value = '7'; // Default 7 days
+          }
         }
-      }
+      });
     });
-  });
+  }
 
   // Handle form submission
   if (submitBtn) {
@@ -227,8 +245,12 @@ function setupCreateBattleForm() {
         document.getElementById('title').value = '';
         document.getElementById('option1').value = '';
         document.getElementById('option2').value = '';
-        image1Preview.innerHTML = '';
-        image2Preview.innerHTML = '';
+        
+        if (image1Preview && image2Preview) {
+          image1Preview.innerHTML = '';
+          image2Preview.innerHTML = '';
+        }
+        
         image1File.value = '';
         image2File.value = '';
         
