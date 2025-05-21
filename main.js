@@ -1,7 +1,11 @@
-// Initialize Supabase client
-const supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+// Initialize Supabase
+function initializeSupabase() {
+  window.supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+  window.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+  window.supabaseClient = supabase.createClient(window.supabaseUrl, window.supabaseKey);
+  
+  console.log('Supabase initialized');
+}
 
 // Global variables
 let currentTab = 'featured';
@@ -10,6 +14,9 @@ const timers = {};
 
 // DOM ready function
 document.addEventListener('DOMContentLoaded', async function() {
+  // Initialize Supabase client
+  initializeSupabase();
+  
   // Setup tab navigation
   setupTabs();
   
@@ -25,6 +32,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Set up timer to refresh battles periodically
   setInterval(fetchAndRenderBattles, 60000); // Every minute
 });
+
+
 
 // Set up tab navigation
 function setupTabs() {
@@ -56,14 +65,14 @@ async function uploadImage(file, path) {
     const filePath = `${path}/${fileName}`;
     
     // Upload the file
-    const { data, error } = await supabaseClient.storage
+    const { data, error } = await window.supabaseClient.storage
       .from('battle-images')
       .upload(filePath, file);
       
     if (error) throw error;
     
     // Get the public URL
-    const { data: { publicUrl } } = supabaseClient.storage
+    const { data: { publicUrl } } = window.supabaseClient.storage
       .from('battle-images')
       .getPublicUrl(filePath);
       
@@ -88,29 +97,31 @@ function setupCreateBattleForm() {
   const image2Preview = document.createElement('div');
   
   // Add preview containers after file inputs
-  image1File.parentNode.appendChild(image1Preview);
-  image2File.parentNode.appendChild(image2Preview);
-  
-  // Show image previews
-  image1File.addEventListener('change', function() {
-    if (this.files && this.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        image1Preview.innerHTML = `<img src="${e.target.result}" class="mt-2 rounded-lg w-32 h-32 object-cover">`;
-      };
-      reader.readAsDataURL(this.files[0]);
-    }
-  });
-  
-  image2File.addEventListener('change', function() {
-    if (this.files && this.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        image2Preview.innerHTML = `<img src="${e.target.result}" class="mt-2 rounded-lg w-32 h-32 object-cover">`;
-      };
-      reader.readAsDataURL(this.files[0]);
-    }
-  });
+  if (image1File && image2File) {
+    image1File.parentNode.appendChild(image1Preview);
+    image2File.parentNode.appendChild(image2Preview);
+    
+    // Show image previews
+    image1File.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          image1Preview.innerHTML = `<img src="${e.target.result}" class="mt-2 rounded-lg w-32 h-32 object-cover">`;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+    
+    image2File.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          image2Preview.innerHTML = `<img src="${e.target.result}" class="mt-2 rounded-lg w-32 h-32 object-cover">`;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
   
   // Set up time unit tabs
   timeTabs.forEach(tab => {
@@ -146,106 +157,111 @@ function setupCreateBattleForm() {
   });
 
   // Handle form submission
-  submitBtn.addEventListener('click', async function() {
-    // Show loading state
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creating...';
-    
-    const title = document.getElementById('title').value;
-    const option1 = document.getElementById('option1').value;
-    const option2 = document.getElementById('option2').value;
-    
-    // Basic validation
-    if (!title || !option1 || !option2) {
-      alert('Please fill in all required fields');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
-      return;
-    }
-    
-    // Calculate end time
-    let endsAt;
-    const activeTab = document.querySelector('.time-tab.active');
-    if (activeTab.dataset.unit === 'date') {
-      endsAt = new Date(datetimePicker.value);
-    } else {
-      const now = new Date();
-      const duration = parseInt(durationInput.value) || 60;
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async function() {
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating...';
       
-      if (activeTab.dataset.unit === 'minutes') {
-        endsAt = new Date(now.getTime() + duration * 60 * 1000);
-      } else if (activeTab.dataset.unit === 'hours') {
-        endsAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
-      } else if (activeTab.dataset.unit === 'days') {
-        endsAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
+      const title = document.getElementById('title').value;
+      const option1 = document.getElementById('option1').value;
+      const option2 = document.getElementById('option2').value;
+      
+      // Basic validation
+      if (!title || !option1 || !option2) {
+        alert('Please fill in all required fields');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+        return;
       }
-    }
-    
-    try {
-      // Upload images first
-      const image1 = image1File.files.length > 0 
-        ? await uploadImage(image1File.files[0], 'battle-images') 
-        : 'https://via.placeholder.com/300';
+      
+      // Calculate end time
+      let endsAt;
+      const activeTab = document.querySelector('.time-tab.active');
+      if (activeTab.dataset.unit === 'date') {
+        endsAt = new Date(datetimePicker.value);
+      } else {
+        const now = new Date();
+        const duration = parseInt(durationInput.value) || 60;
         
-      const image2 = image2File.files.length > 0 
-        ? await uploadImage(image2File.files[0], 'battle-images') 
-        : 'https://via.placeholder.com/300';
-      
-      // Create the battle
-      const { data, error } = await supabaseClient.from('battles').insert([
-        {
-          title,
-          option1,
-          option2,
-          image1,
-          image2,
-          votes1: 0,
-          votes2: 0,
-          ends_at: endsAt.toISOString(),
-          created_at: new Date().toISOString()
+        if (activeTab.dataset.unit === 'minutes') {
+          endsAt = new Date(now.getTime() + duration * 60 * 1000);
+        } else if (activeTab.dataset.unit === 'hours') {
+          endsAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
+        } else if (activeTab.dataset.unit === 'days') {
+          endsAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
         }
-      ]);
+      }
       
-      if (error) throw error;
-      
-      // Close modal and refresh battles
-      document.getElementById('createModal').classList.add('hidden');
-      document.getElementById('title').value = '';
-      document.getElementById('option1').value = '';
-      document.getElementById('option2').value = '';
-      image1Preview.innerHTML = '';
-      image2Preview.innerHTML = '';
-      image1File.value = '';
-      image2File.value = '';
-      
-      // Set current tab to featured and refresh
-      currentTab = 'featured';
-      document.querySelectorAll('.tab-btn').forEach(t => {
-        t.classList.remove('active');
-        if (t.dataset.tab === 'featured') {
-          t.classList.add('active');
-        }
-      });
-      
-      await fetchAndRenderBattles();
-      alert('Battle created successfully!');
-      
-    } catch (err) {
-      console.error('Error creating battle:', err);
-      alert('Could not create battle: ' + (err.message || 'Unknown error'));
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
-    }
-  });
+      try {
+        // Upload images first
+        const image1 = image1File.files.length > 0 
+          ? await uploadImage(image1File.files[0], 'battle-images') 
+          : 'https://via.placeholder.com/300';
+          
+        const image2 = image2File.files.length > 0 
+          ? await uploadImage(image2File.files[0], 'battle-images') 
+          : 'https://via.placeholder.com/300';
+        
+        // Create the battle
+        const { data, error } = await window.supabaseClient.from('battles').insert([
+          {
+            title,
+            option1,
+            option2,
+            image1,
+            image2,
+            votes1: 0,
+            votes2: 0,
+            ends_at: endsAt.toISOString(),
+            created_at: new Date().toISOString()
+          }
+        ]);
+        
+        if (error) throw error;
+        
+        // Close modal and refresh battles
+        document.getElementById('createModal').classList.add('hidden');
+        document.getElementById('title').value = '';
+        document.getElementById('option1').value = '';
+        document.getElementById('option2').value = '';
+        image1Preview.innerHTML = '';
+        image2Preview.innerHTML = '';
+        image1File.value = '';
+        image2File.value = '';
+        
+        // Set current tab to featured and refresh
+        currentTab = 'featured';
+        document.querySelectorAll('.tab-btn').forEach(t => {
+          t.classList.remove('active');
+          if (t.dataset.tab === 'featured') {
+            t.classList.add('active');
+          }
+        });
+        
+        await fetchAndRenderBattles();
+        alert('Battle created successfully!');
+        
+      } catch (err) {
+        console.error('Error creating battle:', err);
+        alert('Could not create battle: ' + (err.message || 'Unknown error'));
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+      }
+    });
+  }
 }
 
 // Set up event handlers for share and vote
 function setupEventHandlers() {
   // Open create modal
-  document.getElementById('createBtn').addEventListener('click', function() {
-    document.getElementById('createModal').classList.remove('hidden');
-  });
+  const createBtn = document.getElementById('createBtn');
+  if (createBtn) {
+    createBtn.addEventListener('click', function() {
+      document.getElementById('createModal').classList.remove('hidden');
+    });
+  }
   
   // Close modals
   document.querySelectorAll('.close-modal').forEach(btn => {
@@ -255,75 +271,80 @@ function setupEventHandlers() {
   });
   
   // Share battle
-  document.getElementById('battlesList').addEventListener('click', function(e) {
-    if (e.target.classList.contains('share-btn') || e.target.closest('.share-btn')) {
-      const btn = e.target.classList.contains('share-btn') ? e.target : e.target.closest('.share-btn');
-      const battleId = btn.dataset.battle;
-      document.getElementById('shareModal').classList.remove('hidden');
-      
-      // Set up share buttons
-      const battle = currentBattles.find(b => b.id === parseInt(battleId));
-      if (battle) {
-        const battleUrl = `${window.location.origin}${window.location.pathname}?battle=${battleId}`;
-        const shareText = `Vote for ${battle.option1} vs ${battle.option2} in this battle!`;
+  const battlesList = document.getElementById('battlesList');
+  if (battlesList) {
+    battlesList.addEventListener('click', function(e) {
+      if (e.target.classList.contains('share-btn') || e.target.closest('.share-btn')) {
+        const btn = e.target.classList.contains('share-btn') ? e.target : e.target.closest('.share-btn');
+        const battleId = btn.dataset.battle;
+        document.getElementById('shareModal').classList.remove('hidden');
         
-        // Set up share links
-        document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(battleUrl)}`;
-        document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(battleUrl)}`;
-        document.getElementById('shareReddit').href = `https://www.reddit.com/submit?url=${encodeURIComponent(battleUrl)}&title=${encodeURIComponent(shareText)}`;
+        // Set up share buttons
+        const battle = currentBattles.find(b => b.id === parseInt(battleId));
+        if (battle) {
+          const battleUrl = `${window.location.origin}${window.location.pathname}?battle=${battleId}`;
+          const shareText = `Vote for ${battle.option1} vs ${battle.option2} in this battle!`;
+          
+          // Set up share links
+          document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(battleUrl)}`;
+          document.getElementById('shareTwitter').href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(battleUrl)}`;
+          document.getElementById('shareReddit').href = `https://www.reddit.com/submit?url=${encodeURIComponent(battleUrl)}&title=${encodeURIComponent(shareText)}`;
+        }
       }
-    }
-  });
+    });
+  }
   
   // Vote for battle
-  document.getElementById('battlesList').addEventListener('click', async function(e) {
-    if (e.target.classList.contains('vote-btn')) {
-      const battleId = e.target.dataset.battle;
-      const voteOpt = e.target.dataset.opt;
-      
-      try {
-        // Check if user already voted
-        const userId = localStorage.getItem('userId') || `user_${Math.random().toString(36).substring(2)}`;
-        localStorage.setItem('userId', userId);
+  if (battlesList) {
+    battlesList.addEventListener('click', async function(e) {
+      if (e.target.classList.contains('vote-btn')) {
+        const battleId = e.target.dataset.battle;
+        const voteOpt = e.target.dataset.opt;
         
-        const voteKey = `vote_${battleId}`;
-        if (localStorage.getItem(voteKey)) {
-          alert('You have already voted on this battle!');
-          return;
+        try {
+          // Check if user already voted
+          const userId = localStorage.getItem('userId') || `user_${Math.random().toString(36).substring(2)}`;
+          localStorage.setItem('userId', userId);
+          
+          const voteKey = `vote_${battleId}`;
+          if (localStorage.getItem(voteKey)) {
+            alert('You have already voted on this battle!');
+            return;
+          }
+          
+          // Update vote in database
+          const { data, error } = await window.supabaseClient
+            .from('battles')
+            .select(voteOpt)
+            .eq('id', battleId)
+            .single();
+            
+          if (error) throw error;
+          
+          const currentVotes = data[voteOpt] || 0;
+          const updateObj = {};
+          updateObj[voteOpt] = currentVotes + 1;
+          
+          const { error: updateError } = await window.supabaseClient
+            .from('battles')
+            .update(updateObj)
+            .eq('id', battleId);
+            
+          if (updateError) throw updateError;
+          
+          // Mark as voted
+          localStorage.setItem(voteKey, voteOpt);
+          
+          // Refresh battles
+          await fetchAndRenderBattles();
+          
+        } catch (err) {
+          console.error('Error voting:', err);
+          alert('Could not register vote. Please try again.');
         }
-        
-        // Update vote in database
-        const { data, error } = await supabaseClient
-          .from('battles')
-          .select(voteOpt)
-          .eq('id', battleId)
-          .single();
-          
-        if (error) throw error;
-        
-        const currentVotes = data[voteOpt] || 0;
-        const updateObj = {};
-        updateObj[voteOpt] = currentVotes + 1;
-        
-        const { error: updateError } = await supabaseClient
-          .from('battles')
-          .update(updateObj)
-          .eq('id', battleId);
-          
-        if (updateError) throw updateError;
-        
-        // Mark as voted
-        localStorage.setItem(voteKey, voteOpt);
-        
-        // Refresh battles
-        await fetchAndRenderBattles();
-        
-      } catch (err) {
-        console.error('Error voting:', err);
-        alert('Could not register vote. Please try again.');
       }
-    }
-  });
+    });
+  }
 }
 
 // Calculate time left for a battle
@@ -430,11 +451,13 @@ function renderBattleItem(b, active = true) {
 // Fetch and render battles based on current tab
 async function fetchAndRenderBattles() {
   const battlesList = document.getElementById('battlesList');
+  if (!battlesList) return;
+  
   battlesList.innerHTML = '<div class="p-4 text-center">Loading battles...</div>';
   
   try {
     const now = new Date().toISOString();
-    let query = supabaseClient.from('battles').select('*');
+    let query = window.supabaseClient.from('battles').select('*');
     
     // Filter by tab
     if (currentTab === 'featured') {
