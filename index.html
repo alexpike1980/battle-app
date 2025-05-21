@@ -4,34 +4,27 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FANSHARE Battles</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Design System Styles -->
-  <link rel="stylesheet" href="design-system.css">
   <style>
-    /* Legacy styles maintained for compatibility */
     html, body { min-height:100%; }
+    body { font-family: 'Manrope',sans-serif; background: linear-gradient(120deg, #f7faff 70%, #f0f3ff 100%) !important; }
+    .boxed { max-width: 1200px; margin: 0 auto; }
     .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
-    
-    /* Updated styles that use design system */
-    body { 
-      background: var(--gradient-bg) !important; 
-    }
-    
+    @media (max-width:1024px){ .sidebar-right {display:none;} }
+    @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
     .vs-circle { 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      border-radius: var(--border-radius-full); 
-      font-size: var(--font-size-lg); 
-      font-weight: var(--font-weight-bold); 
-      border: 2px solid var(--color-white); 
-      width: 56px; 
-      height: 56px; 
-      background: var(--color-white); 
-      box-shadow: var(--shadow-md);
-      z-index: 20; 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      border-radius:9999px; 
+      font-size:1.2rem; 
+      font-weight:bold; 
+      border:2px solid #fff; 
+      width:56px; 
+      height:56px; 
+      background:#fff; 
+      z-index:20; 
     }
     
     /* Table structure for battle images */
@@ -58,19 +51,19 @@
     /* Mobile Responsiveness */
     @media (max-width: 640px) {
       .battle-item {
-        padding: var(--spacing-4) var(--spacing-2);
+        padding: 1rem 0.5rem;
       }
       
       .vs-battle-table td {
         display: block;
         width: 100%;
-        padding: var(--spacing-2) 0;
+        padding: 0.5rem 0;
         text-align: center;
       }
       
       .vs-circle {
         position: relative;
-        margin: var(--spacing-2) auto;
+        margin: 0.5rem auto;
         z-index: 10;
       }
     }
@@ -99,28 +92,9 @@
       0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
       100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
     }
-    
-    @media (max-width: 640px) { 
-      .vs-circle { 
-        width: 42px;
-        height: 42px;
-        font-size: var(--font-size-base); 
-      } 
-    }
-    
-    .tab-btn.active { 
-      color: var(--color-primary) !important; 
-      border-bottom: 2px solid var(--color-primary) !important; 
-    }
-    
-    #tabIndicator { 
-      transition: left var(--transition-normal) var(--transition-bounce), 
-                  width var(--transition-normal) var(--transition-bounce); 
-      height: 3px !important; 
-      background: var(--color-primary) !important; 
-      border-radius: var(--border-radius-sm); 
-      bottom: 0; 
-    }
+    @media (max-width: 640px) { .vs-circle{ width:42px;height:42px;font-size:1rem; } }
+    .tab-btn.active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
+    #tabIndicator { transition: left 0.28s cubic-bezier(.6,1.2,.4,1), width 0.28s cubic-bezier(.6,1.2,.4,1); height: 3px !important; background: #2563eb !important; border-radius: 2px; bottom: 0; }
     
     /* Modal Styles */
     .modal {
@@ -135,109 +109,79 @@
       align-items: center;
       z-index: 100;
     }
-    
     .modal-content {
-      background-color: var(--color-white);
-      padding: var(--spacing-8);
-      border-radius: var(--border-radius-xl);
+      background-color: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
       max-width: 500px;
       width: 90%;
-      box-shadow: var(--shadow-xl);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
     .hidden {
       display: none;
     }
-    
     .time-tabs {
       display: flex;
-      gap: var(--spacing-2);
-      margin-bottom: var(--spacing-2);
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
     }
-    
     .time-tab {
-      padding: var(--spacing-2);
-      border-radius: var(--border-radius-md);
-      background: var(--color-gray-100);
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      background: #f1f5f9;
       border: none;
       cursor: pointer;
     }
-    
     .time-tab.active {
-      background: var(--color-primary);
-      color: var(--color-white);
+      background: #2563eb;
+      color: white;
     }
-    
     .share-buttons {
       display: flex;
       flex-wrap: wrap;
-      gap: var(--spacing-4);
-      margin-bottom: var(--spacing-6);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
-    
     .share-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: var(--spacing-2);
-      padding: var(--spacing-3) var(--spacing-4);
-      color: var(--color-white);
-      border-radius: var(--border-radius-md);
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: white;
+      border-radius: 0.25rem;
       text-decoration: none;
-      transition: opacity var(--transition-fast);
+      transition: opacity 0.2s;
       flex: 1;
       min-width: 120px;
     }
-    
     .share-btn:hover {
       opacity: 0.9;
     }
-    
     .share-btn img {
       width: 24px;
       height: 24px;
     }
-    
     .facebook {
       background-color: #1877f2;
     }
-    
     .twitter {
       background-color: #1da1f2;
     }
-    
     .reddit {
       background-color: #ff4500;
     }
-    
     .cancel-btn {
       width: 100%;
-      padding: var(--spacing-3);
-      background-color: var(--color-gray-200);
+      padding: 0.75rem;
+      background-color: #e5e7eb;
       border: none;
-      border-radius: var(--border-radius-md);
+      border-radius: 0.25rem;
       cursor: pointer;
-      font-weight: var(--font-weight-medium);
+      font-weight: 500;
     }
-    
     .cancel-btn:hover {
-      background-color: var(--color-gray-300);
-    }
-    
-    /* Logo Animation */
-    .logo-container {
-      display: flex;
-      align-items: center;
-      transition: transform var(--transition-normal) var(--transition-ease);
-    }
-    
-    .logo-container:hover {
-      transform: scale(1.05);
-    }
-    
-    .logo-svg {
-      height: 40px;
-      width: auto;
+      background-color: #d1d5db;
     }
   </style>
 </head>
@@ -246,28 +190,9 @@
   <div class="watermark select-none text-blue-700 hidden md:block">FANSHARE</div>
   <header class="bg-white border-b sticky top-0 z-30">
     <div class="boxed flex items-center justify-between py-3 px-4 md:px-8">
-      <!-- Updated logo with SVG -->
-      <a href="index.html" class="logo-container">
-        <svg class="logo-svg" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
-          <!-- Left shield -->
-          <path d="M20 5 L10 10 L10 25 L20 30 L30 25 L30 10 Z" fill="#2563eb" />
-          <path d="M20 10 L14 13 L14 22 L20 25 L26 22 L26 13 Z" fill="white" />
-          
-          <!-- Right shield -->
-          <path d="M50 5 L40 10 L40 25 L50 30 L60 25 L60 10 Z" fill="#16a34a" />
-          <path d="M50 10 L44 13 L44 22 L50 25 L56 22 L56 13 Z" fill="white" />
-          
-          <!-- VS circle -->
-          <circle cx="35" cy="18" r="8" fill="white" stroke="#2563eb" stroke-width="2" />
-          <path d="M32 15 L34 18 L32 21 M38 15 L36 18 L38 21" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
-          
-          <!-- Text -->
-          <text x="65" y="22" font-family="Manrope, sans-serif" font-weight="800" font-size="14" fill="#2563eb">FANSHARE</text>
-        </svg>
-      </a>
+      <div class="text-2xl font-extrabold tracking-tight text-blue-700">FANSHARE</div>
       <div class="flex gap-2 items-center">
-        <!-- Updated button using design system classes -->
-        <button id="createBattleBtn" class="btn btn-primary hidden md:block">Create Battle</button>
+        <button id="createBattleBtn" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700 transition hidden md:block">Create Battle</button>
         <div class="rounded-full bg-gray-200 w-9 h-9 flex items-center justify-center text-gray-600 font-bold text-lg">A</div>
       </div>
     </div>
@@ -329,14 +254,14 @@
   <div id="createModal" class="modal hidden">
     <div class="modal-content">
       <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
-      <input type="text" id="title" placeholder="Title" class="form-input mb-3"/>
+      <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded"/>
       <div class="mb-4">
-        <input type="text" id="option1" placeholder="Option 1" class="form-input mb-2"/>
+        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-2 p-2 border rounded"/>
         <label for="image1File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 1</label>
         <input type="file" id="image1File" class="hidden" />
       </div>
       <div class="mb-4">
-        <input type="text" id="option2" placeholder="Option 2" class="form-input mb-2"/>
+        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-2 p-2 border rounded"/>
         <label for="image2File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 2</label>
         <input type="file" id="image2File" class="hidden" />
       </div>
@@ -347,12 +272,12 @@
           <button type="button" class="time-tab" data-unit="days">Days</button>
           <button type="button" class="time-tab" data-unit="date">Pick Date</button>
         </div>
-        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="form-input"/>
-        <input type="datetime-local" id="datetimePicker" class="hidden form-input mt-2"/>
+        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="p-2 border rounded w-full"/>
+        <input type="datetime-local" id="datetimePicker" class="hidden p-2 border rounded w-full mt-2"/>
       </div>
       <div class="flex justify-end gap-2">
-        <button id="cancelCreateBtn" class="btn btn-outline">Cancel</button>
-        <button id="submitBattleBtn" class="btn btn-primary">Submit</button>
+        <button id="cancelCreateBtn" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition">Cancel</button>
+        <button id="submitBattleBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Submit</button>
       </div>
     </div>
   </div>
