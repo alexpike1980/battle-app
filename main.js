@@ -134,53 +134,179 @@
   
   // Setup image upload previews
   function setupImageUploadPreviews() {
-    // Find image upload inputs
-    const image1File = document.getElementById('image1File');
-    const image2File = document.getElementById('image2File');
-    
-    if (image1File) {
-      // Create preview container if it doesn't exist
-      let previewContainer = document.getElementById('image1Preview');
-      if (!previewContainer) {
-        previewContainer = document.createElement('div');
-        previewContainer.id = 'image1Preview';
-        previewContainer.className = 'mt-2';
-        image1File.parentNode.appendChild(previewContainer);
+    // Add styles for the image input sections
+    const style = document.createElement('style');
+    style.textContent = `
+      .image-input-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
       }
-      
-      // Add change event listener
-      image1File.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-          const reader = new FileReader();
-          reader.onload = function(event) {
-            previewContainer.innerHTML = `<img src="${event.target.result}" class="rounded-lg w-32 h-32 object-cover">`;
-          };
-          reader.readAsDataURL(this.files[0]);
-        }
-      });
-    }
-    
-    if (image2File) {
-      // Create preview container if it doesn't exist
-      let previewContainer = document.getElementById('image2Preview');
-      if (!previewContainer) {
-        previewContainer = document.createElement('div');
-        previewContainer.id = 'image2Preview';
-        previewContainer.className = 'mt-2';
-        image2File.parentNode.appendChild(previewContainer);
+      .image-preview {
+        width: 80px;
+        height: 80px;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #f3f4f6;
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
       }
-      
-      // Add change event listener
-      image2File.addEventListener('change', function(e) {
-        if (this.files && this.files[0]) {
-          const reader = new FileReader();
-          reader.onload = function(event) {
-            previewContainer.innerHTML = `<img src="${event.target.result}" class="rounded-lg w-32 h-32 object-cover">`;
-          };
-          reader.readAsDataURL(this.files[0]);
-        }
-      });
-    }
+      .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .image-upload-options {
+        flex: 1;
+      }
+      .image-url-container {
+        display: flex;
+        margin-bottom: 8px;
+      }
+      .image-url-container input {
+        flex: 1;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 8px 12px;
+        margin-right: 8px;
+      }
+      .url-apply-btn {
+        background-color: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0 12px;
+        cursor: pointer;
+      }
+      .url-apply-btn:hover {
+        background-color: #4f46e5;
+      }
+      .upload-btn {
+        background-color: #e5e7eb;
+        color: #374151;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+      }
+      .upload-btn:hover {
+        background-color: #d1d5db;
+      }
+      .image-preview-placeholder {
+        color: #9ca3af;
+        font-size: 12px;
+        text-align: center;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Find and modify the create battle form
+    modifyCreateBattleForm();
+    
+    // Set up the image preview functionality
+    setupImagePreviewHandlers();
+  }
+  
+  // Modify the create battle form layout
+  function modifyCreateBattleForm() {
+    // Find the image upload inputs
+    const image1FileContainer = document.getElementById('image1File')?.parentNode;
+    const image2FileContainer = document.getElementById('image2File')?.parentNode;
+    
+    if (!image1FileContainer || !image2FileContainer) return;
+    
+    // Replace image1 section
+    image1FileContainer.innerHTML = `
+      <div class="image-input-container">
+        <div class="image-preview" id="image1Preview">
+          <div class="image-preview-placeholder">No Image</div>
+        </div>
+        <div class="image-upload-options">
+          <div class="image-url-container">
+            <input type="text" id="image1Url" placeholder="Image URL" class="image-url-input">
+            <button type="button" class="url-apply-btn" data-for="image1">Apply</button>
+          </div>
+          <div class="upload-btn" id="image1UploadBtn">Upload Image</div>
+          <input type="file" id="image1File" accept="image/*" style="display: none;">
+        </div>
+      </div>
+    `;
+    
+    // Replace image2 section
+    image2FileContainer.innerHTML = `
+      <div class="image-input-container">
+        <div class="image-preview" id="image2Preview">
+          <div class="image-preview-placeholder">No Image</div>
+        </div>
+        <div class="image-upload-options">
+          <div class="image-url-container">
+            <input type="text" id="image2Url" placeholder="Image URL" class="image-url-input">
+            <button type="button" class="url-apply-btn" data-for="image2">Apply</button>
+          </div>
+          <div class="upload-btn" id="image2UploadBtn">Upload Image</div>
+          <input type="file" id="image2File" accept="image/*" style="display: none;">
+        </div>
+      </div>
+    `;
+  }
+  
+  // Set up handlers for image previews
+  function setupImagePreviewHandlers() {
+    // Setup for Image 1
+    setupSingleImagePreview('image1');
+    
+    // Setup for Image 2
+    setupSingleImagePreview('image2');
+  }
+  
+  // Setup handlers for a single image preview
+  function setupSingleImagePreview(imageId) {
+    const fileInput = document.getElementById(`${imageId}File`);
+    const urlInput = document.getElementById(`${imageId}Url`);
+    const previewEl = document.getElementById(`${imageId}Preview`);
+    const uploadBtn = document.getElementById(`${imageId}UploadBtn`);
+    const applyBtn = document.querySelector(`.url-apply-btn[data-for="${imageId}"]`);
+    
+    if (!fileInput || !urlInput || !previewEl || !uploadBtn || !applyBtn) return;
+    
+    // When upload button is clicked, trigger file input
+    uploadBtn.addEventListener('click', () => fileInput.click());
+    
+    // When file is selected, show preview
+    fileInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          previewEl.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+          // Clear URL input since we're using a file
+          urlInput.value = '';
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+    
+    // When apply button is clicked, show URL preview
+    applyBtn.addEventListener('click', function() {
+      const url = urlInput.value.trim();
+      if (url) {
+        previewEl.innerHTML = `<img src="${url}" alt="Preview" onerror="this.onerror=null;this.src='https://via.placeholder.com/80?text=Error';">`;
+        // Clear file input since we're using a URL
+        fileInput.value = '';
+      }
+    });
+    
+    // Also apply URL on Enter key
+    urlInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        applyBtn.click();
+        e.preventDefault();
+      }
+    });
   }
   
   // Show create modal
@@ -204,6 +330,18 @@
     const option1 = document.getElementById('option1')?.value || '';
     const option2 = document.getElementById('option2')?.value || '';
     
+    // Get image sources (either file or URL)
+    const image1Url = document.getElementById('image1Url')?.value || '';
+    const image2Url = document.getElementById('image2Url')?.value || '';
+    const image1File = document.getElementById('image1File');
+    const image2File = document.getElementById('image2File');
+    
+    // Check which image source to use for each option
+    const hasImage1File = image1File && image1File.files && image1File.files.length > 0;
+    const hasImage2File = image2File && image2File.files && image2File.files.length > 0;
+    const hasImage1Url = image1Url.trim() !== '';
+    const hasImage2Url = image2Url.trim() !== '';
+    
     // Validation
     if (!title || !option1 || !option2) {
       alert('Please fill in all required fields');
@@ -215,12 +353,6 @@
     // Calculate end time (24 hours from now)
     const endsAt = new Date();
     endsAt.setHours(endsAt.getHours() + 24);
-    
-    // Check if we need to upload images
-    const image1File = document.getElementById('image1File');
-    const image2File = document.getElementById('image2File');
-    const hasImage1 = image1File && image1File.files && image1File.files.length > 0;
-    const hasImage2 = image2File && image2File.files && image2File.files.length > 0;
     
     // Prepare battle data
     const battleData = {
@@ -235,20 +367,24 @@
       created_at: new Date().toISOString()
     };
     
-    // If we have images to upload
-    if (hasImage1 || hasImage2) {
+    // Set direct URLs if provided
+    if (hasImage1Url) battleData.image1 = image1Url;
+    if (hasImage2Url) battleData.image2 = image2Url;
+    
+    // Check if we need to upload any image files
+    if (hasImage1File || hasImage2File) {
       const promises = [];
       
-      // Upload image 1
-      if (hasImage1) {
+      // Upload image 1 if file is selected
+      if (hasImage1File && !hasImage1Url) {
         promises.push(uploadImage(image1File.files[0], 'battle-images')
           .then(url => {
             if (url) battleData.image1 = url;
           }));
       }
       
-      // Upload image 2
-      if (hasImage2) {
+      // Upload image 2 if file is selected
+      if (hasImage2File && !hasImage2Url) {
         promises.push(uploadImage(image2File.files[0], 'battle-images')
           .then(url => {
             if (url) battleData.image2 = url;
@@ -323,17 +459,9 @@
           document.getElementById('option1').value = '';
           document.getElementById('option2').value = '';
           
-          // Clear image previews
-          const preview1 = document.getElementById('image1Preview');
-          const preview2 = document.getElementById('image2Preview');
-          if (preview1) preview1.innerHTML = '';
-          if (preview2) preview2.innerHTML = '';
-          
-          // Reset file inputs
-          const image1File = document.getElementById('image1File');
-          const image2File = document.getElementById('image2File');
-          if (image1File) image1File.value = '';
-          if (image2File) image2File.value = '';
+          // Clear image inputs and previews
+          resetImageInputs('image1');
+          resetImageInputs('image2');
           
           // Hide modal
           document.getElementById('createModal').classList.add('hidden');
@@ -360,6 +488,19 @@
           submitBtn.textContent = 'Submit';
         }
       });
+  }
+  
+  // Reset image inputs and previews
+  function resetImageInputs(imageId) {
+    const urlInput = document.getElementById(`${imageId}Url`);
+    const fileInput = document.getElementById(`${imageId}File`);
+    const previewEl = document.getElementById(`${imageId}Preview`);
+    
+    if (urlInput) urlInput.value = '';
+    if (fileInput) fileInput.value = '';
+    if (previewEl) {
+      previewEl.innerHTML = `<div class="image-preview-placeholder">No Image</div>`;
+    }
   }
 
   // Load battles from Supabase
