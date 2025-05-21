@@ -1,25 +1,41 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const tabBtns = Array.from(document.querySelectorAll('.tab-btn'));
-  const indicator = document.getElementById('tabIndicator');
-  let activeTab = tabBtns.find(btn => btn.classList.contains('active')) || tabBtns[0];
+// tabs.js - Handles tab indicator animation
 
-  function updateIndicator(btn) {
-    const rect = btn.getBoundingClientRect();
-    const parentRect = btn.parentNode.getBoundingClientRect();
-    indicator.style.width = rect.width + 'px';
-    indicator.style.left = (rect.left - parentRect.left) + 'px';
+document.addEventListener('DOMContentLoaded', function() {
+  const tabIndicator = document.getElementById('tabIndicator');
+  const tabs = document.querySelectorAll('.tab-btn');
+  
+  // Initialize the tab indicator position
+  function updateTabIndicator(tab) {
+    if (!tabIndicator || !tab) return;
+    
+    const tabRect = tab.getBoundingClientRect();
+    const containerRect = tab.parentElement.getBoundingClientRect();
+    
+    // Set the width and position of the indicator
+    tabIndicator.style.width = `${tabRect.width}px`;
+    tabIndicator.style.left = `${tabRect.left - containerRect.left}px`;
   }
-
-  function activateTab(btn) {
-    tabBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    updateIndicator(btn);
-    // Здесь может быть логика для фильтрации батлов, если нужно
+  
+  // Initial position for the active tab
+  const activeTab = document.querySelector('.tab-btn.active');
+  if (activeTab) {
+    setTimeout(() => updateTabIndicator(activeTab), 100);
   }
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => activateTab(btn));
+  
+  // Update indicator when tab is clicked
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      tabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      updateTabIndicator(this);
+    });
   });
-
-  if (activeTab) updateIndicator(activeTab);
+  
+  // Update indicator on window resize
+  window.addEventListener('resize', () => {
+    const currentActiveTab = document.querySelector('.tab-btn.active');
+    if (currentActiveTab) {
+      updateTabIndicator(currentActiveTab);
+    }
+  });
 });
