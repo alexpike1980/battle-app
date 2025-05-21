@@ -214,88 +214,196 @@
   
   // Modify the create battle form layout
   function modifyCreateBattleForm() {
-    // Add styles for option inputs
-    const style = document.createElement('style');
-    style.textContent = `
-      .option-container {
-        margin-bottom: 1.5rem;
-      }
-      .option-name-input {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.375rem;
-        font-size: 1rem;
-        margin-bottom: 0.75rem;
-      }
-      .option-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #374151;
-      }
-    `;
-    document.head.appendChild(style);
+    // Find the main create modal container
+    const createModal = document.getElementById('createModal');
+    if (!createModal) return;
     
-    // Find the image upload inputs and their parent containers
-    const option1Container = document.getElementById('option1')?.closest('.mb-4') || document.getElementById('option1')?.parentNode;
-    const option2Container = document.getElementById('option2')?.closest('.mb-4') || document.getElementById('option2')?.parentNode;
+    // Get the main form container
+    const formContainer = createModal.querySelector('.modal-content') || createModal;
     
-    if (!option1Container || !option2Container) return;
-    
-    // Save the original option input elements
-    const option1Input = document.getElementById('option1');
-    const option2Input = document.getElementById('option2');
-    
-    if (!option1Input || !option2Input) return;
-    
-    // Get the label text from the existing labels if possible
-    const option1Label = option1Container.querySelector('label')?.innerText || 'Option 1';
-    const option2Label = option2Container.querySelector('label')?.innerText || 'Option 2';
-    
-    // Replace option1 section
-    option1Container.innerHTML = `
-      <div class="option-container">
-        <label class="option-label">${option1Label}</label>
-        <input type="text" id="option1" class="option-name-input" placeholder="Enter option name" value="${option1Input.value || ''}">
+    // Clear the form container and add a new, properly structured form
+    formContainer.innerHTML = `
+      <h2 class="text-2xl font-bold mb-4">Create New Battle</h2>
+      
+      <!-- Title input -->
+      <div class="mb-4">
+        <input type="text" id="title" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Battle title">
+      </div>
+      
+      <!-- Option 1 -->
+      <div class="mb-4">
+        <input type="text" id="option1" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" placeholder="Option 1">
         
-        <div class="image-input-container">
-          <div class="image-preview" id="image1Preview">
-            <div class="image-preview-placeholder">No Image</div>
+        <div class="flex items-center mb-3">
+          <div class="w-[80px] h-[80px] bg-gray-100 rounded-lg mr-3 overflow-hidden flex-shrink-0" id="image1Preview">
+            <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
           </div>
-          <div class="image-upload-options">
-            <div class="image-url-container">
-              <input type="text" id="image1Url" placeholder="Image URL" class="image-url-input">
-              <button type="button" class="url-apply-btn" data-for="image1">Apply</button>
+          
+          <div class="flex-1">
+            <div class="flex mb-2">
+              <input type="text" id="image1Url" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg" placeholder="Image URL">
+              <button type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-r-lg" data-for="image1">Apply</button>
             </div>
-            <div class="upload-btn" id="image1UploadBtn">Upload Image</div>
-            <input type="file" id="image1File" accept="image/*" style="display: none;">
+            
+            <button type="button" id="image1UploadBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">Upload Image</button>
+            <input type="file" id="image1File" accept="image/*" class="hidden">
           </div>
         </div>
       </div>
-    `;
-    
-    // Replace option2 section
-    option2Container.innerHTML = `
-      <div class="option-container">
-        <label class="option-label">${option2Label}</label>
-        <input type="text" id="option2" class="option-name-input" placeholder="Enter option name" value="${option2Input.value || ''}">
+      
+      <!-- Option 2 -->
+      <div class="mb-4">
+        <input type="text" id="option2" class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3" placeholder="Option 2">
         
-        <div class="image-input-container">
-          <div class="image-preview" id="image2Preview">
-            <div class="image-preview-placeholder">No Image</div>
+        <div class="flex items-center mb-3">
+          <div class="w-[80px] h-[80px] bg-gray-100 rounded-lg mr-3 overflow-hidden flex-shrink-0" id="image2Preview">
+            <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Image</div>
           </div>
-          <div class="image-upload-options">
-            <div class="image-url-container">
-              <input type="text" id="image2Url" placeholder="Image URL" class="image-url-input">
-              <button type="button" class="url-apply-btn" data-for="image2">Apply</button>
+          
+          <div class="flex-1">
+            <div class="flex mb-2">
+              <input type="text" id="image2Url" class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg" placeholder="Image URL">
+              <button type="button" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-r-lg" data-for="image2">Apply</button>
             </div>
-            <div class="upload-btn" id="image2UploadBtn">Upload Image</div>
-            <input type="file" id="image2File" accept="image/*" style="display: none;">
+            
+            <button type="button" id="image2UploadBtn" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg">Upload Image</button>
+            <input type="file" id="image2File" accept="image/*" class="hidden">
           </div>
         </div>
       </div>
+      
+      <!-- Duration selection -->
+      <div class="mb-4">
+        <div class="flex mb-2">
+          <button type="button" class="duration-btn px-4 py-2 rounded-lg mr-2 bg-blue-500 text-white" data-unit="minutes">Minutes</button>
+          <button type="button" class="duration-btn px-4 py-2 rounded-lg mr-2 bg-gray-200 text-gray-700" data-unit="hours">Hours</button>
+          <button type="button" class="duration-btn px-4 py-2 rounded-lg mr-2 bg-gray-200 text-gray-700" data-unit="days">Days</button>
+          <button type="button" class="duration-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700" data-unit="date">Pick Date</button>
+        </div>
+        
+        <div id="durationInputContainer">
+          <input type="number" id="durationValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Enter duration in minutes" value="60" min="1">
+        </div>
+        
+        <input type="hidden" id="endsAtValue">
+      </div>
+      
+      <!-- Submit buttons -->
+      <div class="flex justify-end">
+        <button type="button" id="cancelCreateBtn" class="bg-gray-400 hover:bg-gray-500 text-white px-6 py-2 rounded-lg mr-2">Cancel</button>
+        <button type="button" id="submitBattleBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg">Submit</button>
+      </div>
     `;
+    
+    // Set up event listeners for the new form elements
+    setupDurationControls();
+    
+    // Set up image upload previews
+    setupImagePreviewHandlers();
+  }
+  
+  // Set up the duration controls
+  function setupDurationControls() {
+    // Get all duration buttons
+    const durationBtns = document.querySelectorAll('.duration-btn');
+    const durationInput = document.getElementById('durationValue');
+    const durationContainer = document.getElementById('durationInputContainer');
+    const endsAtInput = document.getElementById('endsAtValue');
+    
+    if (!durationBtns.length || !durationInput || !durationContainer || !endsAtInput) return;
+    
+    // Set default unit and calculate end date
+    let currentUnit = 'minutes';
+    updateEndDate();
+    
+    // Add click event to each duration button
+    durationBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Update active button
+        durationBtns.forEach(b => {
+          b.classList.remove('bg-blue-500', 'text-white');
+          b.classList.add('bg-gray-200', 'text-gray-700');
+        });
+        this.classList.remove('bg-gray-200', 'text-gray-700');
+        this.classList.add('bg-blue-500', 'text-white');
+        
+        // Get the unit
+        const unit = this.dataset.unit;
+        currentUnit = unit;
+        
+        // Update input based on selected unit
+        if (unit === 'date') {
+          // Show date picker
+          durationContainer.innerHTML = `
+            <input type="datetime-local" id="datePickerInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+          `;
+          
+          // Set min date to now
+          const datePickerInput = document.getElementById('datePickerInput');
+          if (datePickerInput) {
+            const now = new Date();
+            const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+            const minDateTime = localDate.toISOString().slice(0, 16);
+            
+            datePickerInput.min = minDateTime;
+            datePickerInput.value = minDateTime;
+            
+            // Set end date when date picker changes
+            datePickerInput.addEventListener('change', function() {
+              const selectedDate = new Date(this.value);
+              endsAtInput.value = selectedDate.toISOString();
+            });
+            
+            // Trigger change event to set initial value
+            const event = new Event('change');
+            datePickerInput.dispatchEvent(event);
+          }
+        } else {
+          // Show number input with appropriate placeholder
+          durationContainer.innerHTML = `
+            <input type="number" id="durationValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg" 
+              placeholder="Enter duration in ${unit}" value="${unit === 'minutes' ? '60' : unit === 'hours' ? '24' : '7'}" min="1">
+          `;
+          
+          // Set up event listener for the new input
+          const newDurationInput = document.getElementById('durationValue');
+          if (newDurationInput) {
+            newDurationInput.addEventListener('input', updateEndDate);
+            // Trigger input event to calculate initial end date
+            updateEndDate();
+          }
+        }
+      });
+    });
+    
+    // Add input event to duration input
+    durationInput.addEventListener('input', updateEndDate);
+    
+    // Function to update the end date based on duration input
+    function updateEndDate() {
+      const durationInput = document.getElementById('durationValue');
+      if (!durationInput) return;
+      
+      const value = parseInt(durationInput.value) || 0;
+      const now = new Date();
+      let endDate = new Date(now);
+      
+      // Calculate end date based on unit
+      switch (currentUnit) {
+        case 'minutes':
+          endDate.setMinutes(now.getMinutes() + value);
+          break;
+        case 'hours':
+          endDate.setHours(now.getHours() + value);
+          break;
+        case 'days':
+          endDate.setDate(now.getDate() + value);
+          break;
+      }
+      
+      // Update hidden input
+      endsAtInput.value = endDate.toISOString();
+    }
   }
   
   // Set up handlers for image previews
@@ -393,9 +501,30 @@
       return;
     }
     
-    // Calculate end time (24 hours from now)
-    const endsAt = new Date();
-    endsAt.setHours(endsAt.getHours() + 24);
+    // Get end date value
+    let endsAt;
+    const endsAtValue = document.getElementById('endsAtValue')?.value;
+    const datePickerInput = document.getElementById('datePickerInput');
+    
+    if (datePickerInput) {
+      // If date picker is visible, use its value
+      endsAt = new Date(datePickerInput.value);
+    } else if (endsAtValue) {
+      // If hidden input has a value, use it
+      endsAt = new Date(endsAtValue);
+    } else {
+      // Default to 24 hours from now
+      endsAt = new Date();
+      endsAt.setHours(endsAt.getHours() + 24);
+    }
+    
+    // Validate end date
+    if (endsAt <= new Date()) {
+      alert('End date must be in the future');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+      return;
+    }
     
     // Prepare battle data
     const battleData = {
