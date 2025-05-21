@@ -17,6 +17,94 @@
     @media (max-width: 640px) { .vs-circle{ width:42px;height:42px;font-size:1rem; } }
     .tab-btn.active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
     #tabIndicator { transition: left 0.28s cubic-bezier(.6,1.2,.4,1), width 0.28s cubic-bezier(.6,1.2,.4,1); height: 3px !important; background: #2563eb !important; border-radius: 2px; bottom: 0; }
+    
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .hidden {
+      display: none;
+    }
+    .time-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .time-tab {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      background: #f1f5f9;
+      border: none;
+      cursor: pointer;
+    }
+    .time-tab.active {
+      background: #2563eb;
+      color: white;
+    }
+    .share-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .share-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: white;
+      border-radius: 0.25rem;
+      text-decoration: none;
+      transition: opacity 0.2s;
+      flex: 1;
+      min-width: 120px;
+    }
+    .share-btn:hover {
+      opacity: 0.9;
+    }
+    .share-btn img {
+      width: 24px;
+      height: 24px;
+    }
+    .facebook {
+      background-color: #1877f2;
+    }
+    .twitter {
+      background-color: #1da1f2;
+    }
+    .reddit {
+      background-color: #ff4500;
+    }
+    .cancel-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #e5e7eb;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .cancel-btn:hover {
+      background-color: #d1d5db;
+    }
   </style>
 </head>
 <body class="bg-white">
@@ -141,9 +229,6 @@
       document.getElementById('createModal').classList.remove('hidden');
     });
     document.getElementById('createBattleBtn2')?.addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    document.getElementById('floatingCreateBtn')?.addEventListener('click', () => {
       document.getElementById('createModal').classList.remove('hidden');
     });
     document.getElementById('navFab')?.addEventListener('click', () => {
