@@ -146,12 +146,72 @@ function setupTabs() {
   });
 }
 
+// Handle image uploads to Supabase storage
+async function uploadImage(file, path) {
+  if (!file) return null;
+  
+  try {
+    // Create a unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+    const filePath = `${path}/${fileName}`;
+    
+    // Upload the file
+    const { data, error } = await supabase.storage
+      .from('battle-images')
+      .upload(filePath, file);
+      
+    if (error) throw error;
+    
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('battle-images')
+      .getPublicUrl(filePath);
+      
+    return publicUrl;
+  } catch (err) {
+    console.error('Error uploading image:', err);
+    return null;
+  }
+}
+
 // Handle create battle form submission
 function setupCreateBattleForm() {
   const submitBtn = document.getElementById('submitBattleBtn');
   const timeTabs = document.querySelectorAll('.time-tab');
   const durationInput = document.getElementById('duration');
   const datetimePicker = document.getElementById('datetimePicker');
+  
+  // Preview uploaded images
+  const image1File = document.getElementById('image1File');
+  const image2File = document.getElementById('image2File');
+  const image1Preview = document.createElement('div');
+  const image2Preview = document.createElement('div');
+  
+  // Add preview containers after file inputs
+  image1File.parentNode.appendChild(image1Preview);
+  image2File.parentNode.appendChild(image2Preview);
+  
+  // Show image previews
+  image1File.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        image1Preview.innerHTML = `<img src="${e.target.result}" class="mt-2 rounded-lg w-32 h-32 object-cover">`;
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+  
+  image2File.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        image2Preview.innerHTML = `<img src="${e.target.result}" class="mt-2 rounded-lg w-32 h-32 object-cover">`;
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
   
   // Set up time unit tabs
   timeTabs.forEach(tab => {
@@ -188,6 +248,10 @@ function setupCreateBattleForm() {
 
   // Handle form submission
   submitBtn.addEventListener('click', async function() {
+    // Show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating...';
+    
     const title = document.getElementById('title').value;
     const option1 = document.getElementById('option1').value;
     const option2 = document.getElementById('option2').value;
@@ -195,6 +259,8 @@ function setupCreateBattleForm() {
     // Basic validation
     if (!title || !option1 || !option2) {
       alert('Please fill in all required fields');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
       return;
     }
     
@@ -216,13 +282,17 @@ function setupCreateBattleForm() {
       }
     }
     
-    // Get image values (for simplicity we'll use placeholder URLs in this example)
-    // In a real app, you'd upload the actual images first
-    const image1 = 'https://via.placeholder.com/300';
-    const image2 = 'https://via.placeholder.com/300';
-    
-    // Create the battle
     try {
+      // Upload images first
+      const image1 = image1File.files.length > 0 
+        ? await uploadImage(image1File.files[0], 'battle-images') 
+        : 'https://via.placeholder.com/300';
+        
+      const image2 = image2File.files.length > 0 
+        ? await uploadImage(image2File.files[0], 'battle-images') 
+        : 'https://via.placeholder.com/300';
+      
+      // Create the battle
       const { data, error } = await supabase.from('battles').insert([
         {
           title,
@@ -244,6 +314,10 @@ function setupCreateBattleForm() {
       document.getElementById('title').value = '';
       document.getElementById('option1').value = '';
       document.getElementById('option2').value = '';
+      image1Preview.innerHTML = '';
+      image2Preview.innerHTML = '';
+      image1File.value = '';
+      image2File.value = '';
       
       // Set current tab to featured and refresh
       currentTab = 'featured';
@@ -259,7 +333,10 @@ function setupCreateBattleForm() {
       
     } catch (err) {
       console.error('Error creating battle:', err);
-      alert('Could not create battle. Please try again.');
+      alert('Could not create battle: ' + (err.message || 'Unknown error'));
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
     }
   });
 }
