@@ -317,7 +317,8 @@ function trackInteraction(type) {
   }
   
   localStorage.setItem('battleAnalytics', JSON.stringify(analytics));
-}// Fetch and render battles based on current tab
+}// Update fetch and render battles code with optimizations
+// Replace this entire function rather than having two copies
 async function fetchAndRenderBattles() {
   const battlesList = document.getElementById('battlesList');
   if (!battlesList) {
