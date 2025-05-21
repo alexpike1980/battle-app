@@ -1,7 +1,7 @@
 // Initialize Supabase client
 const supabaseUrl = 'https://oleqibxqfwnvaorqgflp.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Global variables
 let currentTab = 'featured';
@@ -56,14 +56,14 @@ async function uploadImage(file, path) {
     const filePath = `${path}/${fileName}`;
     
     // Upload the file
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseClient.storage
       .from('battle-images')
       .upload(filePath, file);
       
     if (error) throw error;
     
     // Get the public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseClient.storage
       .from('battle-images')
       .getPublicUrl(filePath);
       
@@ -192,7 +192,7 @@ function setupCreateBattleForm() {
         : 'https://via.placeholder.com/300';
       
       // Create the battle
-      const { data, error } = await supabase.from('battles').insert([
+      const { data, error } = await supabaseClient.from('battles').insert([
         {
           title,
           option1,
@@ -293,7 +293,7 @@ function setupEventHandlers() {
         }
         
         // Update vote in database
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from('battles')
           .select(voteOpt)
           .eq('id', battleId)
@@ -305,7 +305,7 @@ function setupEventHandlers() {
         const updateObj = {};
         updateObj[voteOpt] = currentVotes + 1;
         
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseClient
           .from('battles')
           .update(updateObj)
           .eq('id', battleId);
@@ -434,7 +434,7 @@ async function fetchAndRenderBattles() {
   
   try {
     const now = new Date().toISOString();
-    let query = supabase.from('battles').select('*');
+    let query = supabaseClient.from('battles').select('*');
     
     // Filter by tab
     if (currentTab === 'featured') {
