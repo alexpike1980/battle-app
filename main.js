@@ -27,20 +27,35 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       
       .search-filter-container {
-        padding: 0.75rem 0.5rem;
+        padding: 10px;
       }
     }
     
     /* Category tags */
     .category-tag {
-      display: inline-block;
+      font-weight: 500;
       white-space: nowrap;
-      font-weight: 600;
     }
     
-    /* Trending button highlight */
-    .trending-active {
-      background: linear-gradient(135deg, #9f7aea, #4c1d95);
+    /* Search and filter bar */
+    .search-filter-container {
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+    
+    /* Trending button effects */
+    #trendingTabBtn {
+      transition: all 0.3s ease;
+    }
+    
+    #trendingTabBtn:hover {
+      transform: translateY(-2px);
+    }
+    
+    /* Tab styles for search, trending, etc. */
+    .tab-btn.active {
+      border-bottom: 2px solid #3b82f6;
+      color: #3b82f6;
     }
   `;
   document.head.appendChild(style);
@@ -62,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add search and filter UI
   addSearchAndFilterUI();
   
-  // Setup category field in the create battle form
+  // Set up category field in create battle form
   setupCategoryField();
 
   // Set up tab navigation
@@ -382,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
   fetchAndRenderBattles();
 });
 
-// Set up tab navigation
+// Set up tab navigation with trending tab support
 function setupTabs() {
   // Add event listeners to tab buttons
   const tabs = document.querySelectorAll('.tab-btn');
@@ -394,6 +409,23 @@ function setupTabs() {
       
       // Update current tab and fetch battles
       currentTab = this.dataset.tab;
+      
+      // Reset filters when changing tabs
+      if (window.searchInput) {
+        window.searchInput.value = '';
+      }
+      window.searchFilter = '';
+      
+      if (window.categoryFilter) {
+        window.categoryFilter = 'all';
+        document.getElementById('categoryFilter').value = 'all';
+      }
+      
+      // Clear trending button highlight if applicable
+      if (document.getElementById('trendingTabBtn')) {
+        document.getElementById('trendingTabBtn').classList.remove('active-trending');
+      }
+      
       fetchAndRenderBattles();
     });
   });
