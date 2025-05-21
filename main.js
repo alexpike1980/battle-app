@@ -214,42 +214,85 @@
   
   // Modify the create battle form layout
   function modifyCreateBattleForm() {
-    // Find the image upload inputs
-    const image1FileContainer = document.getElementById('image1File')?.parentNode;
-    const image2FileContainer = document.getElementById('image2File')?.parentNode;
+    // Add styles for option inputs
+    const style = document.createElement('style');
+    style.textContent = `
+      .option-container {
+        margin-bottom: 1.5rem;
+      }
+      .option-name-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      .option-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+      }
+    `;
+    document.head.appendChild(style);
     
-    if (!image1FileContainer || !image2FileContainer) return;
+    // Find the image upload inputs and their parent containers
+    const option1Container = document.getElementById('option1')?.closest('.mb-4') || document.getElementById('option1')?.parentNode;
+    const option2Container = document.getElementById('option2')?.closest('.mb-4') || document.getElementById('option2')?.parentNode;
     
-    // Replace image1 section
-    image1FileContainer.innerHTML = `
-      <div class="image-input-container">
-        <div class="image-preview" id="image1Preview">
-          <div class="image-preview-placeholder">No Image</div>
-        </div>
-        <div class="image-upload-options">
-          <div class="image-url-container">
-            <input type="text" id="image1Url" placeholder="Image URL" class="image-url-input">
-            <button type="button" class="url-apply-btn" data-for="image1">Apply</button>
+    if (!option1Container || !option2Container) return;
+    
+    // Save the original option input elements
+    const option1Input = document.getElementById('option1');
+    const option2Input = document.getElementById('option2');
+    
+    if (!option1Input || !option2Input) return;
+    
+    // Get the label text from the existing labels if possible
+    const option1Label = option1Container.querySelector('label')?.innerText || 'Option 1';
+    const option2Label = option2Container.querySelector('label')?.innerText || 'Option 2';
+    
+    // Replace option1 section
+    option1Container.innerHTML = `
+      <div class="option-container">
+        <label class="option-label">${option1Label}</label>
+        <input type="text" id="option1" class="option-name-input" placeholder="Enter option name" value="${option1Input.value || ''}">
+        
+        <div class="image-input-container">
+          <div class="image-preview" id="image1Preview">
+            <div class="image-preview-placeholder">No Image</div>
           </div>
-          <div class="upload-btn" id="image1UploadBtn">Upload Image</div>
-          <input type="file" id="image1File" accept="image/*" style="display: none;">
+          <div class="image-upload-options">
+            <div class="image-url-container">
+              <input type="text" id="image1Url" placeholder="Image URL" class="image-url-input">
+              <button type="button" class="url-apply-btn" data-for="image1">Apply</button>
+            </div>
+            <div class="upload-btn" id="image1UploadBtn">Upload Image</div>
+            <input type="file" id="image1File" accept="image/*" style="display: none;">
+          </div>
         </div>
       </div>
     `;
     
-    // Replace image2 section
-    image2FileContainer.innerHTML = `
-      <div class="image-input-container">
-        <div class="image-preview" id="image2Preview">
-          <div class="image-preview-placeholder">No Image</div>
-        </div>
-        <div class="image-upload-options">
-          <div class="image-url-container">
-            <input type="text" id="image2Url" placeholder="Image URL" class="image-url-input">
-            <button type="button" class="url-apply-btn" data-for="image2">Apply</button>
+    // Replace option2 section
+    option2Container.innerHTML = `
+      <div class="option-container">
+        <label class="option-label">${option2Label}</label>
+        <input type="text" id="option2" class="option-name-input" placeholder="Enter option name" value="${option2Input.value || ''}">
+        
+        <div class="image-input-container">
+          <div class="image-preview" id="image2Preview">
+            <div class="image-preview-placeholder">No Image</div>
           </div>
-          <div class="upload-btn" id="image2UploadBtn">Upload Image</div>
-          <input type="file" id="image2File" accept="image/*" style="display: none;">
+          <div class="image-upload-options">
+            <div class="image-url-container">
+              <input type="text" id="image2Url" placeholder="Image URL" class="image-url-input">
+              <button type="button" class="url-apply-btn" data-for="image2">Apply</button>
+            </div>
+            <div class="upload-btn" id="image2UploadBtn">Upload Image</div>
+            <input type="file" id="image2File" accept="image/*" style="display: none;">
+          </div>
         </div>
       </div>
     `;
