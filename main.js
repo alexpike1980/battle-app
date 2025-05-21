@@ -127,6 +127,60 @@
     if (submitBtn) {
       submitBtn.addEventListener('click', handleBattleSubmit);
     }
+    
+    // Setup image upload previews
+    setupImageUploadPreviews();
+  }
+  
+  // Setup image upload previews
+  function setupImageUploadPreviews() {
+    // Find image upload inputs
+    const image1File = document.getElementById('image1File');
+    const image2File = document.getElementById('image2File');
+    
+    if (image1File) {
+      // Create preview container if it doesn't exist
+      let previewContainer = document.getElementById('image1Preview');
+      if (!previewContainer) {
+        previewContainer = document.createElement('div');
+        previewContainer.id = 'image1Preview';
+        previewContainer.className = 'mt-2';
+        image1File.parentNode.appendChild(previewContainer);
+      }
+      
+      // Add change event listener
+      image1File.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            previewContainer.innerHTML = `<img src="${event.target.result}" class="rounded-lg w-32 h-32 object-cover">`;
+          };
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    }
+    
+    if (image2File) {
+      // Create preview container if it doesn't exist
+      let previewContainer = document.getElementById('image2Preview');
+      if (!previewContainer) {
+        previewContainer = document.createElement('div');
+        previewContainer.id = 'image2Preview';
+        previewContainer.className = 'mt-2';
+        image2File.parentNode.appendChild(previewContainer);
+      }
+      
+      // Add change event listener
+      image2File.addEventListener('change', function(e) {
+        if (this.files && this.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            previewContainer.innerHTML = `<img src="${event.target.result}" class="rounded-lg w-32 h-32 object-cover">`;
+          };
+          reader.readAsDataURL(this.files[0]);
+        }
+      });
+    }
   }
   
   // Show create modal
@@ -162,43 +216,150 @@
     const endsAt = new Date();
     endsAt.setHours(endsAt.getHours() + 24);
     
-    // Create battle
-    window.supabaseClient.from('battles').insert([
-      {
-        title,
-        option1,
-        option2,
-        image1: 'https://via.placeholder.com/300',
-        image2: 'https://via.placeholder.com/300',
-        votes1: 0,
-        votes2: 0,
-        ends_at: endsAt.toISOString(),
-        created_at: new Date().toISOString()
-      }
-    ]).then(({ data, error }) => {
-      if (error) {
-        alert('Error creating battle: ' + error.message);
-        console.error('Error creating battle:', error);
-      } else {
-        // Reset form
-        document.getElementById('title').value = '';
-        document.getElementById('option1').value = '';
-        document.getElementById('option2').value = '';
-        
-        // Hide modal
-        document.getElementById('createModal').classList.add('hidden');
-        
-        // Reload battles
-        loadBattles();
-        
-        // Show success message
-        alert('Battle created successfully!');
+    // Check if we need to upload images
+    const image1File = document.getElementById('image1File');
+    const image2File = document.getElementById('image2File');
+    const hasImage1 = image1File && image1File.files && image1File.files.length > 0;
+    const hasImage2 = image2File && image2File.files && image2File.files.length > 0;
+    
+    // Prepare battle data
+    const battleData = {
+      title,
+      option1,
+      option2,
+      image1: 'https://via.placeholder.com/300',
+      image2: 'https://via.placeholder.com/300',
+      votes1: 0,
+      votes2: 0,
+      ends_at: endsAt.toISOString(),
+      created_at: new Date().toISOString()
+    };
+    
+    // If we have images to upload
+    if (hasImage1 || hasImage2) {
+      const promises = [];
+      
+      // Upload image 1
+      if (hasImage1) {
+        promises.push(uploadImage(image1File.files[0], 'battle-images')
+          .then(url => {
+            if (url) battleData.image1 = url;
+          }));
       }
       
-      // Reset button
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit';
+      // Upload image 2
+      if (hasImage2) {
+        promises.push(uploadImage(image2File.files[0], 'battle-images')
+          .then(url => {
+            if (url) battleData.image2 = url;
+          }));
+      }
+      
+      // Wait for uploads to complete
+      Promise.all(promises)
+        .then(() => createBattle(battleData, submitBtn))
+        .catch(err => {
+          console.error('Error uploading images:', err);
+          alert('Error uploading images. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        });
+    } else {
+      // No images to upload, create battle directly
+      createBattle(battleData, submitBtn);
+    }
+  }
+  
+  // Upload image to Supabase storage
+  function uploadImage(file, path) {
+    return new Promise((resolve, reject) => {
+      if (!file) {
+        resolve(null);
+        return;
+      }
+      
+      try {
+        // Create a unique file name
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+        const filePath = `${path}/${fileName}`;
+        
+        // Upload the file
+        window.supabaseClient.storage
+          .from('battle-images')
+          .upload(filePath, file)
+          .then(({ data, error }) => {
+            if (error) {
+              console.error('Storage upload error:', error);
+              reject(error);
+              return;
+            }
+            
+            // Get the public URL
+            const { data: { publicUrl } } = window.supabaseClient.storage
+              .from('battle-images')
+              .getPublicUrl(filePath);
+              
+            resolve(publicUrl);
+          })
+          .catch(reject);
+      } catch (err) {
+        console.error('Error in uploadImage:', err);
+        reject(err);
+      }
     });
+  }
+  
+  // Create battle in database
+  function createBattle(battleData, submitBtn) {
+    window.supabaseClient.from('battles').insert([battleData])
+      .then(({ data, error }) => {
+        if (error) {
+          alert('Error creating battle: ' + error.message);
+          console.error('Error creating battle:', error);
+        } else {
+          // Reset form
+          document.getElementById('title').value = '';
+          document.getElementById('option1').value = '';
+          document.getElementById('option2').value = '';
+          
+          // Clear image previews
+          const preview1 = document.getElementById('image1Preview');
+          const preview2 = document.getElementById('image2Preview');
+          if (preview1) preview1.innerHTML = '';
+          if (preview2) preview2.innerHTML = '';
+          
+          // Reset file inputs
+          const image1File = document.getElementById('image1File');
+          const image2File = document.getElementById('image2File');
+          if (image1File) image1File.value = '';
+          if (image2File) image2File.value = '';
+          
+          // Hide modal
+          document.getElementById('createModal').classList.add('hidden');
+          
+          // Reload battles
+          loadBattles();
+          
+          // Show success message
+          alert('Battle created successfully!');
+        }
+        
+        // Reset button
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
+      })
+      .catch(err => {
+        alert('Unexpected error: ' + err.message);
+        console.error('Unexpected error:', err);
+        
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
+      });
   }
 
   // Load battles from Supabase
