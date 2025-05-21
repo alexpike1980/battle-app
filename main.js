@@ -119,27 +119,43 @@ async function fetchAndRenderBattles() {
     block.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
     block.innerHTML = `
       <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
-      <div class="battle-container relative flex flex-row gap-2 justify-center">
-        <div class="flex flex-col items-center flex-1">
-          <div class="relative">
-            <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+      <!-- Battle container with improved structure for perfect centering -->
+      <div class="flex flex-col gap-2 mb-6">
+        <a href="battle.html?id=${b.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${b.title}</a>
+        
+        <!-- VS image layout with table-like structure for perfect alignment -->
+        <div class="relative flex items-center justify-center">
+          <table class="vs-battle-table w-full">
+            <tr>
+              <td class="w-1/2 pr-4 text-center align-middle">
+                <img src="${b.image1||'https://via.placeholder.com/300'}" alt="${b.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block" />
+              </td>
+              <td class="w-1/2 pl-4 text-center align-middle">
+                <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px] inline-block" />
+              </td>
+            </tr>
+          </table>
+
+          <!-- VS circle positioned absolutely in the center -->
+          <div class="absolute" style="z-index: 20;">
+            <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
           </div>
-          <div class="option-title mt-2">${b.option1}</div>
-          <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
         </div>
         
-        <!-- Fixed VS position with absolute values -->
-        <div class="absolute z-20" style="left: 50%; top: 90px; transform: translateX(-50%);">
-          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white">VS</div>
+        <!-- Options and vote buttons -->
+        <div class="flex">
+          <div class="flex flex-col items-center flex-1">
+            <div class="option-title mb-2">${b.option1}</div>
+            <button class="bg-blue-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
+          </div>
+          <div class="flex flex-col items-center flex-1">
+            <div class="option-title mb-2">${b.option2}</div>
+            <button class="bg-green-600 text-white py-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
+          </div>
         </div>
         
-        <div class="flex flex-col items-center flex-1">
-          <div class="relative">
-            <img src="${b.image2||'https://via.placeholder.com/300'}" alt="${b.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
-          </div>
-          <div class="option-title mt-2">${b.option2}</div>
-          <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
-        </div>
+        ${renderProgressBar(b.votes1, b.votes2, b.id)}
+        <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
       </div>
       ${renderProgressBar(b.votes1, b.votes2, b.id)}
       <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
