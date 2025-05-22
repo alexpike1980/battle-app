@@ -783,17 +783,21 @@
     
     battleEl.innerHTML = `
       <a href="battle.html?id=${battle.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
-      <div class="relative flex flex-row gap-2 justify-center items-center">
+      <div class="relative flex flex-row gap-2 justify-center items-start">
         <div class="flex flex-col items-center flex-1">
-          <img src="${battle.image1||'https://via.placeholder.com/300'}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+          <div class="relative">
+            <img src="${battle.image1||'https://via.placeholder.com/300'}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+          </div>
           <div class="option-title mt-2 font-semibold ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
           ${option1Content}
         </div>
-        <div class="absolute z-20 left-1/2 -translate-x-1/2 flex items-center justify-center" style="top: 90px;">
-          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-none">VS</div>
+        <div class="absolute z-20 left-1/2 top-[90px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-lg">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
-          <img src="${battle.image2||'https://via.placeholder.com/300'}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+          <div class="relative">
+            <img src="${battle.image2||'https://via.placeholder.com/300'}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+          </div>
           <div class="option-title mt-2 font-semibold ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
           ${option2Content}
         </div>
