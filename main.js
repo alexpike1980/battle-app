@@ -765,8 +765,8 @@
           <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${battle.id}" data-opt="votes2">Vote</button>
         </div>
       </div>
-      <div class="mt-3 overflow-hidden rounded-full">
-        <div id="progress-${battle.id}" class="flex w-full">
+      <div class="mt-4">
+        <div id="progress-${battle.id}" class="w-full">
           ${renderProgressBar(battle.votes1, battle.votes2)}
         </div>
       </div>
@@ -862,13 +862,22 @@
                   return;
                 }
                 
-                // Update UI
+                // Update UI with animation
                 const votes1 = col === 'votes1' ? newVotes : battle.votes1;
                 const votes2 = col === 'votes2' ? newVotes : battle.votes2;
                 const progressBar = document.getElementById(`progress-${battleId}`);
                 
                 if (progressBar) {
+                  // Add update animation to the container
+                  progressBar.classList.add('progress-updated');
+                  
+                  // Update progress bar content
                   progressBar.innerHTML = renderProgressBar(votes1, votes2);
+                  
+                  // Remove animation class after it completes
+                  setTimeout(() => {
+                    progressBar.classList.remove('progress-updated');
+                  }, 1000);
                 }
                 
                 // Open share window
