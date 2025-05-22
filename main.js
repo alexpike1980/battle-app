@@ -297,6 +297,7 @@
     getBattles().then(battles => {
       if (!battles || battles.length === 0) {
         container.innerHTML = '<div class="text-center py-8 text-gray-500">No battles found.</div>';
+        updateSidebarStats(0, 0, 0);
         return;
       }
       
@@ -312,11 +313,17 @@
       
       if (filteredBattles.length === 0) {
         container.innerHTML = '<div class="text-center py-8 text-gray-500">No battles in this category.</div>';
+        updateSidebarStats(battles.length, battles.filter(b => new Date(b.ends_at) > new Date()).length, 0);
         return;
       }
       
       container.innerHTML = '';
       filteredBattles.forEach(battle => renderBattle(battle, container));
+      
+      // Update sidebar stats
+      const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
+      const totalVotes = battles.reduce((sum, b) => sum + (parseInt(b.votes1) || 0) + (parseInt(b.votes2) || 0), 0);
+      updateSidebarStats(battles.length, activeBattles, totalVotes);
       
       // Set up vote buttons after rendering
       setupVoteButtons();
@@ -324,6 +331,17 @@
       console.error('Error loading battles:', error);
       container.innerHTML = '<div class="text-center py-8 text-red-500">Error loading battles. Please try again.</div>';
     });
+  }
+  
+  // Update sidebar statistics
+  function updateSidebarStats(total, active, votes) {
+    const totalEl = document.getElementById('total-battles');
+    const activeEl = document.getElementById('active-battles');
+    const votesEl = document.getElementById('total-votes');
+    
+    if (totalEl) totalEl.textContent = total.toLocaleString();
+    if (activeEl) activeEl.textContent = active.toLocaleString();
+    if (votesEl) votesEl.textContent = votes.toLocaleString();
   }
   
   // Set up vote button event listeners
@@ -396,6 +414,10 @@
     document.getElementById('duration').value = '60';
     document.getElementById('customDate').style.display = 'none';
     
+    // Hide previews
+    document.getElementById('preview1').classList.add('hidden');
+    document.getElementById('preview2').classList.add('hidden');
+    
     // Reset duration type
     setDurationType('minutes');
   }
@@ -442,15 +464,43 @@
     setDurationType('custom');
   }
   
+  // Image preview functions
+  function previewImage(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    const img = document.getElementById(previewId + '-img');
+    
+    if (input.value.trim()) {
+      img.src = input.value;
+      preview.classList.remove('hidden');
+      
+      // Handle image load errors
+      img.onerror = function() {
+        preview.classList.add('hidden');
+      };
+    } else {
+      preview.classList.add('hidden');
+    }
+  }
+  
+  function removePreview(previewId, inputId) {
+    document.getElementById(previewId).classList.add('hidden');
+    document.getElementById(inputId).value = '';
+  }
+  
   // Image upload handler
   function handleImageUpload(input, targetInputId) {
     const file = input.files[0];
     if (!file) return;
     
-    // For demo purposes, we'll use a placeholder URL
-    // In a real app, you'd upload to a service like Supabase Storage
+    // Create a local URL for the uploaded file
+    const imageUrl = URL.createObjectURL(file);
     const targetInput = document.getElementById(targetInputId);
-    targetInput.value = 'https://via.placeholder.com/300x200?text=' + encodeURIComponent(file.name);
+    targetInput.value = imageUrl;
+    
+    // Trigger preview
+    const previewId = targetInputId === 'image1' ? 'preview1' : 'preview2';
+    previewImage(targetInputId, previewId);
   }
   
   // Submit battle
@@ -517,6 +567,19 @@
     window.open(twitterUrl, '_blank');
   }
   
+  function shareToFacebook() {
+    const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(battleUrl)}`;
+    window.open(facebookUrl, '_blank');
+  }
+  
+  function shareToReddit() {
+    const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
+    const title = encodeURIComponent('Epic Battle - Vote Now!');
+    const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(battleUrl)}&title=${title}`;
+    window.open(redditUrl, '_blank');
+  }
+  
   function copyLink() {
     const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
     navigator.clipboard.writeText(battleUrl).then(() => {
@@ -576,7 +639,11 @@
   window.handleImageUpload = handleImageUpload;
   window.submitBattle = submitBattle;
   window.shareToTwitter = shareToTwitter;
+  window.shareToFacebook = shareToFacebook;
+  window.shareToReddit = shareToReddit;
   window.copyLink = copyLink;
+  window.previewImage = previewImage;
+  window.removePreview = removePreview;
   
   // Run when DOM is loaded
   document.addEventListener('DOMContentLoaded', init);
