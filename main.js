@@ -789,7 +789,7 @@
           <div class="option-title mt-2 font-semibold ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
           ${option1Content}
         </div>
-        <div class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+        <div class="absolute z-20 left-1/2 -translate-x-1/2 flex items-center justify-center" style="top: 90px;">
           <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-none">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
