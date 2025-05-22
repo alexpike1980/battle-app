@@ -47,23 +47,26 @@
       border-radius: 8px;
       overflow: hidden;
       margin-top: 12px;
-      margin-left: auto;
-      margin-right: auto;
       position: relative;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
-    /* Align progress bar with vote buttons */
+    /* Align progress bar with battle images full width */
     @media (min-width: 768px) {
       .progress-bar-container {
-        width: 90%;
-        max-width: 520px;
+        width: calc(260px + 260px + 0.5rem); /* Two images + gap */
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
       }
     }
     
     @media (max-width: 767px) {
       .progress-bar-container {
-        width: 100%;
+        width: calc(220px + 220px + 0.5rem); /* Two mobile images + gap */
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
       }
     }
     
