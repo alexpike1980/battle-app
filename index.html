@@ -51,21 +51,43 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
-    /* Align progress bar with battle images full width */
+    /* Align progress bar with the battle layout structure */
+    .progress-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .progress-spacer {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .progress-spacer:first-child .progress-bar-container {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    
+    .progress-spacer:last-child .progress-bar-container {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    
+    /* Desktop image sizes */
     @media (min-width: 768px) {
-      .progress-bar-container {
-        width: 520px; /* Two desktop images (260px each) */
-        margin-left: auto;
-        margin-right: auto;
+      .progress-spacer .progress-bar-container {
+        width: 260px;
       }
     }
     
+    /* Mobile image sizes */
     @media (max-width: 767px) {
-      .progress-bar-container {
-        width: 440px; /* Two mobile images (220px each) */
-        max-width: 100%;
-        margin-left: auto;
-        margin-right: auto;
+      .progress-spacer .progress-bar-container {
+        width: 220px;
       }
     }
     
