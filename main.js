@@ -14,109 +14,56 @@
   // Supabase configuration
   let supabase;
   
-  // Mock database for demo purposes
-  const mockBattles = [
-    {
-      id: 1,
-      title: "Best Programming Language",
-      option1: "JavaScript",
-      option2: "Python",
-      image1: "https://via.placeholder.com/300x200/3B82F6/white?text=JavaScript",
-      image2: "https://via.placeholder.com/300x200/10B981/white?text=Python",
-      votes1: 245,
-      votes2: 189,
-      ends_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 2,
-      title: "Best Social Media Platform",
-      option1: "Twitter/X",
-      option2: "Instagram",
-      image1: "https://via.placeholder.com/300x200/1DA1F2/white?text=Twitter",
-      image2: "https://via.placeholder.com/300x200/E4405F/white?text=Instagram",
-      votes1: 167,
-      votes2: 203,
-      ends_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago (finished)
-      created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: 3,
-      title: "Best Movie Genre",
-      option1: "Action",
-      option2: "Comedy",
-      image1: "https://via.placeholder.com/300x200/DC2626/white?text=Action",
-      image2: "https://via.placeholder.com/300x200/F59E0B/white?text=Comedy",
-      votes1: 156,
-      votes2: 134,
-      ends_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
-      created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-    }
-  ];
-  
   // Flag to use mock data
   let useMockData = false;
   
   function initSupabase() {
     if (typeof window.supabase === 'undefined') {
-      console.error('Supabase client is not loaded. Using mock data for demo.');
-      useMockData = true;
-      return true;
+      console.error('Supabase client is not loaded. Please include the script in your HTML.');
+      return false;
     }
     
     try {
-      // Test with the original Supabase URL
+      // Updated with your actual Supabase credentials
       supabase = window.supabase.createClient(
-        'https://hnbmlmqmrugmbxilbnwy.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhuYm1sbXFtcnVnbWJ4aWxibnd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQwMTE2NDIsImV4cCI6MjA0OTU4NzY0Mn0.Km_8lolsKV7_l1qKx2WmSMeUy8u4-K_HJ-Y1MNJVfhA'
+        'https://oleqibxqfwnvaorqgflp.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'
       );
-      console.log('Supabase client created, testing connection...');
+      console.log('Supabase client created with your database credentials');
       
       // Test the connection immediately
       return testSupabaseConnection();
     } catch (error) {
-      console.error('Error initializing Supabase, using mock data:', error);
-      useMockData = true;
-      return true;
+      console.error('Error initializing Supabase:', error);
+      return false;
     }
   }
   
   // Test Supabase connection
   async function testSupabaseConnection() {
     try {
-      console.log('Testing Supabase connection...');
+      console.log('Testing connection to your Supabase database...');
       const { data, error } = await supabase
         .from('battles')
-        .select('count')
+        .select('id')
         .limit(1);
       
       if (error) {
-        console.error('Supabase connection test failed:', error);
-        console.log('Falling back to mock data');
-        useMockData = true;
-        return true;
+        console.error('Database connection test failed:', error);
+        return false;
       }
       
-      console.log('✅ Supabase connection successful!');
+      console.log('✅ Successfully connected to your Supabase database!');
       useMockData = false;
       return true;
     } catch (error) {
-      console.error('Supabase connection test error:', error);
-      console.log('Falling back to mock data');
-      useMockData = true;
-      return true;
+      console.error('Database connection test error:', error);
+      return false;
     }
   }
   
   // Database functions
   async function getBattles() {
-    if (useMockData) {
-      console.log('Using mock data for battles');
-      return new Promise(resolve => {
-        setTimeout(() => resolve([...mockBattles]), 500); // Simulate network delay
-      });
-    }
-    
     try {
       const { data, error } = await supabase
         .from('battles')
@@ -124,80 +71,63 @@
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      console.log('Loaded battles from database:', data);
+      return data || [];
     } catch (error) {
-      console.error('Error fetching battles, falling back to mock data:', error);
-      useMockData = true;
-      return [...mockBattles];
+      console.error('Error fetching battles from database:', error);
+      return [];
     }
   }
   
   async function createBattle(battleData) {
-    if (useMockData) {
-      console.log('Creating battle with mock data');
-      const newBattle = {
-        ...battleData,
-        id: Math.max(...mockBattles.map(b => b.id)) + 1,
-        created_at: new Date().toISOString()
-      };
-      mockBattles.unshift(newBattle);
-      return new Promise(resolve => {
-        setTimeout(() => resolve(newBattle), 300);
-      });
-    }
-    
     try {
+      console.log('Creating battle in database:', battleData);
       const { data, error } = await supabase
         .from('battles')
         .insert([battleData])
         .select();
       
       if (error) throw error;
+      console.log('Battle created successfully:', data[0]);
       return data[0];
     } catch (error) {
-      console.error('Error creating battle:', error);
+      console.error('Error creating battle in database:', error);
       throw error;
     }
   }
   
   async function vote(battleId, option) {
-    if (useMockData) {
-      console.log('Voting with mock data');
-      const battle = mockBattles.find(b => b.id === parseInt(battleId));
-      if (!battle) throw new Error('Battle not found');
-      
-      if (new Date(battle.ends_at) <= new Date()) {
-        throw new Error('This battle has ended');
-      }
-      
-      battle[option] = (parseInt(battle[option]) || 0) + 1;
-      
-      return new Promise(resolve => {
-        setTimeout(() => resolve(true), 300);
-      });
-    }
-    
     try {
-      // Check if battle is still active
+      console.log(`Voting for battle ${battleId}, option: ${option}`);
+      
+      // First, get the current battle data
       const { data: battle, error: fetchError } = await supabase
         .from('battles')
-        .select('ends_at')
+        .select('*')
         .eq('id', battleId)
         .single();
       
       if (fetchError) throw fetchError;
       
+      // Check if battle is still active
       if (new Date(battle.ends_at) <= new Date()) {
         throw new Error('This battle has ended');
       }
       
-      const { data, error } = await supabase.rpc('increment_vote', {
-        battle_id: battleId,
-        vote_option: option
-      });
+      // Update the vote count
+      const currentVotes = parseInt(battle[option]) || 0;
+      const updateData = {};
+      updateData[option] = currentVotes + 1;
+      
+      const { data, error } = await supabase
+        .from('battles')
+        .update(updateData)
+        .eq('id', battleId)
+        .select();
       
       if (error) throw error;
-      return data;
+      console.log('Vote recorded successfully');
+      return data[0];
     } catch (error) {
       console.error('Error voting:', error);
       throw error;
@@ -598,12 +528,12 @@
   
   // Initialize the app
   async function init() {
-    console.log('DEBUG: Initializing app...');
+    console.log('🚀 Initializing FanShare Battle App...');
     
     // Check if Supabase is available and test connection
     const dbReady = await initSupabase();
     if (!dbReady) {
-      document.body.innerHTML = '<div class="text-center py-8 text-red-500">Error: Could not connect to database</div>';
+      document.getElementById('battles-container').innerHTML = '<div class="text-center py-8 text-red-500">❌ Error: Could not connect to database. Please try again later.</div>';
       return;
     }
     
@@ -631,6 +561,8 @@
         }
       });
     }
+    
+    console.log('✅ App initialized successfully!');
   }
   
   // Make functions globally available
