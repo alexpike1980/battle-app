@@ -202,10 +202,64 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="max-w-4xl mx-auto py-6">
-    <div id="battles-container">
-      <!-- Battles will be loaded here -->
+  <main class="max-w-7xl mx-auto py-6 flex gap-6">
+    <!-- Left Content Area -->
+    <div class="flex-1">
+      <div id="battles-container">
+        <!-- Battles will be loaded here -->
+      </div>
     </div>
+    
+    <!-- Right Sidebar -->
+    <aside class="hidden lg:block w-80">
+      <div class="bg-white rounded-lg shadow-sm border p-6">
+        <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">#TechBattles</span>
+            <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">124 battles</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">#MovieVsMovie</span>
+            <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">89 battles</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">#FoodFight</span>
+            <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">67 battles</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600">#SportsFace</span>
+            <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">45 battles</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow-sm border p-6 mt-6">
+        <h3 class="text-lg font-semibold mb-4">📊 Quick Stats</h3>
+        <div class="space-y-4">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Total Battles</span>
+            <span class="font-semibold" id="total-battles">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Active Now</span>
+            <span class="font-semibold text-green-600" id="active-battles">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-600">Total Votes</span>
+            <span class="font-semibold" id="total-votes">-</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm p-6 mt-6 text-white">
+        <h3 class="text-lg font-semibold mb-2">💡 Create Epic Battles!</h3>
+        <p class="text-blue-100 text-sm mb-4">Share your ideas and let the community decide the winner.</p>
+        <button onclick="openCreateModal()" class="w-full bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition font-medium">
+          Start New Battle
+        </button>
+      </div>
+    </aside>
   </main>
 
   <!-- Create Battle Modal -->
@@ -225,12 +279,18 @@
         <!-- Image 1 Upload -->
         <div class="image-section">
           <input type="text" id="image1" placeholder="Image URL" 
-                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                 oninput="previewImage('image1', 'preview1')">
           <button type="button" onclick="document.getElementById('file1').click()" 
                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
             Upload Image
           </button>
           <input type="file" id="file1" style="display: none;" accept="image/*" onchange="handleImageUpload(this, 'image1')">
+          <!-- Image Preview -->
+          <div id="preview1" class="hidden mt-2">
+            <img id="preview1-img" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg border">
+            <button type="button" onclick="removePreview('preview1', 'image1')" class="mt-1 text-red-500 text-xs hover:text-red-700">Remove image</button>
+          </div>
         </div>
         
         <!-- Option 2 -->
@@ -240,12 +300,18 @@
         <!-- Image 2 Upload -->
         <div class="image-section">
           <input type="text" id="image2" placeholder="Image URL" 
-                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 oninput="previewImage('image2', 'preview2')">
           <button type="button" onclick="document.getElementById('file2').click()" 
                   class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
             Upload Image
           </button>
           <input type="file" id="file2" style="display: none;" accept="image/*" onchange="handleImageUpload(this, 'image2')">
+          <!-- Image Preview -->
+          <div id="preview2" class="hidden mt-2">
+            <img id="preview2-img" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg border">
+            <button type="button" onclick="removePreview('preview2', 'image2')" class="mt-1 text-red-500 text-xs hover:text-red-700">Remove image</button>
+          </div>
         </div>
         
         <!-- Duration Selection -->
@@ -293,17 +359,29 @@
   <!-- Share Modal -->
   <div id="shareModal" class="share-modal">
     <div class="share-modal-content">
-      <h3 class="text-xl font-bold mb-4">Share to Vote!</h3>
-      <p class="text-gray-600 mb-6">Share this battle with your friends to cast your vote!</p>
-      <div class="flex gap-3">
-        <button onclick="shareToTwitter()" class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition">
-          Share on X
+      <h3 class="text-xl font-bold mb-4">🎉 Vote Recorded!</h3>
+      <p class="text-gray-600 mb-6">Share this battle with your friends to get more votes!</p>
+      
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
+          <span>𝕏</span>
+          <span>Twitter</span>
         </button>
-        <button onclick="copyLink()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
-          Copy Link
+        <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+          <span>📘</span>
+          <span>Facebook</span>
+        </button>
+        <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition">
+          <span>🟠</span>
+          <span>Reddit</span>
+        </button>
+        <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+          <span>🔗</span>
+          <span>Copy Link</span>
         </button>
       </div>
-      <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700">
+      
+      <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
         Close
       </button>
     </div>
