@@ -421,7 +421,7 @@
     const urlInput = document.getElementById(`${imageId}Url`);
     const previewEl = document.getElementById(`${imageId}Preview`);
     const uploadBtn = document.getElementById(`${imageId}UploadBtn`);
-    const applyBtn = document.querySelector(`.url-apply-btn[data-for="${imageId}"]`);
+    const applyBtn = document.querySelector(`[data-for="${imageId}"]`);
     
     if (!fileInput || !urlInput || !previewEl || !uploadBtn || !applyBtn) return;
     
@@ -865,18 +865,18 @@
                 // Update UI with animation
                 const votes1 = col === 'votes1' ? newVotes : battle.votes1;
                 const votes2 = col === 'votes2' ? newVotes : battle.votes2;
-                const progressBar = document.getElementById(`progress-${battleId}`);
+                const progressContainer = document.getElementById(`progress-${battleId}`);
                 
-                if (progressBar) {
+                if (progressContainer) {
                   // Add update animation to the container
-                  progressBar.classList.add('progress-updated');
+                  progressContainer.classList.add('progress-updated');
                   
                   // Update progress bar content
-                  progressBar.innerHTML = renderProgressBar(votes1, votes2);
+                  progressContainer.innerHTML = renderProgressBar(votes1, votes2);
                   
                   // Remove animation class after it completes
                   setTimeout(() => {
-                    progressBar.classList.remove('progress-updated');
+                    progressContainer.classList.remove('progress-updated');
                   }, 1000);
                 }
                 
@@ -921,7 +921,6 @@
     
     // Calculate percentages
     let p1 = 50, p2 = 50;
-    
     if (total > 0) {
       p1 = Math.round((votes1 / total) * 100);
       p2 = 100 - p1;
@@ -932,7 +931,7 @@
     let w2 = p2;
     
     // Ensure minimum width for text visibility when there are votes
-    const minWidth = 8; // Minimum 8% width to show text
+    const minWidth = 15; // Minimum 15% width to show text clearly
     
     if (total > 0) {
       if (p1 > 0 && p1 < minWidth) {
@@ -944,11 +943,25 @@
       }
     }
     
+    // Special handling for 0 votes cases
+    if (total === 0) {
+      return `
+        <div class="progress-bar-container">
+          <div class="progress-segment progress-blue" style="width: 50%;">
+            <span class="progress-text">0 (0%)</span>
+          </div>
+          <div class="progress-segment progress-green" style="width: 50%;">
+            <span class="progress-text">0 (0%)</span>
+          </div>
+        </div>
+      `;
+    }
+    
     // Special handling for 100% cases
     if (p1 === 100) {
       return `
         <div class="progress-bar-container">
-          <div class="progress-segment progress-blue animate-fill" style="width: 100%;">
+          <div class="progress-segment progress-blue" style="width: 100%; border-radius: 20px;">
             <span class="progress-text">${votes1} (100%)</span>
           </div>
         </div>
@@ -956,7 +969,7 @@
     } else if (p2 === 100) {
       return `
         <div class="progress-bar-container">
-          <div class="progress-segment progress-green animate-fill" style="width: 100%;">
+          <div class="progress-segment progress-green" style="width: 100%; border-radius: 20px;">
             <span class="progress-text">${votes2} (100%)</span>
           </div>
         </div>
@@ -966,11 +979,11 @@
     // Normal case with both sides
     return `
       <div class="progress-bar-container">
-        <div class="progress-segment progress-blue animate-fill" style="width: ${w1}%;">
+        <div class="progress-segment progress-blue" style="width: ${w1}%;">
           <span class="progress-text">${votes1} (${p1}%)</span>
         </div>
-        <div class="progress-segment progress-green animate-fill" style="width: ${w2}%;">
-          <span class="progress-text progress-text-right">${votes2} (${p2}%)</span>
+        <div class="progress-segment progress-green" style="width: ${w2}%;">
+          <span class="progress-text">${votes2} (${p2}%)</span>
         </div>
       </div>
     `;
