@@ -938,12 +938,20 @@
     // Special handling for 0 votes cases
     if (total === 0) {
       return `
-        <div class="progress-bar-container">
-          <div class="progress-segment progress-blue" style="width: 50%;">
-            <span class="progress-text">0 (0%)</span>
+        <div class="progress-wrapper">
+          <div class="progress-spacer">
+            <div class="progress-bar-container">
+              <div class="progress-segment progress-blue" style="width: 100%;">
+                <span class="progress-text">0 (0%)</span>
+              </div>
+            </div>
           </div>
-          <div class="progress-segment progress-green" style="width: 50%;">
-            <span class="progress-text">0 (0%)</span>
+          <div class="progress-spacer">
+            <div class="progress-bar-container">
+              <div class="progress-segment progress-green" style="width: 100%;">
+                <span class="progress-text">0 (0%)</span>
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -952,30 +960,60 @@
     // Special handling for 100% cases
     if (p1 === 100) {
       return `
-        <div class="progress-bar-container">
-          <div class="progress-segment progress-blue" style="width: 100%; border-radius: 8px;">
-            <span class="progress-text">${votes1} (100%)</span>
+        <div class="progress-wrapper">
+          <div class="progress-spacer">
+            <div class="progress-bar-container">
+              <div class="progress-segment progress-blue" style="width: 100%;">
+                <span class="progress-text">${votes1} (100%)</span>
+              </div>
+            </div>
+          </div>
+          <div class="progress-spacer">
+            <div class="progress-bar-container" style="opacity: 0.3;">
+              <div class="progress-segment progress-green" style="width: 100%;">
+                <span class="progress-text">0 (0%)</span>
+              </div>
+            </div>
           </div>
         </div>
       `;
     } else if (p2 === 100) {
       return `
-        <div class="progress-bar-container">
-          <div class="progress-segment progress-green" style="width: 100%; border-radius: 8px;">
-            <span class="progress-text">${votes2} (100%)</span>
+        <div class="progress-wrapper">
+          <div class="progress-spacer">
+            <div class="progress-bar-container" style="opacity: 0.3;">
+              <div class="progress-segment progress-blue" style="width: 100%;">
+                <span class="progress-text">0 (0%)</span>
+              </div>
+            </div>
+          </div>
+          <div class="progress-spacer">
+            <div class="progress-bar-container">
+              <div class="progress-segment progress-green" style="width: 100%;">
+                <span class="progress-text">${votes2} (100%)</span>
+              </div>
+            </div>
           </div>
         </div>
       `;
     }
     
-    // Normal case with both sides
+    // Normal case with both sides - using wrapper structure
     return `
-      <div class="progress-bar-container">
-        <div class="progress-segment progress-blue" style="width: ${w1}%;">
-          <span class="progress-text">${votes1} (${p1}%)</span>
+      <div class="progress-wrapper">
+        <div class="progress-spacer">
+          <div class="progress-bar-container">
+            <div class="progress-segment progress-blue" style="width: 100%;">
+              <span class="progress-text">${votes1} (${p1}%)</span>
+            </div>
+          </div>
         </div>
-        <div class="progress-segment progress-green" style="width: ${w2}%;">
-          <span class="progress-text">${votes2} (${p2}%)</span>
+        <div class="progress-spacer">
+          <div class="progress-bar-container">
+            <div class="progress-segment progress-green" style="width: 100%;">
+              <span class="progress-text">${votes2} (${p2}%)</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
