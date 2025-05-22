@@ -868,22 +868,7 @@
                 const progressBar = document.getElementById(`progress-${battleId}`);
                 
                 if (progressBar) {
-                  // Prepare the bar for animation
-                  progressBar.classList.add('progress-updating');
-                  
-                  // Update the HTML
                   progressBar.innerHTML = renderProgressBar(votes1, votes2);
-                  
-                  // Add animation class
-                  setTimeout(() => {
-                    progressBar.classList.remove('progress-updating');
-                    progressBar.classList.add('progress-updated');
-                    
-                    // Remove animation class after animation completes
-                    setTimeout(() => {
-                      progressBar.classList.remove('progress-updated');
-                    }, 1000);
-                  }, 50);
                 }
                 
                 // Open share window
@@ -919,51 +904,65 @@
     return parts.join(' ');
   }
 
-  // Render progress bar
+  // Render progress bar with proper proportions and animation
   function renderProgressBar(votes1, votes2) {
     votes1 = parseInt(votes1) || 0;
     votes2 = parseInt(votes2) || 0;
     const total = votes1 + votes2;
     
     // Calculate percentages
-    let p1 = 0, p2 = 0;
+    let p1 = 50, p2 = 50;
     
-    if (total === 0) {
-      // No votes yet, show 50/50
-      p1 = 50;
-      p2 = 50;
-    } else {
-      // Calculate actual percentages
+    if (total > 0) {
       p1 = Math.round((votes1 / total) * 100);
       p2 = 100 - p1;
     }
     
-    // Ensure minimum visible width (prevent 0% from disappearing)
-    const minVisibleWidth = 8; // 8% minimum to show text
-    let w1 = `${p1}%`;
-    let w2 = `${p2}%`;
+    // Calculate actual widths for visual representation
+    let w1 = p1;
+    let w2 = p2;
     
-    // Only apply minimum width if there are votes
+    // Ensure minimum width for text visibility when there are votes
+    const minWidth = 8; // Minimum 8% width to show text
+    
     if (total > 0) {
-      if (p1 === 0) w1 = `${minVisibleWidth}%`;
-      if (p2 === 0) w2 = `${minVisibleWidth}%`;
-      
-      // Adjust the other side to maintain 100% total
-      if (p1 === 0) w2 = `${100 - minVisibleWidth}%`;
-      if (p2 === 0) w1 = `${100 - minVisibleWidth}%`;
+      if (p1 > 0 && p1 < minWidth) {
+        w1 = minWidth;
+        w2 = 100 - minWidth;
+      } else if (p2 > 0 && p2 < minWidth) {
+        w2 = minWidth;
+        w1 = 100 - minWidth;
+      }
     }
     
-    // Show percentages only when there are votes
-    const showPercent = total > 0;
-    const percent1 = showPercent ? `(${p1}%)` : '';
-    const percent2 = showPercent ? `(${p2}%)` : '';
+    // Special handling for 100% cases
+    if (p1 === 100) {
+      return `
+        <div class="progress-bar-container">
+          <div class="progress-segment progress-blue animate-fill" style="width: 100%;">
+            <span class="progress-text">${votes1} (100%)</span>
+          </div>
+        </div>
+      `;
+    } else if (p2 === 100) {
+      return `
+        <div class="progress-bar-container">
+          <div class="progress-segment progress-green animate-fill" style="width: 100%;">
+            <span class="progress-text">${votes2} (100%)</span>
+          </div>
+        </div>
+      `;
+    }
     
+    // Normal case with both sides
     return `
-      <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold transition-all duration-500 ease-in-out" style="width:${w1};">
-        ${votes1} ${percent1}
-      </div>
-      <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold transition-all duration-500 ease-in-out" style="width:${w2};">
-        ${votes2} ${percent2}
+      <div class="progress-bar-container">
+        <div class="progress-segment progress-blue animate-fill" style="width: ${w1}%;">
+          <span class="progress-text">${votes1} (${p1}%)</span>
+        </div>
+        <div class="progress-segment progress-green animate-fill" style="width: ${w2}%;">
+          <span class="progress-text progress-text-right">${votes2} (${p2}%)</span>
+        </div>
       </div>
     `;
   }
