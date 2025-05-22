@@ -748,13 +748,24 @@
     const battleEl = document.createElement('div');
     battleEl.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
     
+    // Button classes based on battle status
+    const blueButtonClass = isActive 
+      ? 'bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn cursor-pointer'
+      : 'bg-gray-400 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg cursor-not-allowed';
+    
+    const greenButtonClass = isActive 
+      ? 'bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn cursor-pointer'
+      : 'bg-gray-400 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg cursor-not-allowed';
+    
+    const buttonText = isActive ? 'Vote' : 'Finished';
+    
     battleEl.innerHTML = `
       <a href="battle.html?id=${battle.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
       <div class="relative flex flex-row gap-2 justify-center items-center">
         <div class="flex flex-col items-center flex-1">
           <img src="${battle.image1||'https://via.placeholder.com/300'}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
           <div class="option-title mt-2">${battle.option1}</div>
-          <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${battle.id}" data-opt="votes1">Vote</button>
+          <button class="${blueButtonClass}" data-battle="${battle.id}" data-opt="votes1" ${!isActive ? 'disabled' : ''}>${buttonText}</button>
         </div>
         <div class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
           <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-none">VS</div>
@@ -762,7 +773,7 @@
         <div class="flex flex-col items-center flex-1">
           <img src="${battle.image2||'https://via.placeholder.com/300'}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
           <div class="option-title mt-2">${battle.option2}</div>
-          <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${battle.id}" data-opt="votes2">Vote</button>
+          <button class="${greenButtonClass}" data-battle="${battle.id}" data-opt="votes2" ${!isActive ? 'disabled' : ''}>${buttonText}</button>
         </div>
       </div>
       <div class="mt-4">
@@ -780,7 +791,16 @@
       state.timers[battle.id] = setInterval(() => {
         const timerEl = document.getElementById(`timer-${battle.id}`);
         if (timerEl) {
-          timerEl.textContent = 'Time Left: ' + calculateTimeLeft(battle.ends_at);
+          const timeLeft = calculateTimeLeft(battle.ends_at);
+          if (timeLeft) {
+            timerEl.textContent = 'Time Left: ' + timeLeft;
+          } else {
+            // Battle just finished, reload to update UI
+            timerEl.textContent = 'Finished';
+            clearInterval(state.timers[battle.id]);
+            // Optionally reload battles to update button states
+            setTimeout(() => loadBattles(), 1000);
+          }
         } else {
           clearInterval(state.timers[battle.id]);
         }
@@ -792,8 +812,21 @@
   function setupVoteButtons() {
     document.querySelectorAll('.vote-btn').forEach(btn => {
       btn.onclick = function() {
+        // Check if button is disabled (finished battle)
+        if (this.disabled || this.classList.contains('cursor-not-allowed')) {
+          return; // Do nothing for finished battles
+        }
+        
         const battleId = this.dataset.battle;
         const option = this.dataset.opt;
+        
+        // Double-check battle is still active before allowing vote
+        const battle = state.battles.find(b => b.id == battleId);
+        if (battle && new Date(battle.ends_at) <= new Date()) {
+          alert('This battle has already finished. You cannot vote anymore.');
+          return;
+        }
+        
         openShareModal(battleId, option);
       };
     });
