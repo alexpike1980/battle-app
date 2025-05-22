@@ -1,44 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FANSHARE Battles</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FanShare - Battle Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    html, body { min-height:100%; }
-    body { font-family: 'Manrope',sans-serif; background: linear-gradient(120deg, #f7faff 70%, #f0f3ff 100%) !important; }
-    .boxed { max-width: 1200px; margin: 0 auto; }
-    .watermark { position:fixed; left:10vw; top:30vh; opacity:.08; font-size:7rem; font-weight:800; pointer-events:none; z-index:0; }
-    @media (max-width:1024px){ .sidebar-right {display:none;} }
-    @media (max-width:768px){ .sidebar-left {display:none;} .boxed{padding:0 0.5rem;} }
-    .vs-circle { 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
-      border-radius:9999px; 
-      font-size:1.2rem; 
-      font-weight:bold; 
-      border:2px solid #fff; 
-      width:56px; 
-      height:56px; 
-      background:#fff; 
-      z-index:20; 
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
-    /* Table structure for battle images */
-    .vs-battle-table {
-      border-collapse: separate;
-      border-spacing: 0;
+    .option-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #374151;
     }
     
-    .vs-battle-table td {
-      vertical-align: middle;
+    .vs-circle {
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    
+
     /* Progress Bar Styles */
     .progress-bar-container {
       display: flex;
@@ -72,333 +54,260 @@
     .progress-segment {
       display: flex;
       align-items: center;
-      padding: 0 12px;
-      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      min-width: 0;
-      font-weight: 600;
-      font-size: 16px;
-      color: white;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      justify-content: center;
       position: relative;
+      transition: width 0.3s ease;
     }
     
     .progress-blue {
-      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-      justify-content: flex-start;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     }
     
     .progress-green {
-      background: linear-gradient(135deg, #10b981 0%, #047857 100%);
-      justify-content: flex-end;
+      background: linear-gradient(135deg, #10b981, #059669);
     }
     
     .progress-text {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 14px;
+      color: white;
       font-weight: 600;
+      font-size: 0.875rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
-    
-    .progress-text-right {
-      text-align: right;
-    }
-    
-    /* Animations and transitions */
-    
-    .animate-fill {
-      animation: progressFill 1.2s ease-out;
-    }
-    
-    @keyframes progressFill {
-      0% { width: 0 !important; }
-      100% { width: var(--target-width); }
-    }
-    
-    /* Mobile responsiveness for progress bars */
-    @media (max-width: 640px) {
-      .progress-bar-container {
-        height: 36px;
-      }
-      
-      .progress-text {
-        font-size: 12px;
-      }
-      
-      .progress-segment {
-        padding: 0 8px;
-      }
-    }
-    
-    /* Mobile Responsiveness */
-    @media (max-width: 640px) {
-      .battle-item {
-        padding: 1rem 0.5rem;
-      }
-      
-      .vs-battle-table td {
-        display: block;
-        width: 100%;
-        padding: 0.5rem 0;
-        text-align: center;
-      }
-      
-      .vs-circle {
-        position: relative;
-        margin: 0.5rem auto;
-        z-index: 10;
-      }
-    }
-    
-    /* Hover effects */
-    .vote-btn:active {
-      transform: scale(0.98);
-    }
-    
-    /* Share and bookmark buttons */
-    .share-btn:active, .bookmark-btn:active {
-      transform: scale(0.9);
-    }
-    
-    /* Confetti animation for voting */
-    .confetti {
-      position: fixed;
-      width: 10px;
-      height: 10px;
-      background-color: #f00;
-      animation: confetti-fall 3s ease-in-out forwards;
-      z-index: 1000;
-    }
-    
-    @keyframes confetti-fall {
-      0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-    }
-    @media (max-width: 640px) { .vs-circle{ width:42px;height:42px;font-size:1rem; } }
-    .tab-btn.active { color: #2563eb !important; border-bottom: 2px solid #2563eb !important; }
-    #tabIndicator { transition: left 0.28s cubic-bezier(.6,1.2,.4,1), width 0.28s cubic-bezier(.6,1.2,.4,1); height: 3px !important; background: #2563eb !important; border-radius: 2px; bottom: 0; }
-    
-    /* Modal Styles */
+
+    /* Create Battle Modal Styles */
     .modal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-    }
-    .modal-content {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 0.5rem;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    .hidden {
+      background: rgba(0, 0, 0, 0.5);
       display: none;
-    }
-    .time-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .time-tab {
-      padding: 0.5rem;
-      border-radius: 0.25rem;
-      background: #f1f5f9;
-      border: none;
-      cursor: pointer;
-    }
-    .time-tab.active {
-      background: #2563eb;
-      color: white;
-    }
-    .share-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .share-btn {
-      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      color: white;
-      border-radius: 0.25rem;
-      text-decoration: none;
-      transition: opacity 0.2s;
-      flex: 1;
-      min-width: 120px;
+      z-index: 1000;
+      padding: 1rem;
     }
-    .share-btn:hover {
-      opacity: 0.9;
-    }
-    .share-btn img {
-      width: 24px;
-      height: 24px;
-    }
-    .facebook {
-      background-color: #1877f2;
-    }
-    .twitter {
-      background-color: #1da1f2;
-    }
-    .reddit {
-      background-color: #ff4500;
-    }
-    .cancel-btn {
+    
+    .modal-content {
+      background: white;
+      border-radius: 12px;
       width: 100%;
-      padding: 0.75rem;
-      background-color: #e5e7eb;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-weight: 500;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      position: relative;
     }
-    .cancel-btn:hover {
-      background-color: #d1d5db;
+    
+    /* Mobile optimizations - SIMPLIFIED */
+    @media (max-width: 767px) {
+      .modal {
+        padding: 1rem;
+        align-items: flex-start;
+        padding-top: 2rem;
+      }
+      
+      .modal-content {
+        max-height: 85vh;
+        padding: 1rem;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+      }
+      
+      /* Force all form elements to stay within bounds */
+      .modal input, 
+      .modal button {
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      
+      /* Stack image upload vertically */
+      .image-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
+      
+      /* Make duration buttons smaller and wrap */
+      .duration-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        margin: 1rem 0;
+      }
+      
+      .duration-grid button {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+      }
+    }
+
+    /* Share Modal Styles */
+    .share-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      padding: 20px;
+    }
+    
+    .share-modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
     }
   </style>
 </head>
-<body class="bg-white">
 
-  <div class="watermark select-none text-blue-700 hidden md:block">FANSHARE</div>
-  <header class="bg-white border-b sticky top-0 z-30">
-    <div class="boxed flex items-center justify-between py-3 px-4 md:px-8">
-      <div class="text-2xl font-extrabold tracking-tight text-blue-700">FANSHARE</div>
-      <div class="flex gap-2 items-center">
-        <button id="createBattleBtn" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700 transition hidden md:block">Create Battle</button>
-        <div class="rounded-full bg-gray-200 w-9 h-9 flex items-center justify-center text-gray-600 font-bold text-lg">A</div>
-      </div>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b">
+    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
+      <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
+        + Create Battle
+      </button>
     </div>
   </header>
 
-  <div class="boxed flex gap-8 pt-6 pb-16 md:pb-8 bg-transparent min-h-[85vh] relative">
-    <aside class="sidebar-left w-18 md:w-56 hidden md:flex flex-col pt-3 border-r border-gray-200 min-h-[80vh]">
-      <div>
-        <button id="createBattleBtn2" class="w-full px-3 py-2 mb-4 rounded bg-blue-100 text-blue-700 font-semibold">Create Battle</button>
-        <div class="font-bold mb-2">Menu</div>
-        <ul class="space-y-2 text-gray-600">
-          <li><a href="#" class="hover:text-blue-600">Home</a></li>
-          <li><a href="#" class="hover:text-blue-600">Trending</a></li>
-          <li><a href="#" class="hover:text-blue-600">Profile</a></li>
-        </ul>
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="flex space-x-8">
+        <button onclick="showTab('featured')" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-tab="featured">
+          Featured
+        </button>
+        <button onclick="showTab('active')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="active">
+          Active
+        </button>
+        <button onclick="showTab('finished')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="finished">
+          Finished
+        </button>
       </div>
-      <div class="mt-8">
-        <div class="font-semibold text-gray-500 text-xs mb-2">Trending</div>
-        <ul class="text-sm space-y-1">
-          <li>#Euro2024</li>
-          <li>#MusicBattles</li>
-          <li>#Fashion</li>
-        </ul>
-      </div>
-    </aside>
-
-    <main class="flex-1 max-w-[620px] w-full border-x border-gray-200 min-h-[80vh] bg-white relative">
-      <div class="sticky top-[64px] z-10 bg-white pt-2 pb-1 border-b border-gray-200 flex items-center gap-1">
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600 active"
-                id="tab-featured" data-tab="featured">Featured</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-active" data-tab="active">Active</button>
-        <button class="tab-btn px-5 py-2 text-gray-700 font-semibold border-b-2 border-transparent transition hover:text-blue-600"
-                id="tab-finished" data-tab="finished">Finished</button>
-        <span id="tabIndicator" class="absolute h-1 bg-blue-600 rounded-full transition-all duration-300" style="bottom:0; left:0; width:0;"></span>
-      </div>
-      <div id="battleList" class="flex flex-col gap-0 mt-4"></div>
-    </main>
-
-    <aside class="sidebar-right hidden xl:flex flex-col w-72 shrink-0 gap-6">
-      <div class="text-xl font-bold mb-3">Top Battles</div>
-      <div class="bg-gray-100 rounded-lg p-4 mb-2">[Widget Placeholder]</div>
-      <div class="bg-gray-100 rounded-lg p-4 mb-2">[Ad Banner]</div>
-    </aside>
-  </div>
-
-  <nav class="fixed md:hidden bottom-0 left-0 w-full bg-white border-t flex justify-around py-2 z-50">
-    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
-      <svg width="24" height="24" fill="none" class="mb-1"><path d="M4 10l8-6 8 6" stroke="currentColor" stroke-width="2"/><path d="M4 10v10h16V10" stroke="currentColor" stroke-width="2"/></svg>
-      <span class="text-xs">Home</span>
-    </a>
-    <button id="navFab" class="bg-blue-600 text-white w-12 h-12 rounded-full -mt-8 shadow-lg flex items-center justify-center text-3xl">+</button>
-    <a href="#" class="flex flex-col items-center text-gray-700 hover:text-blue-600">
-      <svg width="24" height="24" fill="none" class="mb-1"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M6 20c0-2 4-4 6-4s6 2 6 4" stroke="currentColor" stroke-width="2"/></svg>
-      <span class="text-xs">Profile</span>
-    </a>
+    </div>
   </nav>
 
-  <div id="createModal" class="modal hidden">
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto py-6">
+    <div id="battles-container">
+      <!-- Battles will be loaded here -->
+    </div>
+  </main>
+
+  <!-- Create Battle Modal -->
+  <div id="createModal" class="modal">
     <div class="modal-content">
-      <h2 class="text-2xl font-semibold mb-4">Create New Battle</h2>
-      <input type="text" id="title" placeholder="Title" class="w-full mb-3 p-2 border rounded"/>
-      <div class="mb-4">
-        <input type="text" id="option1" placeholder="Option 1" class="w-full mb-2 p-2 border rounded"/>
-        <label for="image1File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 1</label>
-        <input type="file" id="image1File" class="hidden" />
-      </div>
-      <div class="mb-4">
-        <input type="text" id="option2" placeholder="Option 2" class="w-full mb-2 p-2 border rounded"/>
-        <label for="image2File" class="inline-block mb-3 px-4 py-2 bg-gray-200 text-gray-800 rounded cursor-pointer hover:bg-gray-300 transition">Upload Image 2</label>
-        <input type="file" id="image2File" class="hidden" />
-      </div>
-      <div class="time-selector mb-4">
-        <div class="time-tabs">
-          <button type="button" class="time-tab active" data-unit="minutes">Minutes</button>
-          <button type="button" class="time-tab" data-unit="hours">Hours</button>
-          <button type="button" class="time-tab" data-unit="days">Days</button>
-          <button type="button" class="time-tab" data-unit="date">Pick Date</button>
+      <h2 class="text-2xl font-bold mb-4">Create New Battle</h2>
+      
+      <div class="space-y-4">
+        <!-- Battle Title -->
+        <input type="text" id="battleTitle" placeholder="Battle title" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        
+        <!-- Option 1 -->
+        <input type="text" id="option1" placeholder="Option 1" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        
+        <!-- Image 1 Upload -->
+        <div class="image-section">
+          <input type="text" id="image1" placeholder="Image URL" 
+                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button type="button" onclick="document.getElementById('file1').click()" 
+                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+            Upload Image
+          </button>
+          <input type="file" id="file1" style="display: none;" accept="image/*" onchange="handleImageUpload(this, 'image1')">
         </div>
-        <input type="number" id="duration" placeholder="Enter minutes" min="1" class="p-2 border rounded w-full"/>
-        <input type="datetime-local" id="datetimePicker" class="hidden p-2 border rounded w-full mt-2"/>
-      </div>
-      <div class="flex justify-end gap-2">
-        <button id="cancelCreateBtn" class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition">Cancel</button>
-        <button id="submitBattleBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Submit</button>
+        
+        <!-- Option 2 -->
+        <input type="text" id="option2" placeholder="Option 2" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        
+        <!-- Image 2 Upload -->
+        <div class="image-section">
+          <input type="text" id="image2" placeholder="Image URL" 
+                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button type="button" onclick="document.getElementById('file2').click()" 
+                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+            Upload Image
+          </button>
+          <input type="file" id="file2" style="display: none;" accept="image/*" onchange="handleImageUpload(this, 'image2')">
+        </div>
+        
+        <!-- Duration Selection -->
+        <div>
+          <div class="duration-grid">
+            <button type="button" onclick="setDurationType('minutes')" 
+                    class="bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" id="minutesBtn">
+              Minutes
+            </button>
+            <button type="button" onclick="setDurationType('hours')" 
+                    class="bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="hoursBtn">
+              Hours
+            </button>
+            <button type="button" onclick="setDurationType('days')" 
+                    class="bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="daysBtn">
+              Days
+            </button>
+            <button type="button" onclick="pickCustomDate()" 
+                    class="bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="customBtn">
+              Pick Date
+            </button>
+          </div>
+          
+          <input type="number" id="duration" placeholder="60" min="1" 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2">
+          <input type="datetime-local" id="customDate" 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 hidden mt-2">
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-3 pt-4">
+          <button type="button" onclick="closeCreateModal()" 
+                  class="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium">
+            Cancel
+          </button>
+          <button type="button" onclick="submitBattle()" 
+                  class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+            Submit
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="shareModal" class="modal hidden">
-    <div id="shareModalContent" class="modal-content">
-      <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
-      <div class="share-buttons">
-        <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
-          <span>Facebook</span>
-        </a>
-        <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
-          <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
-          <span>X.com</span>
-        </a>
-        <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
-          <span>Reddit</span>
-        </a>
+  <!-- Share Modal -->
+  <div id="shareModal" class="share-modal">
+    <div class="share-modal-content">
+      <h3 class="text-xl font-bold mb-4">Share to Vote!</h3>
+      <p class="text-gray-600 mb-6">Share this battle with your friends to cast your vote!</p>
+      <div class="flex gap-3">
+        <button onclick="shareToTwitter()" class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition">
+          Share on X
+        </button>
+        <button onclick="copyLink()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+          Copy Link
+        </button>
       </div>
-      <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
+      <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700">
+        Close
+      </button>
     </div>
   </div>
-  <script>
-    document.getElementById('createBattleBtn')?.addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    document.getElementById('createBattleBtn2')?.addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    document.getElementById('navFab')?.addEventListener('click', () => {
-      document.getElementById('createModal').classList.remove('hidden');
-    });
-    document.getElementById('cancelCreateBtn')?.addEventListener('click', () => {
-      document.getElementById('createModal').classList.add('hidden');
-    });
-  </script>
-  <script type="module" src="./main.js"></script>
-  <script type="module" src="./tabs.js"></script>
+
+  <script src="main.js"></script>
 </body>
 </html>
