@@ -44,11 +44,27 @@
       display: flex;
       width: 100%;
       height: 40px;
-      border-radius: 20px;
+      border-radius: 8px;
       overflow: hidden;
       margin-top: 12px;
+      margin-left: auto;
+      margin-right: auto;
       position: relative;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Align progress bar with vote buttons */
+    @media (min-width: 768px) {
+      .progress-bar-container {
+        width: 90%;
+        max-width: 520px;
+      }
+    }
+    
+    @media (max-width: 767px) {
+      .progress-bar-container {
+        width: 100%;
+      }
     }
     
     .progress-segment {
