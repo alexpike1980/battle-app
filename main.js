@@ -1,4 +1,3 @@
-
 // Minimal stable solution - focus only on battle display
 (function() {
   // Global variables with safe initialization
