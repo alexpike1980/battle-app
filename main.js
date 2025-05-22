@@ -953,7 +953,7 @@
     if (p1 === 100) {
       return `
         <div class="progress-bar-container">
-          <div class="progress-segment progress-blue" style="width: 100%; border-radius: 20px;">
+          <div class="progress-segment progress-blue" style="width: 100%; border-radius: 8px;">
             <span class="progress-text">${votes1} (100%)</span>
           </div>
         </div>
@@ -961,7 +961,7 @@
     } else if (p2 === 100) {
       return `
         <div class="progress-bar-container">
-          <div class="progress-segment progress-green" style="width: 100%; border-radius: 20px;">
+          <div class="progress-segment progress-green" style="width: 100%; border-radius: 8px;">
             <span class="progress-text">${votes2} (100%)</span>
           </div>
         </div>
