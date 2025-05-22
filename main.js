@@ -862,22 +862,14 @@
                   return;
                 }
                 
-                // Update UI with animation
+                // Update UI
                 const votes1 = col === 'votes1' ? newVotes : battle.votes1;
                 const votes2 = col === 'votes2' ? newVotes : battle.votes2;
                 const progressContainer = document.getElementById(`progress-${battleId}`);
                 
                 if (progressContainer) {
-                  // Add update animation to the container
-                  progressContainer.classList.add('progress-updated');
-                  
-                  // Update progress bar content
+                  // Update progress bar content with smooth width transitions
                   progressContainer.innerHTML = renderProgressBar(votes1, votes2);
-                  
-                  // Remove animation class after it completes
-                  setTimeout(() => {
-                    progressContainer.classList.remove('progress-updated');
-                  }, 1000);
                 }
                 
                 // Open share window
