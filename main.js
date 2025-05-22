@@ -744,36 +744,58 @@
   // Render a single battle
   function renderBattle(battle, container) {
     const isActive = new Date(battle.ends_at) > new Date();
+    const votes1 = parseInt(battle.votes1) || 0;
+    const votes2 = parseInt(battle.votes2) || 0;
+    const total = votes1 + votes2;
+    
+    // Determine winner for finished battles
+    let winner = null;
+    if (!isActive && total > 0) {
+      if (votes1 > votes2) winner = 1;
+      else if (votes2 > votes1) winner = 2;
+      // If votes1 === votes2, winner remains null (tie)
+    }
     
     const battleEl = document.createElement('div');
     battleEl.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
     
-    // Button classes based on battle status
-    const blueButtonClass = isActive 
-      ? 'bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn cursor-pointer'
-      : 'bg-gray-400 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg cursor-not-allowed';
+    // Generate button/badge content based on battle status
+    let option1Content, option2Content;
     
-    const greenButtonClass = isActive 
-      ? 'bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn cursor-pointer'
-      : 'bg-gray-400 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg cursor-not-allowed';
-    
-    const buttonText = isActive ? 'Vote' : 'Finished';
+    if (isActive) {
+      // Active battle - show vote buttons
+      option1Content = `<button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes1">Vote</button>`;
+      option2Content = `<button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes2">Vote</button>`;
+    } else {
+      // Finished battle - show winner badge or tie message
+      if (winner === 1) {
+        option1Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center shadow-lg">🏆 WINNER</div>`;
+        option2Content = `<div class="mt-3 h-12"></div>`; // Empty space to maintain layout
+      } else if (winner === 2) {
+        option1Content = `<div class="mt-3 h-12"></div>`; // Empty space to maintain layout
+        option2Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center shadow-lg">🏆 WINNER</div>`;
+      } else {
+        // Tie or no votes
+        option1Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center">TIE</div>`;
+        option2Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center">TIE</div>`;
+      }
+    }
     
     battleEl.innerHTML = `
       <a href="battle.html?id=${battle.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
       <div class="relative flex flex-row gap-2 justify-center items-center">
         <div class="flex flex-col items-center flex-1">
           <img src="${battle.image1||'https://via.placeholder.com/300'}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
-          <div class="option-title mt-2">${battle.option1}</div>
-          <button class="${blueButtonClass}" data-battle="${battle.id}" data-opt="votes1" ${!isActive ? 'disabled' : ''}>${buttonText}</button>
+          <div class="option-title mt-2 font-semibold ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
+          ${option1Content}
         </div>
         <div class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
           <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-none">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
           <img src="${battle.image2||'https://via.placeholder.com/300'}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
-          <div class="option-title mt-2">${battle.option2}</div>
-          <button class="${greenButtonClass}" data-battle="${battle.id}" data-opt="votes2" ${!isActive ? 'disabled' : ''}>${buttonText}</button>
+          <div class="option-title mt-2 font-semibold ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
+          ${option2Content}
         </div>
       </div>
       <div class="mt-4">
@@ -781,7 +803,7 @@
           ${renderProgressBar(battle.votes1, battle.votes2)}
         </div>
       </div>
-      <div id="timer-${battle.id}" class="text-xs text-gray-500 pt-1">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : 'Finished'}</div>
+      <div id="timer-${battle.id}" class="text-xs text-gray-500 pt-1">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : '🏁 Final Results'}</div>
     `;
     
     container.appendChild(battleEl);
@@ -796,9 +818,9 @@
             timerEl.textContent = 'Time Left: ' + timeLeft;
           } else {
             // Battle just finished, reload to update UI
-            timerEl.textContent = 'Finished';
+            timerEl.textContent = '🏁 Final Results';
             clearInterval(state.timers[battle.id]);
-            // Optionally reload battles to update button states
+            // Reload battles to update button states and show winner
             setTimeout(() => loadBattles(), 1000);
           }
         } else {
