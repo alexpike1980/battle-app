@@ -191,6 +191,25 @@
     const votes2 = parseInt(battle.votes2) || 0;
     const total = votes1 + votes2;
     
+    // Better image URL handling
+    const getImageUrl = (imageUrl, optionName) => {
+      if (!imageUrl || imageUrl.trim() === '') {
+        return `https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(optionName)}`;
+      }
+      
+      // Check if it's a valid URL
+      try {
+        new URL(imageUrl);
+        return imageUrl;
+      } catch {
+        // If not a valid URL, treat as placeholder
+        return `https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(optionName)}`;
+      }
+    };
+    
+    const image1Url = getImageUrl(battle.image1, battle.option1);
+    const image2Url = getImageUrl(battle.image2, battle.option2);
+    
     // Determine winner for finished battles
     let winner = null;
     if (!isActive && total > 0) {
@@ -229,7 +248,8 @@
       <div class="relative flex flex-row gap-2 justify-center items-start">
         <div class="flex flex-col items-center flex-1">
           <div class="relative">
-            <img src="${battle.image1||'https://via.placeholder.com/300'}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+            <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" 
+                 onerror="this.src='https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}'" />
           </div>
           <div class="option-title mt-2 font-semibold ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
           ${option1Content}
@@ -239,7 +259,8 @@
         </div>
         <div class="flex flex-col items-center flex-1">
           <div class="relative">
-            <img src="${battle.image2||'https://via.placeholder.com/300'}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
+            <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" 
+                 onerror="this.src='https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}'" />
           </div>
           <div class="option-title mt-2 font-semibold ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
           ${option2Content}
