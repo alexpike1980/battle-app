@@ -37,7 +37,8 @@
     /* Align progress bar with battle images full width */
     @media (min-width: 768px) {
       .progress-bar-container {
-        width: calc(260px + 260px + 0.5rem); /* Two desktop images + gap */
+        width: 100%;
+        max-width: 580px; /* Matches two 260px images + 60px gap */
         margin-left: auto;
         margin-right: auto;
       }
@@ -45,8 +46,8 @@
     
     @media (max-width: 767px) {
       .progress-bar-container {
-        width: calc(220px + 220px + 0.5rem); /* Two mobile images + gap */
-        max-width: calc(100% - 1rem);
+        width: 100%;
+        max-width: 480px; /* Matches two 220px images + 40px gap */
         margin-left: auto;
         margin-right: auto;
       }
