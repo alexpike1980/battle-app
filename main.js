@@ -219,7 +219,7 @@
     }
     
     const battleEl = document.createElement('div');
-    battleEl.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2';
+    battleEl.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2 max-w-4xl mx-auto';
     
     // Generate button/badge content based on battle status
     let option1Content, option2Content;
@@ -245,33 +245,33 @@
     
     battleEl.innerHTML = `
       <a href="battle.html?id=${battle.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
-      <div class="relative flex flex-row gap-4 md:gap-6 justify-center items-start max-w-3xl mx-auto">
+      <div class="relative flex flex-row gap-2 justify-center items-start">
         <div class="flex flex-col items-center flex-1">
           <div class="relative">
-            <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[200px]" 
+            <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" 
                  onerror="this.src='https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}'" />
           </div>
           <div class="option-title mt-2 font-semibold ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
           ${option1Content}
         </div>
-        <div class="absolute z-20 left-1/2 top-[90px] md:top-[100px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-4 border-gray-200 shadow-lg">VS</div>
+        <div class="absolute z-20 left-1/2 top-[90px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-gray-200 shadow-md">VS</div>
         </div>
         <div class="flex flex-col items-center flex-1">
           <div class="relative">
-            <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[200px]" 
+            <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" 
                  onerror="this.src='https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}'" />
           </div>
           <div class="option-title mt-2 font-semibold ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
           ${option2Content}
         </div>
       </div>
-      <div class="mt-4 max-w-3xl mx-auto">
+      <div class="mt-4">
         <div id="progress-${battle.id}" class="w-full">
           ${renderProgressBar(battle.votes1, battle.votes2)}
         </div>
       </div>
-      <div id="timer-${battle.id}" class="text-xs text-gray-500 pt-1 text-center">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : '🏁 Final Results'}</div>
+      <div id="timer-${battle.id}" class="text-xs text-gray-500 pt-1">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : '🏁 Final Results'}</div>
     `;
     
     container.appendChild(battleEl);
