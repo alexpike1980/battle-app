@@ -218,39 +218,12 @@
     const votes2 = parseInt(battle.votes2) || 0;
     const total = votes1 + votes2;
     
-    // Better placeholder service that works reliably
-    const createPlaceholder = (text, color) => {
-      return `https://dummyimage.com/300x200/${color}/ffffff&text=${encodeURIComponent(text)}`;
-    };
+    // Check if we have real, valid image URLs
+    const hasRealImage1 = battle.image1 && battle.image1.trim() !== '' && battle.image1.startsWith('http');
+    const hasRealImage2 = battle.image2 && battle.image2.trim() !== '' && battle.image2.startsWith('http');
     
-    // Fallback to solid color CSS-based placeholders if all else fails
-    const createCSSPlaceholder = (text, bgColor, textColor) => {
-      return `data:image/svg+xml,${encodeURIComponent(`
-        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100%" height="100%" fill="${bgColor}"/>
-          <text x="50%" y="50%" font-family="Arial" font-size="20" fill="${textColor}" text-anchor="middle" dy=".3em">${text}</text>
-        </svg>
-      `)}`;
-    };
-    
-    // Smart image URL handling with multiple fallbacks
-    let image1Url, image2Url;
-    
-    if (battle.image1 && battle.image1.trim() !== '' && battle.image1.startsWith('http')) {
-      image1Url = battle.image1.trim();
-      console.log('Using real image1:', image1Url);
-    } else {
-      image1Url = createCSSPlaceholder(battle.option1, '#4F46E5', '#ffffff');
-      console.log('Using CSS placeholder for image1');
-    }
-    
-    if (battle.image2 && battle.image2.trim() !== '' && battle.image2.startsWith('http')) {
-      image2Url = battle.image2.trim();
-      console.log('Using real image2:', image2Url);
-    } else {
-      image2Url = createCSSPlaceholder(battle.option2, '#10B981', '#ffffff');
-      console.log('Using CSS placeholder for image2');
-    }
+    console.log('Has real image1:', hasRealImage1);
+    console.log('Has real image2:', hasRealImage2);
     
     // Determine winner for finished battles
     let winner = null;
@@ -281,6 +254,29 @@
       }
     }
     
+    // Create image content - either real img tag or CSS placeholder
+    const image1Content = hasRealImage1 
+      ? `<img src="${battle.image1.trim()}" alt="${battle.option1}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
+           onload="console.log('Image 1 loaded successfully')"
+           onerror="console.log('Image 1 failed, hiding'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+         <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-blue-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
+           ${battle.option1}
+         </div>`
+      : `<div class="w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-xl text-center p-4 shadow-lg">
+           ${battle.option1}
+         </div>`;
+         
+    const image2Content = hasRealImage2 
+      ? `<img src="${battle.image2.trim()}" alt="${battle.option2}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
+           onload="console.log('Image 2 loaded successfully')"
+           onerror="console.log('Image 2 failed, hiding'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+         <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-green-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
+           ${battle.option2}
+         </div>`
+      : `<div class="w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg flex items-center justify-center font-bold text-xl text-center p-4 shadow-lg">
+           ${battle.option2}
+         </div>`;
+    
     battleEl.innerHTML = `
       <div class="max-w-2xl mx-auto w-full">
         <a href="battle.html?id=${battle.id}" class="text-xl md:text-2xl font-semibold mb-4 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
@@ -289,12 +285,7 @@
           <!-- Option 1 -->
           <div class="flex flex-col items-center w-full sm:w-auto">
             <div class="relative">
-              <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
-                   onload="console.log('Image 1 loaded successfully')"
-                   onerror="console.log('Image 1 failed, using final fallback'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-              <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-blue-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
-                ${battle.option1}
-              </div>
+              ${image1Content}
             </div>
             <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
             <div class="w-full max-w-[280px] sm:max-w-[240px]">
@@ -310,12 +301,7 @@
           <!-- Option 2 -->
           <div class="flex flex-col items-center w-full sm:w-auto">
             <div class="relative">
-              <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
-                   onload="console.log('Image 2 loaded successfully')"
-                   onerror="console.log('Image 2 failed, using final fallback'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-              <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-green-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
-                ${battle.option2}
-              </div>
+              ${image2Content}
             </div>
             <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
             <div class="w-full max-w-[280px] sm:max-w-[240px]">
@@ -577,19 +563,62 @@
     document.getElementById(inputId).value = '';
   }
   
-  // Image upload handler
-  function handleImageUpload(input, targetInputId) {
+  // Image upload handler with Supabase Storage
+  async function handleImageUpload(input, targetInputId) {
     const file = input.files[0];
     if (!file) return;
     
-    // Create a local URL for the uploaded file
-    const imageUrl = URL.createObjectURL(file);
+    // Show loading state
     const targetInput = document.getElementById(targetInputId);
-    targetInput.value = imageUrl;
+    const originalValue = targetInput.value;
+    targetInput.value = 'Uploading...';
+    targetInput.disabled = true;
     
-    // Trigger preview
-    const previewId = targetInputId === 'image1' ? 'preview1' : 'preview2';
-    previewImage(targetInputId, previewId);
+    try {
+      console.log('Uploading file to Supabase Storage:', file.name);
+      
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `battle-images/${fileName}`;
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('images')  // Make sure this bucket exists in your Supabase project
+        .upload(filePath, file);
+      
+      if (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
+      
+      console.log('File uploaded successfully:', data);
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('images')
+        .getPublicUrl(filePath);
+      
+      console.log('Public URL:', publicUrl);
+      
+      // Set the URL in the input
+      targetInput.value = publicUrl;
+      targetInput.disabled = false;
+      
+      // Trigger preview
+      const previewId = targetInputId === 'image1' ? 'preview1' : 'preview2';
+      previewImage(targetInputId, previewId);
+      
+      alert('Image uploaded successfully!');
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image: ' + error.message);
+      
+      // Restore original state
+      targetInput.value = originalValue;
+      targetInput.disabled = false;
+    }
   }
   
   // Test function to create a battle with working images
@@ -716,6 +745,9 @@
       return;
     }
     
+    // Test storage access
+    await testStorageAccess();
+    
     // Debug: List all elements with IDs
     console.log('DEBUG: All elements with IDs:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
     
@@ -742,6 +774,40 @@
     }
     
     console.log('✅ App initialized successfully!');
+  }
+  
+  // Test storage access and provide setup instructions
+  async function testStorageAccess() {
+    try {
+      console.log('Testing Supabase Storage access...');
+      
+      // Try to list buckets
+      const { data, error } = await supabase.storage.listBuckets();
+      
+      if (error) {
+        console.error('Storage access error:', error);
+        console.log('📋 SETUP REQUIRED: Please create a storage bucket named "images" in your Supabase dashboard');
+        return;
+      }
+      
+      console.log('Available storage buckets:', data);
+      
+      // Check if 'images' bucket exists
+      const imagesBucket = data.find(bucket => bucket.name === 'images');
+      if (!imagesBucket) {
+        console.warn('⚠️ SETUP REQUIRED: Please create a storage bucket named "images" in your Supabase dashboard');
+        console.log('Instructions:');
+        console.log('1. Go to your Supabase dashboard');
+        console.log('2. Navigate to Storage');
+        console.log('3. Create a new bucket named "images"');
+        console.log('4. Set it to public if you want images to be publicly accessible');
+      } else {
+        console.log('✅ Images bucket found and ready to use');
+      }
+    } catch (error) {
+      console.error('Storage test failed:', error);
+      console.log('📋 SETUP REQUIRED: Please set up Supabase Storage');
+    }
   }
   
   // Make functions globally available
