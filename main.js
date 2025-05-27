@@ -202,35 +202,45 @@
     console.log('Battle title:', battle.title);
     console.log('Battle image1 raw:', battle.image1);
     console.log('Battle image2 raw:', battle.image2);
-    console.log('Battle image1 type:', typeof battle.image1);
-    console.log('Battle image2 type:', typeof battle.image2);
     
     const isActive = new Date(battle.ends_at) > new Date();
     const votes1 = parseInt(battle.votes1) || 0;
     const votes2 = parseInt(battle.votes2) || 0;
     const total = votes1 + votes2;
     
-    // Very simple image handling - let's see what we're actually getting
+    // Better placeholder service that works reliably
+    const createPlaceholder = (text, color) => {
+      return `https://dummyimage.com/300x200/${color}/ffffff&text=${encodeURIComponent(text)}`;
+    };
+    
+    // Fallback to solid color CSS-based placeholders if all else fails
+    const createCSSPlaceholder = (text, bgColor, textColor) => {
+      return `data:image/svg+xml,${encodeURIComponent(`
+        <svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="${bgColor}"/>
+          <text x="50%" y="50%" font-family="Arial" font-size="20" fill="${textColor}" text-anchor="middle" dy=".3em">${text}</text>
+        </svg>
+      `)}`;
+    };
+    
+    // Smart image URL handling with multiple fallbacks
     let image1Url, image2Url;
     
-    if (battle.image1 && battle.image1.trim() !== '') {
+    if (battle.image1 && battle.image1.trim() !== '' && battle.image1.startsWith('http')) {
       image1Url = battle.image1.trim();
-      console.log('Using battle.image1:', image1Url);
+      console.log('Using real image1:', image1Url);
     } else {
-      image1Url = `https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}`;
-      console.log('Using placeholder for image1:', image1Url);
+      image1Url = createCSSPlaceholder(battle.option1, '#4F46E5', '#ffffff');
+      console.log('Using CSS placeholder for image1');
     }
     
-    if (battle.image2 && battle.image2.trim() !== '') {
+    if (battle.image2 && battle.image2.trim() !== '' && battle.image2.startsWith('http')) {
       image2Url = battle.image2.trim();
-      console.log('Using battle.image2:', image2Url);
+      console.log('Using real image2:', image2Url);
     } else {
-      image2Url = `https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}`;
-      console.log('Using placeholder for image2:', image2Url);
+      image2Url = createCSSPlaceholder(battle.option2, '#10B981', '#ffffff');
+      console.log('Using CSS placeholder for image2');
     }
-    
-    console.log('Final URLs - image1:', image1Url);
-    console.log('Final URLs - image2:', image2Url);
     
     // Determine winner for finished battles
     let winner = null;
@@ -270,8 +280,11 @@
           <div class="flex flex-col items-center w-full sm:w-auto">
             <div class="relative">
               <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
-                   onload="console.log('Image 1 loaded successfully:', this.src)"
-                   onerror="console.log('Image 1 failed to load:', this.src); this.src='https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}'" />
+                   onload="console.log('Image 1 loaded successfully')"
+                   onerror="console.log('Image 1 failed, using final fallback'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-blue-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
+                ${battle.option1}
+              </div>
             </div>
             <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
             <div class="w-full max-w-[280px] sm:max-w-[240px]">
@@ -288,8 +301,11 @@
           <div class="flex flex-col items-center w-full sm:w-auto">
             <div class="relative">
               <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
-                   onload="console.log('Image 2 loaded successfully:', this.src)"
-                   onerror="console.log('Image 2 failed to load:', this.src); this.src='https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}'" />
+                   onload="console.log('Image 2 loaded successfully')"
+                   onerror="console.log('Image 2 failed, using final fallback'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+              <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-green-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
+                ${battle.option2}
+              </div>
             </div>
             <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
             <div class="w-full max-w-[280px] sm:max-w-[240px]">
