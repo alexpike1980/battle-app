@@ -584,12 +584,20 @@
       
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
-        .from('images')  // Make sure this bucket exists in your Supabase project
+        .from('images')
         .upload(filePath, file);
       
       if (error) {
-        console.error('Upload error:', error);
-        throw error;
+        console.error('Upload error details:', error);
+        
+        // Specific error handling
+        if (error.message?.includes('Bucket not found') || error.error === 'Bucket not found') {
+          throw new Error('Storage bucket "images" not found. Please create it in your Supabase dashboard under Storage.');
+        } else if (error.message?.includes('new row violates row-level security')) {
+          throw new Error('Storage permission denied. Please disable RLS for the "images" bucket or create proper policies.');
+        } else {
+          throw new Error(error.message || 'Upload failed');
+        }
       }
       
       console.log('File uploaded successfully:', data);
@@ -613,7 +621,15 @@
       
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Error uploading image: ' + error.message);
+      
+      // Show helpful error message
+      let errorMessage = 'Error uploading image: ' + error.message;
+      
+      if (error.message.includes('Bucket not found')) {
+        errorMessage += '\n\nTo fix this:\n1. Go to Supabase Dashboard\n2. Navigate to Storage\n3. Create a bucket named "images"\n4. Set it to public';
+      }
+      
+      alert(errorMessage);
       
       // Restore original state
       targetInput.value = originalValue;
