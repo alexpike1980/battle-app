@@ -71,17 +71,27 @@
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      console.log('Raw battles data from database:', data);
+      console.log('=== DATABASE BATTLES ===');
+      console.log('Total battles found:', data?.length || 0);
       
-      // Log each battle's image data specifically
       if (data && data.length > 0) {
         data.forEach((battle, index) => {
-          console.log(`Battle ${index + 1} (${battle.title}):`);
-          console.log('  - image1:', battle.image1);
-          console.log('  - image2:', battle.image2);
-          console.log('  - image1 type:', typeof battle.image1);
-          console.log('  - image2 type:', typeof battle.image2);
+          console.log(`\n--- Battle ${index + 1} ---`);
+          console.log('ID:', battle.id);
+          console.log('Title:', battle.title);
+          console.log('Option1:', battle.option1);
+          console.log('Option2:', battle.option2);
+          console.log('Image1 raw:', JSON.stringify(battle.image1));
+          console.log('Image2 raw:', JSON.stringify(battle.image2));
+          console.log('Image1 length:', battle.image1?.length || 0);
+          console.log('Image2 length:', battle.image2?.length || 0);
+          console.log('Votes1:', battle.votes1);
+          console.log('Votes2:', battle.votes2);
         });
+        
+        // Show the first battle's full data structure
+        console.log('\n=== FIRST BATTLE FULL DATA ===');
+        console.log(JSON.stringify(data[0], null, 2));
       }
       
       return data || [];
@@ -582,6 +592,33 @@
     previewImage(targetInputId, previewId);
   }
   
+  // Test function to create a battle with working images
+  async function createTestBattle() {
+    try {
+      const testBattle = {
+        title: "Cat vs Dog",
+        option1: "Cat",
+        option2: "Dog", 
+        image1: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&h=200&fit=crop",
+        image2: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=200&fit=crop",
+        votes1: 0,
+        votes2: 0,
+        ends_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+      };
+      
+      console.log('Creating test battle:', testBattle);
+      const result = await createBattle(testBattle);
+      console.log('Test battle created:', result);
+      
+      // Reload battles to show the new one
+      loadBattles();
+      alert('Test battle created with real images!');
+    } catch (error) {
+      console.error('Error creating test battle:', error);
+      alert('Error creating test battle: ' + error.message);
+    }
+  }
+  
   // Submit battle
   async function submitBattle() {
     const title = document.getElementById('battleTitle').value.trim();
@@ -723,6 +760,7 @@
   window.copyLink = copyLink;
   window.previewImage = previewImage;
   window.removePreview = removePreview;
+  window.createTestBattle = createTestBattle;
   
   // Run when DOM is loaded
   document.addEventListener('DOMContentLoaded', init);
