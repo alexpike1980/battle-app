@@ -71,7 +71,19 @@
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      console.log('Loaded battles from database:', data);
+      console.log('Raw battles data from database:', data);
+      
+      // Log each battle's image data specifically
+      if (data && data.length > 0) {
+        data.forEach((battle, index) => {
+          console.log(`Battle ${index + 1} (${battle.title}):`);
+          console.log('  - image1:', battle.image1);
+          console.log('  - image2:', battle.image2);
+          console.log('  - image1 type:', typeof battle.image1);
+          console.log('  - image2 type:', typeof battle.image2);
+        });
+      }
+      
       return data || [];
     } catch (error) {
       console.error('Error fetching battles from database:', error);
@@ -186,94 +198,119 @@
   
   // Render a single battle
   function renderBattle(battle, container) {
+    console.log('=== RENDERING BATTLE ===');
+    console.log('Battle title:', battle.title);
+    console.log('Battle image1 raw:', battle.image1);
+    console.log('Battle image2 raw:', battle.image2);
+    console.log('Battle image1 type:', typeof battle.image1);
+    console.log('Battle image2 type:', typeof battle.image2);
+    
     const isActive = new Date(battle.ends_at) > new Date();
     const votes1 = parseInt(battle.votes1) || 0;
     const votes2 = parseInt(battle.votes2) || 0;
     const total = votes1 + votes2;
     
-    // Better image URL handling
-    const getImageUrl = (imageUrl, optionName) => {
-      if (!imageUrl || imageUrl.trim() === '') {
-        return `https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(optionName)}`;
-      }
-      
-      // Check if it's a valid URL
-      try {
-        new URL(imageUrl);
-        return imageUrl;
-      } catch {
-        // If not a valid URL, treat as placeholder
-        return `https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(optionName)}`;
-      }
-    };
+    // Very simple image handling - let's see what we're actually getting
+    let image1Url, image2Url;
     
-    const image1Url = getImageUrl(battle.image1, battle.option1);
-    const image2Url = getImageUrl(battle.image2, battle.option2);
+    if (battle.image1 && battle.image1.trim() !== '') {
+      image1Url = battle.image1.trim();
+      console.log('Using battle.image1:', image1Url);
+    } else {
+      image1Url = `https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}`;
+      console.log('Using placeholder for image1:', image1Url);
+    }
+    
+    if (battle.image2 && battle.image2.trim() !== '') {
+      image2Url = battle.image2.trim();
+      console.log('Using battle.image2:', image2Url);
+    } else {
+      image2Url = `https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}`;
+      console.log('Using placeholder for image2:', image2Url);
+    }
+    
+    console.log('Final URLs - image1:', image1Url);
+    console.log('Final URLs - image2:', image2Url);
     
     // Determine winner for finished battles
     let winner = null;
     if (!isActive && total > 0) {
       if (votes1 > votes2) winner = 1;
       else if (votes2 > votes1) winner = 2;
-      // If votes1 === votes2, winner remains null (tie)
     }
     
     const battleEl = document.createElement('div');
-    battleEl.className = 'bg-white py-8 px-2 md:px-6 flex flex-col gap-2 border-b border-gray-200 mb-2 max-w-4xl mx-auto';
+    battleEl.className = 'bg-white py-6 px-4 flex flex-col gap-4 border-b border-gray-200 mb-4';
     
     // Generate button/badge content based on battle status
     let option1Content, option2Content;
     
     if (isActive) {
-      // Active battle - show vote buttons
-      option1Content = `<button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes1">Vote</button>`;
-      option2Content = `<button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes2">Vote</button>`;
+      option1Content = `<button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg transition hover:bg-blue-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes1">Vote</button>`;
+      option2Content = `<button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg transition hover:bg-green-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes2">Vote</button>`;
     } else {
-      // Finished battle - show winner badge or tie message
       if (winner === 1) {
-        option1Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center shadow-lg">🏆 WINNER</div>`;
-        option2Content = `<div class="mt-3 h-12"></div>`; // Empty space to maintain layout
+        option1Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg text-center shadow-lg">🏆 WINNER</div>`;
+        option2Content = `<div class="mt-3 h-12"></div>`;
       } else if (winner === 2) {
-        option1Content = `<div class="mt-3 h-12"></div>`; // Empty space to maintain layout
-        option2Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center shadow-lg">🏆 WINNER</div>`;
+        option1Content = `<div class="mt-3 h-12"></div>`;
+        option2Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg text-center shadow-lg">🏆 WINNER</div>`;
       } else {
-        // Tie or no votes
-        option1Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center">TIE</div>`;
-        option2Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg text-center">TIE</div>`;
+        option1Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full text-lg text-center">TIE</div>`;
+        option2Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full text-lg text-center">TIE</div>`;
       }
     }
     
     battleEl.innerHTML = `
-      <a href="battle.html?id=${battle.id}" class="text-2xl font-semibold mb-2 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
-      <div class="relative flex flex-row gap-2 justify-center items-start">
-        <div class="flex flex-col items-center flex-1">
-          <div class="relative">
-            <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" 
-                 onerror="this.src='https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}'" />
+      <div class="max-w-2xl mx-auto w-full">
+        <a href="battle.html?id=${battle.id}" class="text-xl md:text-2xl font-semibold mb-4 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
+        
+        <div class="relative flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <!-- Option 1 -->
+          <div class="flex flex-col items-center w-full sm:w-auto">
+            <div class="relative">
+              <img src="${image1Url}" alt="${battle.option1}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
+                   onload="console.log('Image 1 loaded successfully:', this.src)"
+                   onerror="console.log('Image 1 failed to load:', this.src); this.src='https://via.placeholder.com/300x200/4F46E5/white?text=${encodeURIComponent(battle.option1)}'" />
+            </div>
+            <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
+            <div class="w-full max-w-[280px] sm:max-w-[240px]">
+              ${option1Content}
+            </div>
           </div>
-          <div class="option-title mt-2 font-semibold ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
-          ${option1Content}
-        </div>
-        <div class="absolute z-20 left-1/2 top-[90px] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-          <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-gray-200 shadow-md">VS</div>
-        </div>
-        <div class="flex flex-col items-center flex-1">
-          <div class="relative">
-            <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" 
-                 onerror="this.src='https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}'" />
+          
+          <!-- VS Circle -->
+          <div class="flex items-center justify-center py-4 sm:py-0">
+            <div class="bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-gray-200 shadow-md rounded-full">VS</div>
           </div>
-          <div class="option-title mt-2 font-semibold ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
-          ${option2Content}
+          
+          <!-- Option 2 -->
+          <div class="flex flex-col items-center w-full sm:w-auto">
+            <div class="relative">
+              <img src="${image2Url}" alt="${battle.option2}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
+                   onload="console.log('Image 2 loaded successfully:', this.src)"
+                   onerror="console.log('Image 2 failed to load:', this.src); this.src='https://via.placeholder.com/300x200/10B981/white?text=${encodeURIComponent(battle.option2)}'" />
+            </div>
+            <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
+            <div class="w-full max-w-[280px] sm:max-w-[240px]">
+              ${option2Content}
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="mt-4">
-        <div id="progress-${battle.id}" class="w-full">
-          ${renderProgressBar(battle.votes1, battle.votes2)}
+        
+        <!-- Progress Bar -->
+        <div class="mt-6">
+          <div id="progress-${battle.id}" class="w-full max-w-lg mx-auto">
+            ${renderProgressBar(battle.votes1, battle.votes2)}
+          </div>
         </div>
+        
+        <!-- Timer -->
+        <div id="timer-${battle.id}" class="text-sm text-gray-500 pt-2 text-center">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : '🏁 Final Results'}</div>
       </div>
-      <div id="timer-${battle.id}" class="text-xs text-gray-500 pt-1">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : '🏁 Final Results'}</div>
     `;
     
+    console.log('Battle HTML created, appending to container');
     container.appendChild(battleEl);
     
     // Set up timer for active battles
@@ -285,10 +322,8 @@
           if (timeLeft) {
             timerEl.textContent = 'Time Left: ' + timeLeft;
           } else {
-            // Battle just finished, reload to update UI
             timerEl.textContent = '🏁 Final Results';
             clearInterval(state.timers[battle.id]);
-            // Reload battles to update button states and show winner
             setTimeout(() => loadBattles(), 1000);
           }
         } else {
@@ -316,6 +351,8 @@
     state.timers = {};
     
     getBattles().then(battles => {
+      console.log('Battles loaded:', battles); // Debug log
+      
       if (!battles || battles.length === 0) {
         container.innerHTML = '<div class="text-center py-8 text-gray-500">No battles found.</div>';
         updateSidebarStats(0, 0, 0);
@@ -332,6 +369,8 @@
         filteredBattles = battles.filter(battle => new Date(battle.ends_at) <= new Date());
       }
       
+      console.log('Filtered battles for display:', filteredBattles); // Debug log
+      
       if (filteredBattles.length === 0) {
         container.innerHTML = '<div class="text-center py-8 text-gray-500">No battles in this category.</div>';
         updateSidebarStats(battles.length, battles.filter(b => new Date(b.ends_at) > new Date()).length, 0);
@@ -339,7 +378,10 @@
       }
       
       container.innerHTML = '';
-      filteredBattles.forEach(battle => renderBattle(battle, container));
+      filteredBattles.forEach(battle => {
+        console.log('Rendering battle:', battle); // Debug log
+        renderBattle(battle, container);
+      });
       
       // Update sidebar stats
       const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
