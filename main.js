@@ -563,76 +563,77 @@
     document.getElementById(inputId).value = '';
   }
   
-  // Image upload handler with Supabase Storage
+  // Simple image upload handler - back to basics
   async function handleImageUpload(input, targetInputId) {
     const file = input.files[0];
     if (!file) return;
     
     // Show loading state
     const targetInput = document.getElementById(targetInputId);
-    const originalValue = targetInput.value;
     targetInput.value = 'Uploading...';
     targetInput.disabled = true;
     
     try {
-      console.log('Uploading file to Supabase Storage:', file.name);
+      console.log('Uploading file:', file.name);
       
-      // Generate unique filename
+      // Simple filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `battle-images/${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
       
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('images')
-        .upload(filePath, file);
+      console.log('Uploading to path:', fileName);
       
-      if (error) {
-        console.error('Upload error details:', error);
-        
-        // Specific error handling
-        if (error.message?.includes('Bucket not found') || error.error === 'Bucket not found') {
-          throw new Error('Storage bucket "images" not found. Please create it in your Supabase dashboard under Storage.');
-        } else if (error.message?.includes('new row violates row-level security')) {
-          throw new Error('Storage permission denied. Please disable RLS for the "images" bucket or create proper policies.');
-        } else {
-          throw new Error(error.message || 'Upload failed');
-        }
+      // Upload to Supabase Storage - try different bucket names
+      let uploadResult;
+      try {
+        // Try 'images' bucket first
+        uploadResult = await supabase.storage
+          .from('images')
+          .upload(fileName, file);
+      } catch (error) {
+        console.log('Images bucket failed, trying default bucket...');
+        // If that fails, try without bucket specification or different name
+        uploadResult = await supabase.storage
+          .from('avatars') // Common default bucket
+          .upload(fileName, file);
       }
       
-      console.log('File uploaded successfully:', data);
+      const { data, error } = uploadResult;
       
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath);
+      if (error) {
+        console.error('Upload error:', error);
+        throw new Error(error.message);
+      }
+      
+      console.log('Upload successful:', data);
+      
+      // Get public URL - try both bucket names
+      let publicUrl;
+      try {
+        const result = supabase.storage.from('images').getPublicUrl(fileName);
+        publicUrl = result.data.publicUrl;
+      } catch (error) {
+        const result = supabase.storage.from('avatars').getPublicUrl(fileName);
+        publicUrl = result.data.publicUrl;
+      }
       
       console.log('Public URL:', publicUrl);
       
-      // Set the URL in the input
+      // Set the URL
       targetInput.value = publicUrl;
       targetInput.disabled = false;
       
-      // Trigger preview
+      // Preview
       const previewId = targetInputId === 'image1' ? 'preview1' : 'preview2';
       previewImage(targetInputId, previewId);
       
-      alert('Image uploaded successfully!');
+      console.log('Upload complete!');
       
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Upload failed:', error);
+      alert('Upload failed: ' + error.message);
       
-      // Show helpful error message
-      let errorMessage = 'Error uploading image: ' + error.message;
-      
-      if (error.message.includes('Bucket not found')) {
-        errorMessage += '\n\nTo fix this:\n1. Go to Supabase Dashboard\n2. Navigate to Storage\n3. Create a bucket named "images"\n4. Set it to public';
-      }
-      
-      alert(errorMessage);
-      
-      // Restore original state
-      targetInput.value = originalValue;
+      // Reset
+      targetInput.value = '';
       targetInput.disabled = false;
     }
   }
@@ -661,6 +662,33 @@
     } catch (error) {
       console.error('Error creating test battle:', error);
       alert('Error creating test battle: ' + error.message);
+    }
+  }
+
+  // Manual function to create storage bucket
+  async function createStorageBucket() {
+    try {
+      console.log('Attempting to create storage bucket...');
+      
+      const { data, error } = await supabase.storage.createBucket('images', {
+        public: true,
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        fileSizeLimit: 10485760 // 10MB
+      });
+      
+      if (error) {
+        console.error('Failed to create bucket:', error);
+        alert('Failed to create bucket: ' + error.message + '\n\nPlease create it manually in Supabase dashboard:\n1. Go to Storage\n2. New Bucket\n3. Name: "images"\n4. Public: ON');
+      } else {
+        console.log('Bucket created successfully!', data);
+        alert('✅ Storage bucket "images" created successfully!\n\nYou can now upload images to your battles.');
+        
+        // Test storage again
+        await testStorageAccess();
+      }
+    } catch (error) {
+      console.error('Error creating bucket:', error);
+      alert('Error creating bucket: ' + error.message);
     }
   }
   
@@ -792,37 +820,28 @@
     console.log('✅ App initialized successfully!');
   }
   
-  // Test storage access and provide setup instructions
+  // Simple storage test - don't try to create buckets automatically
   async function testStorageAccess() {
     try {
-      console.log('Testing Supabase Storage access...');
-      
-      // Try to list buckets
+      console.log('Testing storage access...');
       const { data, error } = await supabase.storage.listBuckets();
       
       if (error) {
-        console.error('Storage access error:', error);
-        console.log('📋 SETUP REQUIRED: Please create a storage bucket named "images" in your Supabase dashboard');
+        console.log('Storage not accessible:', error.message);
         return;
       }
       
-      console.log('Available storage buckets:', data);
+      console.log('Available buckets:', data?.map(b => b.name) || []);
       
-      // Check if 'images' bucket exists
-      const imagesBucket = data.find(bucket => bucket.name === 'images');
-      if (!imagesBucket) {
-        console.warn('⚠️ SETUP REQUIRED: Please create a storage bucket named "images" in your Supabase dashboard');
-        console.log('Instructions:');
-        console.log('1. Go to your Supabase dashboard');
-        console.log('2. Navigate to Storage');
-        console.log('3. Create a new bucket named "images"');
-        console.log('4. Set it to public if you want images to be publicly accessible');
+      if (data?.find(bucket => bucket.name === 'images')) {
+        console.log('✅ Images bucket ready');
+      } else if (data?.find(bucket => bucket.name === 'avatars')) {
+        console.log('✅ Avatars bucket available as fallback');
       } else {
-        console.log('✅ Images bucket found and ready to use');
+        console.log('ℹ️ No storage buckets found - you may need to create one');
       }
     } catch (error) {
-      console.error('Storage test failed:', error);
-      console.log('📋 SETUP REQUIRED: Please set up Supabase Storage');
+      console.log('Storage test skipped:', error.message);
     }
   }
   
@@ -843,6 +862,7 @@
   window.previewImage = previewImage;
   window.removePreview = removePreview;
   window.createTestBattle = createTestBattle;
+  window.createStorageBucket = createStorageBucket;
   
   // Run when DOM is loaded
   document.addEventListener('DOMContentLoaded', init);
