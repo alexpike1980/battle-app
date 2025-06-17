@@ -188,98 +188,100 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen">
-  <!-- Header -->
-  <header class="bg-white shadow-sm border-b">
-    <div class="w-[900px] mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
-      <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-        + Create Battle
-      </button>
-    </div>
-  </header>
-
-  <!-- Navigation Tabs -->
-  <nav class="bg-white border-b">
-    <div class="w-[900px] mx-auto px-4">
-      <div class="flex space-x-8">
-        <button onclick="showTab('featured')" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-tab="featured">
-          Featured
-        </button>
-        <button onclick="showTab('active')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="active">
-          Active
-        </button>
-        <button onclick="showTab('finished')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="finished">
-          Finished
+  <div class="max-w-[900px] mx-auto">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+      <div class="px-4 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
+        <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
+          + Create Battle
         </button>
       </div>
-    </div>
-  </nav>
+    </header>
 
-  <!-- Main Content -->
-  <main class="w-[900px] mx-auto py-6 px-4 flex gap-4">
-    <!-- Left Content Area -->
-    <div class="flex-1">
-      <div class="battle-container">
-        <div id="battles-container">
-          <!-- Battles will be loaded here -->
+    <!-- Navigation Tabs -->
+    <nav class="bg-white border-b">
+      <div class="px-4">
+        <div class="flex space-x-8">
+          <button onclick="showTab('featured')" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-tab="featured">
+            Featured
+          </button>
+          <button onclick="showTab('active')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="active">
+            Active
+          </button>
+          <button onclick="showTab('finished')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="finished">
+            Finished
+          </button>
         </div>
       </div>
-    </div>
-    
-    <!-- Right Sidebar -->
-    <aside class="hidden xl:block w-64 flex-shrink-0 pl-4">
-      <div class="bg-white rounded-lg shadow-sm border p-6">
-        <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
-        <div class="space-y-3">
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#TechBattles</span>
-            <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">124 battles</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#MovieVsMovie</span>
-            <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">89 battles</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#FoodFight</span>
-            <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">67 battles</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#SportsFace</span>
-            <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">45 battles</span>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="py-6 px-4 flex gap-4">
+      <!-- Left Content Area -->
+      <div class="flex-1">
+        <div class="battle-container">
+          <div id="battles-container">
+            <!-- Battles will be loaded here -->
           </div>
         </div>
       </div>
       
-      <div class="bg-white rounded-lg shadow-sm border p-6 mt-6">
-        <h3 class="text-lg font-semibold mb-4">📊 Quick Stats</h3>
-        <div class="space-y-4">
-          <div class="flex justify-between">
-            <span class="text-gray-600">Total Battles</span>
-            <span class="font-semibold" id="total-battles">-</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Active Now</span>
-            <span class="font-semibold text-green-600" id="active-battles">-</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Total Votes</span>
-            <span class="font-semibold" id="total-votes">-</span>
+      <!-- Right Sidebar -->
+      <aside class="hidden lg:block w-64 flex-shrink-0">
+        <div class="bg-white rounded-lg shadow-sm border p-6">
+          <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#TechBattles</span>
+              <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">124 battles</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#MovieVsMovie</span>
+              <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">89 battles</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#FoodFight</span>
+              <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">67 battles</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#SportsFace</span>
+              <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">45 battles</span>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm p-6 mt-6 text-white">
-        <h3 class="text-lg font-semibold mb-2">💡 Create Epic Battles!</h3>
-        <p class="text-blue-100 text-sm mb-4">Share your ideas and let the community decide the winner.</p>
-        <button onclick="openCreateModal()" class="w-full bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition font-medium mb-2">
-          Start New Battle
-        </button>
-        <button onclick="createTestBattle()" class="w-full bg-yellow-400 text-yellow-900 py-2 px-4 rounded-lg hover:bg-yellow-300 transition font-medium text-sm">
-          🧪 Create Test Battle (with images)
-        </button>
-      </div>
-    </aside>
-  </main>
+        
+        <div class="bg-white rounded-lg shadow-sm border p-6 mt-6">
+          <h3 class="text-lg font-semibold mb-4">📊 Quick Stats</h3>
+          <div class="space-y-4">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Total Battles</span>
+              <span class="font-semibold" id="total-battles">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Active Now</span>
+              <span class="font-semibold text-green-600" id="active-battles">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Total Votes</span>
+              <span class="font-semibold" id="total-votes">-</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm p-6 mt-6 text-white">
+          <h3 class="text-lg font-semibold mb-2">💡 Create Epic Battles!</h3>
+          <p class="text-blue-100 text-sm mb-4">Share your ideas and let the community decide the winner.</p>
+          <button onclick="openCreateModal()" class="w-full bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition font-medium mb-2">
+            Start New Battle
+          </button>
+          <button onclick="createTestBattle()" class="w-full bg-yellow-400 text-yellow-900 py-2 px-4 rounded-lg hover:bg-yellow-300 transition font-medium text-sm">
+            🧪 Create Test Battle (with images)
+          </button>
+        </div>
+      </aside>
+    </main>
+  </div>
 
   <!-- Create Battle Modal -->
   <div id="createModal" class="modal">
