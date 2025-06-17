@@ -1,396 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FanShare - Battle Platform</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    .option-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #374151;
-    }
-    
-    .vs-circle {
-      border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat vs Dog Battle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* Progress Bar Styles */
-    .progress-bar-container {
-      display: flex;
-      width: 100%;
-      height: 40px;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-top: 12px;
-      position: relative;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Align progress bar with battle images full width */
-    @media (min-width: 768px) {
-      .progress-bar-container {
-        width: 100%;
-        max-width: 580px; /* Matches two 260px images + 60px gap */
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
-    
-    @media (max-width: 767px) {
-      .progress-bar-container {
-        width: 100%;
-        max-width: 480px; /* Matches two 220px images + 40px gap */
-        margin-left: auto;
-        margin-right: auto;
-      }
-    }
-    
-    .progress-segment {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      transition: width 0.3s ease;
-    }
-    
-    .progress-blue {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    }
-    
-    .progress-green {
-      background: linear-gradient(135deg, #10b981, #059669);
-    }
-    
-    .progress-text {
-      color: white;
-      font-weight: 600;
-      font-size: 0.875rem;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-    /* Create Battle Modal Styles */
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 1rem;
-    }
-    
-    .modal-content {
-      background: white;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 1.5rem;
-      position: relative;
-    }
-    
-    /* Mobile optimizations - SIMPLIFIED */
-    @media (max-width: 767px) {
-      .modal {
-        padding: 1rem;
-        align-items: flex-start;
-        padding-top: 2rem;
-      }
-      
-      .modal-content {
-        max-height: 85vh;
-        padding: 1rem;
-        width: 100%;
-        max-width: none;
-        margin: 0;
-      }
-      
-      /* Force all form elements to stay within bounds */
-      .modal input, 
-      .modal button {
-        max-width: 100%;
-        width: 100%;
-        box-sizing: border-box;
-      }
-      
-      /* Stack image upload vertically */
-      .image-section {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin: 1rem 0;
-      }
-      
-      /* Make duration buttons smaller and wrap */
-      .duration-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-        margin: 1rem 0;
-      }
-      
-      .duration-grid button {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.875rem;
-      }
-    }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* Share Modal Styles */
-    .share-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1001;
-      padding: 20px;
-    }
-    
-    .share-modal-content {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-    }
-  </style>
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .images-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .image-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+            max-width: 300px;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper:hover img {
+            transform: scale(1.05);
+        }
+
+        .image-label {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .vs-circle {
+            background: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .vote-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 60px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .vote-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .vote-btn.cat {
+            background: linear-gradient(135deg, #4b7bec 0%, #3867d6 100%);
+        }
+
+        .vote-btn.cat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(56, 103, 214, 0.3);
+        }
+
+        .vote-btn.dog {
+            background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%);
+        }
+
+        .vote-btn.dog:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(32, 191, 107, 0.3);
+        }
+
+        .vote-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 50px;
+            height: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill {
+            display: flex;
+            height: 100%;
+            transition: all 0.5s ease;
+        }
+
+        .progress-cat {
+            background: linear-gradient(135deg, #4b7bec 0%, #3867d6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            transition: all 0.5s ease;
+        }
+
+        .progress-dog {
+            background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            transition: all 0.5s ease;
+        }
+
+        .timer {
+            margin-top: 20px;
+            font-size: 1em;
+            color: #666;
+        }
+
+        .winner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .winner-modal {
+            background: white;
+            padding: 60px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .winner-modal h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .winner-modal p {
+            font-size: 1.5em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .play-again-btn {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .images-container {
+                flex-direction: column;
+            }
+            
+            .vs-circle {
+                margin: 20px 0;
+            }
+            
+            .vote-buttons {
+                flex-direction: column;
+            }
+            
+            .vote-btn {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
-
-<body class="bg-gray-50 min-h-screen">
-  <!-- Header -->
-  <header class="bg-white shadow-sm border-b">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
-      <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-        + Create Battle
-      </button>
+<body>
+    <div class="container">
+        <h1>Cat vs Dog</h1>
+        
+        <div class="images-container">
+            <div class="image-wrapper">
+                <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&h=300&fit=crop" alt="Cat">
+                <div class="image-label">Cat</div>
+            </div>
+            
+            <div class="vs-circle">VS</div>
+            
+            <div class="image-wrapper">
+                <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400&h=300&fit=crop" alt="Dog">
+                <div class="image-label">Dog</div>
+            </div>
+        </div>
+        
+        <div class="vote-buttons">
+            <button class="vote-btn cat" onclick="vote('cat')">Vote</button>
+            <button class="vote-btn dog" onclick="vote('dog')">Vote</button>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="display: flex;">
+                <div class="progress-cat" id="catProgress" style="width: 50%;">50%</div>
+                <div class="progress-dog" id="dogProgress" style="width: 50%;">50%</div>
+            </div>
+        </div>
+        
+        <div class="timer" id="timer">Time Left: 24h 0m</div>
     </div>
-  </header>
 
-  <!-- Navigation Tabs -->
-  <nav class="bg-white border-b">
-    <div class="max-w-4xl mx-auto px-4">
-      <div class="flex space-x-8">
-        <button onclick="showTab('featured')" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-tab="featured">
-          Featured
-        </button>
-        <button onclick="showTab('active')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="active">
-          Active
-        </button>
-        <button onclick="showTab('finished')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="finished">
-          Finished
-        </button>
-      </div>
+    <div class="winner-overlay" id="winnerOverlay">
+        <div class="winner-modal">
+            <h2 id="winnerTitle">Winner!</h2>
+            <p id="winnerText"></p>
+            <button class="play-again-btn" onclick="resetBattle()">Start New Battle</button>
+        </div>
     </div>
-  </nav>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto py-6 flex gap-6">
-    <!-- Left Content Area -->
-    <div class="flex-1">
-      <div id="battles-container">
-        <!-- Battles will be loaded here -->
-      </div>
-    </div>
-    
-    <!-- Right Sidebar -->
-    <aside class="hidden lg:block w-80">
-      <div class="bg-white rounded-lg shadow-sm border p-6">
-        <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
-        <div class="space-y-3">
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#TechBattles</span>
-            <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">124 battles</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#MovieVsMovie</span>
-            <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">89 battles</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#FoodFight</span>
-            <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">67 battles</span>
-          </div>
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-gray-600">#SportsFace</span>
-            <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">45 battles</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white rounded-lg shadow-sm border p-6 mt-6">
-        <h3 class="text-lg font-semibold mb-4">📊 Quick Stats</h3>
-        <div class="space-y-4">
-          <div class="flex justify-between">
-            <span class="text-gray-600">Total Battles</span>
-            <span class="font-semibold" id="total-battles">-</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Active Now</span>
-            <span class="font-semibold text-green-600" id="active-battles">-</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-gray-600">Total Votes</span>
-            <span class="font-semibold" id="total-votes">-</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm p-6 mt-6 text-white">
-        <h3 class="text-lg font-semibold mb-2">💡 Create Epic Battles!</h3>
-        <p class="text-blue-100 text-sm mb-4">Share your ideas and let the community decide the winner.</p>
-        <button onclick="openCreateModal()" class="w-full bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition font-medium mb-2">
-          Start New Battle
-        </button>
-        <button onclick="createTestBattle()" class="w-full bg-yellow-400 text-yellow-900 py-2 px-4 rounded-lg hover:bg-yellow-300 transition font-medium text-sm">
-          🧪 Create Test Battle (with images)
-        </button>
-      </div>
-    </aside>
-  </main>
+    <script>
+        // Battle state
+        let battleState = {
+            catVotes: 0,
+            dogVotes: 0,
+            endTime: null,
+            hasVoted: false
+        };
 
-  <!-- Create Battle Modal -->
-  <div id="createModal" class="modal">
-    <div class="modal-content">
-      <h2 class="text-2xl font-bold mb-4">Create New Battle</h2>
-      
-      <div class="space-y-4">
-        <!-- Battle Title -->
-        <input type="text" id="battleTitle" placeholder="Battle title" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-        
-        <!-- Option 1 -->
-        <input type="text" id="option1" placeholder="Option 1" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-        
-        <!-- Image 1 Upload -->
-        <div class="image-section">
-          <input type="text" id="image1" placeholder="Image URL" 
-                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                 oninput="previewImage('image1', 'preview1')">
-          <button type="button" onclick="document.getElementById('file1').click()" 
-                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-            Upload Image
-          </button>
-          <input type="file" id="file1" style="display: none;" accept="image/*" onchange="handleImageUpload(this, 'image1')">
-          <!-- Image Preview -->
-          <div id="preview1" class="hidden mt-2">
-            <img id="preview1-img" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg border">
-            <button type="button" onclick="removePreview('preview1', 'image1')" class="mt-1 text-red-500 text-xs hover:text-red-700">Remove image</button>
-          </div>
-        </div>
-        
-        <!-- Option 2 -->
-        <input type="text" id="option2" placeholder="Option 2" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-        
-        <!-- Image 2 Upload -->
-        <div class="image-section">
-          <input type="text" id="image2" placeholder="Image URL" 
-                 class="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                 oninput="previewImage('image2', 'preview2')">
-          <button type="button" onclick="document.getElementById('file2').click()" 
-                  class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
-            Upload Image
-          </button>
-          <input type="file" id="file2" style="display: none;" accept="image/*" onchange="handleImageUpload(this, 'image2')">
-          <!-- Image Preview -->
-          <div id="preview2" class="hidden mt-2">
-            <img id="preview2-img" src="" alt="Preview" class="w-full h-32 object-cover rounded-lg border">
-            <button type="button" onclick="removePreview('preview2', 'image2')" class="mt-1 text-red-500 text-xs hover:text-red-700">Remove image</button>
-          </div>
-        </div>
-        
-        <!-- Duration Selection -->
-        <div>
-          <div class="duration-grid">
-            <button type="button" onclick="setDurationType('minutes')" 
-                    class="bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" id="minutesBtn">
-              Minutes
-            </button>
-            <button type="button" onclick="setDurationType('hours')" 
-                    class="bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="hoursBtn">
-              Hours
-            </button>
-            <button type="button" onclick="setDurationType('days')" 
-                    class="bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="daysBtn">
-              Days
-            </button>
-            <button type="button" onclick="pickCustomDate()" 
-                    class="bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition" id="customBtn">
-              Pick Date
-            </button>
-          </div>
-          
-          <input type="number" id="duration" placeholder="60" min="1" 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mt-2">
-          <input type="datetime-local" id="customDate" 
-                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 hidden mt-2">
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex gap-3 pt-4">
-          <button type="button" onclick="closeCreateModal()" 
-                  class="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-medium">
-            Cancel
-          </button>
-          <button type="button" onclick="submitBattle()" 
-                  class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
-            Submit
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+        // Initialize battle
+        function initBattle() {
+            const saved = localStorage.getItem('battleState');
+            if (saved) {
+                battleState = JSON.parse(saved);
+                if (battleState.endTime && new Date(battleState.endTime) <= new Date()) {
+                    showWinner();
+                    return;
+                }
+            } else {
+                battleState.endTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+                saveBattleState();
+            }
+            
+            updateUI();
+            startTimer();
+        }
 
-  <!-- Share Modal -->
-  <div id="shareModal" class="share-modal">
-    <div class="share-modal-content">
-      <h3 class="text-xl font-bold mb-4">🎉 Vote Recorded!</h3>
-      <p class="text-gray-600 mb-6">Share this battle with your friends to get more votes!</p>
-      
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
-          <span>𝕏</span>
-          <span>Twitter</span>
-        </button>
-        <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
-          <span>📘</span>
-          <span>Facebook</span>
-        </button>
-        <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition">
-          <span>🟠</span>
-          <span>Reddit</span>
-        </button>
-        <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
-          <span>🔗</span>
-          <span>Copy Link</span>
-        </button>
-      </div>
-      
-      <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
-        Close
-      </button>
-    </div>
-  </div>
+        // Save battle state
+        function saveBattleState() {
+            localStorage.setItem('battleState', JSON.stringify(battleState));
+        }
 
-  <script src="main.js"></script>
+        // Vote function
+        function vote(option) {
+            if (battleState.hasVoted) {
+                alert('You have already voted in this battle!');
+                return;
+            }
+            
+            if (option === 'cat') {
+                battleState.catVotes++;
+            } else {
+                battleState.dogVotes++;
+            }
+            
+            battleState.hasVoted = true;
+            saveBattleState();
+            updateUI();
+            
+            // Disable vote buttons
+            document.querySelectorAll('.vote-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+        }
+
+        // Update UI
+        function updateUI() {
+            const total = battleState.catVotes + battleState.dogVotes;
+            let catPercent = 50;
+            let dogPercent = 50;
+            
+            if (total > 0) {
+                catPercent = Math.round((battleState.catVotes / total) * 100);
+                dogPercent = 100 - catPercent;
+            }
+            
+            document.getElementById('catProgress').style.width = catPercent + '%';
+            document.getElementById('catProgress').textContent = catPercent + '%';
+            document.getElementById('dogProgress').style.width = dogPercent + '%';
+            document.getElementById('dogProgress').textContent = dogPercent + '%';
+            
+            // Disable buttons if already voted
+            if (battleState.hasVoted) {
+                document.querySelectorAll('.vote-btn').forEach(btn => {
+                    btn.disabled = true;
+                });
+            }
+        }
+
+        // Timer function
+        function startTimer() {
+            function update() {
+                const now = new Date();
+                const end = new Date(battleState.endTime);
+                const diff = end - now;
+                
+                if (diff <= 0) {
+                    showWinner();
+                    return;
+                }
+                
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                document.getElementById('timer').textContent = `Time Left: ${hours}h ${minutes}m`;
+                
+                setTimeout(update, 60000); // Update every minute
+            }
+            
+            update();
+        }
+
+        // Show winner
+        function showWinner() {
+            const catPercent = battleState.catVotes / (battleState.catVotes + battleState.dogVotes) * 100;
+            const winner = catPercent > 50 ? 'Cat' : catPercent < 50 ? 'Dog' : 'Tie';
+            
+            document.getElementById('winnerTitle').textContent = winner === 'Tie' ? "It's a Tie!" : `${winner} Wins!`;
+            document.getElementById('winnerText').textContent = `Final results: Cat ${Math.round(catPercent)}% - Dog ${Math.round(100 - catPercent)}%`;
+            document.getElementById('winnerOverlay').style.display = 'flex';
+        }
+
+        // Reset battle
+        function resetBattle() {
+            localStorage.removeItem('battleState');
+            location.reload();
+        }
+
+        // Initialize on load
+        initBattle();
+    </script>
 </body>
 </html>
