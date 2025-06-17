@@ -206,7 +206,7 @@
     `;
   }
   
-  // Render a single battle
+  // Render a single battle with FIXED mobile layout
   function renderBattle(battle, container) {
     console.log('=== RENDERING BATTLE ===');
     console.log('Battle title:', battle.title);
@@ -256,24 +256,24 @@
     
     // Create image content - either real img tag or CSS placeholder
     const image1Content = hasRealImage1 
-      ? `<img src="${battle.image1.trim()}" alt="${battle.option1}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
+      ? `<img src="${battle.image1.trim()}" alt="${battle.option1}" class="object-cover rounded-lg w-full h-[120px] sm:h-[180px]" 
            onload="console.log('Image 1 loaded successfully')"
            onerror="console.log('Image 1 failed, hiding'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-         <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-blue-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
+         <div class="hidden w-full h-[120px] sm:h-[180px] bg-blue-500 text-white rounded-lg items-center justify-center font-bold text-base sm:text-lg text-center p-2 sm:p-4">
            ${battle.option1}
          </div>`
-      : `<div class="w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-xl text-center p-4 shadow-lg">
+      : `<div class="w-full h-[120px] sm:h-[180px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-base sm:text-xl text-center p-2 sm:p-4 shadow-lg">
            ${battle.option1}
          </div>`;
          
     const image2Content = hasRealImage2 
-      ? `<img src="${battle.image2.trim()}" alt="${battle.option2}" class="object-cover rounded-lg w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px]" 
+      ? `<img src="${battle.image2.trim()}" alt="${battle.option2}" class="object-cover rounded-lg w-full h-[120px] sm:h-[180px]" 
            onload="console.log('Image 2 loaded successfully')"
            onerror="console.log('Image 2 failed, hiding'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-         <div class="hidden w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-green-500 text-white rounded-lg items-center justify-center font-bold text-lg text-center p-4">
+         <div class="hidden w-full h-[120px] sm:h-[180px] bg-green-500 text-white rounded-lg items-center justify-center font-bold text-base sm:text-lg text-center p-2 sm:p-4">
            ${battle.option2}
          </div>`
-      : `<div class="w-full max-w-[280px] h-[200px] sm:w-[240px] sm:h-[180px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg flex items-center justify-center font-bold text-xl text-center p-4 shadow-lg">
+      : `<div class="w-full h-[120px] sm:h-[180px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg flex items-center justify-center font-bold text-base sm:text-xl text-center p-2 sm:p-4 shadow-lg">
            ${battle.option2}
          </div>`;
     
@@ -281,30 +281,30 @@
       <div class="max-w-2xl mx-auto w-full">
         <a href="battle.html?id=${battle.id}" class="text-xl md:text-2xl font-semibold mb-4 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
         
-        <div class="relative flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div class="relative flex flex-row gap-2 sm:gap-4 justify-center items-stretch">
           <!-- Option 1 -->
-          <div class="flex flex-col items-center w-full sm:w-auto">
-            <div class="relative">
+          <div class="flex flex-col items-center flex-1 max-w-[160px] sm:max-w-[240px]">
+            <div class="w-full">
               ${image1Content}
             </div>
-            <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
-            <div class="w-full max-w-[280px] sm:max-w-[240px]">
+            <div class="option-title mt-2 font-semibold text-sm sm:text-lg text-center ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
+            <div class="w-full">
               ${option1Content}
             </div>
           </div>
           
           <!-- VS Circle -->
-          <div class="flex items-center justify-center py-4 sm:py-0">
-            <div class="bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-gray-200 shadow-md rounded-full">VS</div>
+          <div class="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 z-10">
+            <div class="bg-white flex items-center justify-center text-sm sm:text-lg font-bold w-10 h-10 sm:w-14 sm:h-14 border-2 border-gray-200 shadow-md rounded-full">VS</div>
           </div>
           
           <!-- Option 2 -->
-          <div class="flex flex-col items-center w-full sm:w-auto">
-            <div class="relative">
+          <div class="flex flex-col items-center flex-1 max-w-[160px] sm:max-w-[240px]">
+            <div class="w-full">
               ${image2Content}
             </div>
-            <div class="option-title mt-3 font-semibold text-lg text-center ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
-            <div class="w-full max-w-[280px] sm:max-w-[240px]">
+            <div class="option-title mt-2 font-semibold text-sm sm:text-lg text-center ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
+            <div class="w-full">
               ${option2Content}
             </div>
           </div>
