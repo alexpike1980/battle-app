@@ -185,6 +185,20 @@
       min-height: 100vh;
     }
     
+    /* Header and Navigation Styles */
+    header {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    nav {
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Remove shadow from header */
+    header.shadow-sm {
+      box-shadow: none;
+    }
+    
     /* Adjust sidebar for narrow layout */
     @media (max-width: 900px) {
       aside {
@@ -197,10 +211,10 @@
   </style>
 </head>
 
-<body class="bg-gray-100">
-  <div class="site-wrapper">
+<body class="bg-gray-50">
+  <div class="site-wrapper bg-white shadow-lg">
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
+    <header class="bg-white border-b">
       <div class="px-4 py-4 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
         <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
@@ -227,7 +241,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="bg-gray-50 py-6 px-4 flex gap-4 min-h-[calc(100vh-140px)]">
+    <main class="bg-white py-6 px-4 flex gap-4 min-h-[calc(100vh-140px)] border-t border-gray-200">
       <!-- Left Content Area -->
       <div class="flex-1">
         <div class="battle-container">
@@ -238,8 +252,8 @@
       </div>
       
       <!-- Right Sidebar -->
-      <aside class="hidden lg:block w-[280px] flex-shrink-0">
-        <div class="bg-white rounded-lg shadow-sm border p-4">
+      <aside class="hidden lg:block w-[280px] flex-shrink-0 border-l border-gray-200 pl-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
           <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
           <div class="space-y-3">
             <div class="flex items-center justify-between text-sm">
@@ -261,7 +275,7 @@
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow-sm border p-4 mt-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4">
           <h3 class="text-lg font-semibold mb-4">📊 Quick Stats</h3>
           <div class="space-y-3">
             <div class="flex justify-between">
@@ -279,7 +293,7 @@
           </div>
         </div>
         
-        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg shadow-sm p-4 mt-4 text-white">
+        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg border border-gray-200 p-4 mt-4 text-white">
           <h3 class="text-base font-semibold mb-2">💡 Create Epic Battles!</h3>
           <p class="text-blue-100 text-xs mb-3">Share your ideas and let the community decide the winner.</p>
           <button onclick="openCreateModal()" class="w-full bg-white text-blue-600 py-2 px-3 rounded-lg hover:bg-blue-50 transition font-medium text-sm mb-2">
