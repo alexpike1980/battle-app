@@ -518,12 +518,12 @@
         document.getElementById('battleDetail').innerHTML = `
           <h1 class="text-2xl font-bold mb-6">${battle.title}</h1>
           
-          <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-6">
+          <div class="flex items-center justify-center gap-4 mb-6">
             <!-- Option 1 -->
-            <div class="flex flex-col items-center flex-1 w-full">
+            <div class="flex flex-col items-center flex-1">
               <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
                    alt="${battle.option1}" 
-                   class="w-full h-48 md:h-56 object-cover rounded-lg mb-3">
+                   class="w-full h-48 object-cover rounded-lg mb-3">
               <h3 class="option-title mb-3">${battle.option1}</h3>
               <button onclick="vote('${battle.id}', 'option1')" 
                       class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
@@ -533,15 +533,15 @@
             </div>
             
             <!-- VS Circle -->
-            <div class="vs-circle bg-white w-16 h-16 flex items-center justify-center text-xl font-bold my-4 md:my-0">
+            <div class="vs-circle bg-white w-14 h-14 flex items-center justify-center text-lg font-bold flex-shrink-0">
               VS
             </div>
             
             <!-- Option 2 -->
-            <div class="flex flex-col items-center flex-1 w-full">
+            <div class="flex flex-col items-center flex-1">
               <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
                    alt="${battle.option2}" 
-                   class="w-full h-48 md:h-56 object-cover rounded-lg mb-3">
+                   class="w-full h-48 object-cover rounded-lg mb-3">
               <h3 class="option-title mb-3">${battle.option2}</h3>
               <button onclick="vote('${battle.id}', 'option2')" 
                       class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
