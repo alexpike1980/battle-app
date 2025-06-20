@@ -130,8 +130,8 @@
     </header>
 
     <!-- Main Content -->
-    <main class="bg-white py-6 px-4 min-h-[calc(100vh-80px)]">
-      <div class="max-w-[600px] mx-auto">
+    <main class="bg-white py-6 px-4 min-h-[calc(100vh-80px)] flex gap-4">
+      <div class="flex-1 max-w-[600px]">
         <!-- Battle Details -->
         <div id="battleDetail" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
           <!-- Battle content will be loaded here -->
@@ -171,6 +171,64 @@
           </div>
         </div>
       </div>
+      
+      <!-- Right Sidebar -->
+      <aside class="hidden lg:block w-[280px] flex-shrink-0 border-l border-gray-200 pl-4">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+          <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#TechBattles</span>
+              <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">124 battles</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#MovieVsMovie</span>
+              <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">89 battles</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#FoodFight</span>
+              <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">67 battles</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-600">#SportsFace</span>
+              <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">45 battles</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4">
+          <h3 class="text-lg font-semibold mb-4">📊 Battle Stats</h3>
+          <div class="space-y-3">
+            <div class="flex justify-between">
+              <span class="text-gray-600 text-sm">Total Votes</span>
+              <span class="font-semibold text-sm" id="total-votes-sidebar">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 text-sm">Time Remaining</span>
+              <span class="font-semibold text-green-600 text-sm" id="time-remaining-sidebar">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 text-sm">Comments</span>
+              <span class="font-semibold text-sm" id="comments-count-sidebar">-</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg border border-gray-200 p-4 mt-4 text-white">
+          <h3 class="text-base font-semibold mb-2">💡 Share This Battle!</h3>
+          <p class="text-blue-100 text-xs mb-3">Help your favorite win by sharing with friends.</p>
+          <button onclick="document.getElementById('shareModal').style.display='flex'" class="w-full bg-white text-blue-600 py-2 px-3 rounded-lg hover:bg-blue-50 transition font-medium text-sm">
+            Share Battle
+          </button>
+        </div>
+        
+        <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4">
+          <h3 class="text-base font-semibold mb-3">🏆 Related Battles</h3>
+          <div id="related-battles" class="space-y-2">
+            <!-- Related battles will be loaded here -->
+          </div>
+        </div>
+      </aside>
     </main>
   </div>
 
@@ -385,8 +443,17 @@
           </div>
         `;
         
+        // Update sidebar stats
+        const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
+        document.getElementById('total-votes-sidebar').textContent = totalVotes;
+        document.getElementById('time-remaining-sidebar').textContent = active ? calculateTimeLeft(battle.ends_at) : 'Finished';
+        
         if (active) {
           startLiveCountdown(battle.id, battle.ends_at);
+          // Also update sidebar timer
+          setInterval(() => {
+            document.getElementById('time-remaining-sidebar').textContent = calculateTimeLeft(battle.ends_at) || 'Finished';
+          }, 1000);
         }
       } catch (err) {
         console.error('Error loading battle:', err);
@@ -447,15 +514,47 @@
         `).join('') : '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
         
         document.getElementById('commentsList').innerHTML = commentsHtml;
+        
+        // Update comments count in sidebar
+        document.getElementById('comments-count-sidebar').textContent = comments.length;
       } catch (err) {
         console.error('Error loading comments:', err);
         document.getElementById('commentsList').innerHTML = '<p class="text-red-500">Error loading comments</p>';
       }
     }
 
+    // Load related battles
+    async function loadRelatedBattles() {
+      try {
+        const { data: battles, error } = await supabase
+          .from('battles')
+          .select('id, title, votes1, votes2')
+          .neq('id', battleId)
+          .order('created_at', { ascending: false })
+          .limit(3);
+          
+        if (error) throw error;
+        
+        const relatedHtml = battles.map(battle => {
+          const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
+          return `
+            <a href="battle.html?id=${battle.id}" class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+              <div class="font-medium text-sm text-gray-800 mb-1">${battle.title}</div>
+              <div class="text-xs text-gray-500">${totalVotes} votes</div>
+            </a>
+          `;
+        }).join('');
+        
+        document.getElementById('related-battles').innerHTML = relatedHtml || '<p class="text-sm text-gray-500">No related battles</p>';
+      } catch (err) {
+        console.error('Error loading related battles:', err);
+      }
+    }
+
     // Initialize
     loadBattle();
     loadComments();
+    loadRelatedBattles();
   </script>
 </body>
 </html>
