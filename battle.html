@@ -1,171 +1,461 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Battle Details</title>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battle Details - FanShare</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: 'Manrope', sans-serif; background: #f7faff; }
-    .vs-circle { display:flex; align-items:center; justify-content:center; border-radius:9999px; font-size:1.2rem; font-weight:bold; border:2px solid #fff; width:56px; height:56px; background:#fff; z-index:20; }
-    @media (max-width: 640px) { .vs-circle{ width:42px;height:42px;font-size:1rem; } }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .option-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .vs-circle {
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Progress Bar Styles */
+    .progress-bar-container {
+      display: flex;
+      width: 100%;
+      height: 40px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 12px;
+      position: relative;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-segment {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-blue {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+    
+    .progress-green {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+    
+    .progress-text {
+      color: white;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Site wrapper */
+    .site-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+    }
+
+    /* Share Modal Styles */
+    .share-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1001;
+      padding: 20px;
+    }
+    
+    .share-modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    /* Comments section */
+    .comment-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background: white;
+    }
+    
+    .comment-author {
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+    
+    .comment-time {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+    
+    .comment-text {
+      color: #4b5563;
+      line-height: 1.5;
+    }
   </style>
 </head>
-<body>
-  <div class="max-w-2xl mx-auto p-6">
-    <button onclick="location.href='index.html'"
-            class="mb-6 text-blue-500 hover:underline">
-      ← Back to list
-    </button>
-    <div id="battleDetail"></div>
-  </div>
-  <div id="shareModal" class="modal hidden">
-    <div id="shareModalContent" class="modal-content">
-      <h2 class="text-xl font-semibold mb-4">Make it count – share to vote!</h2>
-      <div class="share-buttons">
-        <a href="#" id="facebookShare" target="_blank" class="share-btn facebook">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook--v1.png" alt="Facebook" />
-          <span>Facebook</span>
-        </a>
-        <a href="#" id="twitterShare" target="_blank" class="share-btn twitter">
-          <img src="https://oleqibxqfwnvaorqgflp.supabase.co/storage/v1/object/public/battle-images//x-social-media-white-icon.svg" alt="X" />
-          <span>X.com</span>
-        </a>
-        <a href="#" id="redditShare" target="_blank" class="share-btn reddit">
-          <img src="https://img.icons8.com/ios-filled/50/ffffff/reddit.png" alt="Reddit" />
-          <span>Reddit</span>
-        </a>
+
+<body class="bg-white">
+  <div class="site-wrapper">
+    <!-- Header -->
+    <header class="bg-white border-b">
+      <div class="px-4 py-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
+        <button onclick="location.href='index.html'" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition font-medium">
+          ← Back to Battles
+        </button>
       </div>
-      <button id="shareCloseBtn" class="cancel-btn">Cancel</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="bg-white py-6 px-4 min-h-[calc(100vh-80px)]">
+      <div class="max-w-[600px] mx-auto">
+        <!-- Battle Details -->
+        <div id="battleDetail" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <!-- Battle content will be loaded here -->
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 class="text-xl font-bold mb-4">Comments</h2>
+          
+          <!-- Add Comment Form -->
+          <div class="mb-6">
+            <textarea 
+              id="commentText" 
+              placeholder="Share your thoughts..." 
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              rows="3"
+            ></textarea>
+            <div class="mt-3 flex gap-3">
+              <input 
+                type="text" 
+                id="commentAuthor" 
+                placeholder="Your name (optional)" 
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+              <button 
+                onclick="postComment()" 
+                class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+              >
+                Post Comment
+              </button>
+            </div>
+          </div>
+          
+          <!-- Comments List -->
+          <div id="commentsList">
+            <!-- Comments will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="shareModal" class="share-modal">
+    <div class="share-modal-content">
+      <h3 class="text-xl font-bold mb-4">🎉 Vote Recorded!</h3>
+      <p class="text-gray-600 mb-6">Share this battle with your friends to get more votes!</p>
+      
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
+          <span>𝕏</span>
+          <span>Twitter</span>
+        </button>
+        <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+          <span>📘</span>
+          <span>Facebook</span>
+        </button>
+        <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition">
+          <span>🟠</span>
+          <span>Reddit</span>
+        </button>
+        <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+          <span>🔗</span>
+          <span>Copy Link</span>
+        </button>
+      </div>
+      
+      <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
+        Close
+      </button>
     </div>
   </div>
+
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const params = new URLSearchParams(location.search);
+    const battleId = params.get('id');
+
+    // Time calculation
     function calculateTimeLeft(endTime) {
       let diff = new Date(endTime) - new Date();
       if (diff <= 0) return '';
-      const days    = Math.floor(diff/86400000); diff %= 86400000;
-      const hours   = Math.floor(diff/3600000);   diff %= 3600000;
-      const minutes = Math.floor(diff/60000);     diff %= 60000;
+      const days = Math.floor(diff/86400000); diff %= 86400000;
+      const hours = Math.floor(diff/3600000); diff %= 3600000;
+      const minutes = Math.floor(diff/60000); diff %= 60000;
       const seconds = Math.floor(diff/1000);
       const parts = [];
-      if (days)    parts.push(`${days} day${days>1?'s':''}`);
-      if (hours)   parts.push(`${hours} hour${hours>1?'s':''}`);
+      if (days) parts.push(`${days} day${days>1?'s':''}`);
+      if (hours) parts.push(`${hours} hour${hours>1?'s':''}`);
       if (minutes) parts.push(`${minutes} min${minutes>1?'s':''}`);
       if (seconds) parts.push(`${seconds} sec${seconds>1?'s':''}`);
       return parts.join(' ');
     }
-    function startLiveCountdown(id,endTime){
+
+    function startLiveCountdown(id, endTime) {
       const el = document.getElementById(`timer-${id}`);
-      function upd(){
+      function update() {
         const t = calculateTimeLeft(endTime);
-        if(!t){ el.textContent='Finished'; clearInterval(iv); }
-        else { el.textContent=`Time to Left: ${t}`; }
+        if (!t) { 
+          el.textContent = 'Finished'; 
+          clearInterval(interval); 
+        } else { 
+          el.textContent = `Time Left: ${t}`; 
+        }
       }
-      const iv=setInterval(upd,1000); upd();
+      const interval = setInterval(update, 1000); 
+      update();
     }
-    function renderProgressBar(v1=0,v2=0,id){
-      const total = v1+v2, p1 = total?Math.round(v1/total*100):50, p2 = 100-p1;
+
+    // Render progress bar
+    function renderProgressBar(v1 = 0, v2 = 0) {
+      const total = v1 + v2;
+      const p1 = total ? Math.round(v1/total * 100) : 50;
+      const p2 = 100 - p1;
+      
       return `
-        <div class="flex w-full gap-0 mt-3">
-          <div class="flex-1 rounded-l-full bg-blue-600 h-10 flex items-center px-3 text-white text-lg font-semibold ${p1===100?'rounded-r-full':''}" style="width:${p1}%;">
-            ${v1 ? `${v1} (${p1}%)` : ''}
+        <div class="progress-bar-container">
+          <div class="progress-segment progress-blue ${p1 === 100 ? 'rounded-r-lg' : ''}" style="width: ${p1}%;">
+            <span class="progress-text">${p1}%</span>
           </div>
-          <div class="flex-1 rounded-r-full bg-green-600 h-10 flex items-center justify-end px-3 text-white text-lg font-semibold ${p2===100?'rounded-l-full':''}" style="width:${p2}%;">
-            ${v2 ? `${v2} (${p2}%)` : ''}
+          <div class="progress-segment progress-green ${p2 === 100 ? 'rounded-l-lg' : ''}" style="width: ${p2}%;">
+            <span class="progress-text">${p2}%</span>
           </div>
         </div>
       `;
     }
 
-    // Share modal
-    window.openShareModal = (battleId, option) => {
-      const modal = document.getElementById('shareModal');
-      modal.classList.remove('hidden');
-      const url=location.href, title='Make it count – share to vote!';
-      document.getElementById('facebookShare').href=`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(title)}`;
-      document.getElementById('twitterShare').href =`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-      document.getElementById('redditShare').href  =`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-      document.querySelectorAll('#shareModal a').forEach(link => {
-        const clone = link.cloneNode(true);
-        link.parentNode.replaceChild(clone, link);
-      });
-      document.querySelectorAll('#shareModal a').forEach(link => {
-        link.onclick = async event => {
-          event.preventDefault();
-          const col = (option === 'votes1' ? 'votes1' : 'votes2');
-          try {
-            const { data: row, error: fe } = await supabase
-              .from('battles')
-              .select(col)
-              .eq('id', battleId)
-              .single();
-            if (fe) throw fe;
-            const newVotes = (row[col] || 0) + 1;
-            const { error: ue } = await supabase
-              .from('battles')
-              .update({ [col]: newVotes })
-              .eq('id', battleId);
-            if (ue) throw ue;
-            await loadBattle();
-            modal.classList.add('hidden');
-            window.open(link.href, '_blank');
-          } catch (err) {
-            console.error('Ошибка добавления голоса:', err);
-          }
-        };
-      });
+    // Share functions
+    window.shareToTwitter = () => {
+      const url = encodeURIComponent(window.location.href);
+      const text = encodeURIComponent('Check out this battle on FanShare!');
+      window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
     };
-    window.addEventListener('load', () => {
-      document.getElementById('shareCloseBtn')?.addEventListener('click', () => {
-        document.getElementById('shareModal').classList.add('hidden');
-      });
-      document.getElementById('shareModal').addEventListener('click', e => {
-        if (e.target.id === 'shareModal') e.target.classList.add('hidden');
-      });
-    });
 
-    // Load one battle
-    const params=new URLSearchParams(location.search);
-    const battleId=params.get('id');
-    async function loadBattle(){
-      if(!battleId){ document.getElementById('battleDetail').innerText='No battle ID'; return; }
-      const { data:b, error }=await supabase.from('battles')
-        .select('id,title,option1,option2,votes1,votes2,ends_at,image1,image2')
-        .eq('id',battleId).single();
-      if(error){ document.getElementById('battleDetail').innerText=error.message; return; }
-      const active=new Date(b.ends_at)>new Date();
-      document.getElementById('battleDetail').innerHTML=`
-        <h1 class="text-2xl font-bold mb-4">${b.title}</h1>
-        <div class="relative flex flex-row gap-2 justify-center items-center">
-          <div class="flex flex-col items-center flex-1">
-            <img src="${b.image1||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
-            <div class="option-title mt-2">${b.option1}</div>
-            <button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-blue-700 vote-btn" data-battle="${b.id}" data-opt="votes1">Vote</button>
+    window.shareToFacebook = () => {
+      const url = encodeURIComponent(window.location.href);
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    };
+
+    window.shareToReddit = () => {
+      const url = encodeURIComponent(window.location.href);
+      const title = encodeURIComponent('Check out this battle on FanShare!');
+      window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, '_blank');
+    };
+
+    window.copyLink = () => {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    };
+
+    window.closeShareModal = () => {
+      document.getElementById('shareModal').style.display = 'none';
+    };
+
+    // Vote function
+    window.vote = async (battleId, option) => {
+      const col = option === 'option1' ? 'votes1' : 'votes2';
+      
+      try {
+        // Get current votes
+        const { data: battle, error: fetchError } = await supabase
+          .from('battles')
+          .select(col)
+          .eq('id', battleId)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        // Update votes
+        const newVotes = (battle[col] || 0) + 1;
+        const { error: updateError } = await supabase
+          .from('battles')
+          .update({ [col]: newVotes })
+          .eq('id', battleId);
+          
+        if (updateError) throw updateError;
+        
+        // Reload battle to show new votes
+        await loadBattle();
+        
+        // Show share modal
+        document.getElementById('shareModal').style.display = 'flex';
+      } catch (err) {
+        console.error('Error voting:', err);
+        alert('Error recording vote. Please try again.');
+      }
+    };
+
+    // Load battle details
+    async function loadBattle() {
+      if (!battleId) {
+        document.getElementById('battleDetail').innerHTML = '<p class="text-center text-gray-500">No battle ID provided</p>';
+        return;
+      }
+      
+      try {
+        const { data: battle, error } = await supabase
+          .from('battles')
+          .select('*')
+          .eq('id', battleId)
+          .single();
+          
+        if (error) throw error;
+        
+        const active = new Date(battle.ends_at) > new Date();
+        
+        document.getElementById('battleDetail').innerHTML = `
+          <h1 class="text-2xl font-bold mb-6">${battle.title}</h1>
+          
+          <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-6">
+            <!-- Option 1 -->
+            <div class="flex flex-col items-center flex-1 w-full">
+              <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
+                   alt="${battle.option1}" 
+                   class="w-full h-48 md:h-56 object-cover rounded-lg mb-3">
+              <h3 class="option-title mb-3">${battle.option1}</h3>
+              <button onclick="vote('${battle.id}', 'option1')" 
+                      class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
+                      ${!active ? 'disabled' : ''}>
+                Vote
+              </button>
+            </div>
+            
+            <!-- VS Circle -->
+            <div class="vs-circle bg-white w-16 h-16 flex items-center justify-center text-xl font-bold my-4 md:my-0">
+              VS
+            </div>
+            
+            <!-- Option 2 -->
+            <div class="flex flex-col items-center flex-1 w-full">
+              <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
+                   alt="${battle.option2}" 
+                   class="w-full h-48 md:h-56 object-cover rounded-lg mb-3">
+              <h3 class="option-title mb-3">${battle.option2}</h3>
+              <button onclick="vote('${battle.id}', 'option2')" 
+                      class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
+                      ${!active ? 'disabled' : ''}>
+                Vote
+              </button>
+            </div>
           </div>
-          <div class="absolute z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-            <div class="vs-circle bg-white flex items-center justify-center text-lg font-bold w-14 h-14 border-2 border-white shadow-none">VS</div>
+          
+          ${renderProgressBar(battle.votes1 || 0, battle.votes2 || 0)}
+          
+          <div id="timer-${battle.id}" class="text-center text-gray-500 mt-3">
+            ${active ? `Time Left: ${calculateTimeLeft(battle.ends_at)}` : 'Finished'}
           </div>
-          <div class="flex flex-col items-center flex-1">
-            <img src="${b.image2||'https://via.placeholder.com/300'}" alt="" class="object-cover rounded-lg w-[220px] h-[180px] md:w-[260px] md:h-[180px]" />
-            <div class="option-title mt-2">${b.option2}</div>
-            <button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full md:w-[90%] text-lg transition hover:bg-green-700 vote-btn" data-battle="${b.id}" data-opt="votes2">Vote</button>
-          </div>
-        </div>
-        ${renderProgressBar(b.votes1, b.votes2, b.id)}
-        <div id="timer-${b.id}" class="text-xs text-gray-500 pt-1">${active ? `Time to Left: ${calculateTimeLeft(b.ends_at)}` : 'Finished'}</div>
-      `;
-      document.querySelectorAll('.vote-btn').forEach(btn => {
-        btn.onclick = () => openShareModal(btn.dataset.battle, btn.dataset.opt);
-      });
-      if(active) startLiveCountdown(b.id,b.ends_at);
+        `;
+        
+        if (active) {
+          startLiveCountdown(battle.id, battle.ends_at);
+        }
+      } catch (err) {
+        console.error('Error loading battle:', err);
+        document.getElementById('battleDetail').innerHTML = '<p class="text-center text-red-500">Error loading battle details</p>';
+      }
     }
+
+    // Comments functionality
+    window.postComment = async () => {
+      const commentText = document.getElementById('commentText').value.trim();
+      const commentAuthor = document.getElementById('commentAuthor').value.trim() || 'Anonymous';
+      
+      if (!commentText) {
+        alert('Please enter a comment');
+        return;
+      }
+      
+      try {
+        const { error } = await supabase
+          .from('comments')
+          .insert([{
+            battle_id: battleId,
+            author: commentAuthor,
+            text: commentText,
+            created_at: new Date().toISOString()
+          }]);
+          
+        if (error) throw error;
+        
+        // Clear form
+        document.getElementById('commentText').value = '';
+        document.getElementById('commentAuthor').value = '';
+        
+        // Reload comments
+        await loadComments();
+      } catch (err) {
+        console.error('Error posting comment:', err);
+        alert('Error posting comment. Please try again.');
+      }
+    };
+
+    async function loadComments() {
+      try {
+        const { data: comments, error } = await supabase
+          .from('comments')
+          .select('*')
+          .eq('battle_id', battleId)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        
+        const commentsHtml = comments.length ? comments.map(comment => `
+          <div class="comment-box">
+            <div class="comment-author">${comment.author}</div>
+            <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
+            <div class="comment-text">${comment.text}</div>
+          </div>
+        `).join('') : '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
+        
+        document.getElementById('commentsList').innerHTML = commentsHtml;
+      } catch (err) {
+        console.error('Error loading comments:', err);
+        document.getElementById('commentsList').innerHTML = '<p class="text-red-500">Error loading comments</p>';
+      }
+    }
+
+    // Initialize
     loadBattle();
+    loadComments();
   </script>
 </body>
 </html>
