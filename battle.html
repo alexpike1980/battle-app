@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+document.getElementById('battleDetail').innerHTML = `
+          <h1 class="text-lg sm:text-2xl font-bold mb-4 sm:mb-6">${battle.title}</h1>
+          
+          <div class="flex items-center justify-center gap-2 sm:gap-8 mb-4 sm:mb-6">
+            <!-- Option 1 -->
+            <div class="flex flex-col items-center flex-1">
+              <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
+                   alt="${battle.option1}" 
+                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
+              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option1}</h3>
+              <button onclick="vote('${battle.id}', 'option1')" 
+                      class="w-full bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
+                      ${!active ? 'disabled' : ''}>
+                Vote
+              </button>
+            </div>
+            
+            <!-- VS Circle -->
+            <div class="vs-circle bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-base sm:text-lg font-bold">
+              VS
+            </div>
+            
+            <!-- Option 2 -->
+            <div class="flex flex-col items-center flex-1">
+              <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
+                   alt="${battle.option2}" 
+                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
+              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option2}</h3>
+              <button onclick="vote('${battle.id}', 'option2')" 
+                      class="w-full bg-green-600 text-white py-2 sm:py-3 rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
+                      ${!active ? 'disabled' : ''}>
+                Vote
+              </button>
+            </div>
+          </div>
+          
+          ${renderProgressBar(battle.votes1 || 0, battle.votes2 || 0)}
+          
+          <div id="timer-${battle.id}" class="text-center text-gray-500 mt-3 text-sm sm:text-base">
+            ${active ? `Time Left: ${calculateTimeLeft(battle.ends_at)}` : '<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -114,6 +153,49 @@
       color: #4b5563;
       line-height: 1.5;
     }
+    
+    /* Mobile responsive */
+    @media (max-width: 640px) {
+      .site-wrapper {
+        width: 100%;
+      }
+      
+      header h1 {
+        font-size: 1.5rem;
+      }
+      
+      header button {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+      }
+      
+      main {
+        padding: 1rem;
+      }
+      
+      .vs-circle {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1rem;
+      }
+      
+      .option-title {
+        font-size: 1rem;
+      }
+      
+      .comment-box {
+        padding: 12px;
+      }
+      
+      .share-modal-content {
+        padding: 16px;
+      }
+      
+      /* Hide sidebar on mobile */
+      aside {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
@@ -122,9 +204,10 @@
     <!-- Header -->
     <header class="bg-white border-b">
       <div class="px-4 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
-        <button onclick="location.href='index.html'" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition font-medium">
-          ← Back to Battles
+        <h1 class="text-xl sm:text-2xl font-bold text-blue-600">FANSHARE</h1>
+        <button onclick="location.href='index.html'" class="bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-300 transition font-medium text-sm sm:text-base">
+          <span class="hidden sm:inline">← Back to Battles</span>
+          <span class="sm:hidden">← Back</span>
         </button>
       </div>
     </header>
