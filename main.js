@@ -72,33 +72,33 @@ function createBattleCard(battle) {
   const percentage2 = 100 - percentage1;
   
   return `
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
-      <h2 class="text-xl font-bold mb-4">${battle.title}</h2>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4">
+      <h2 class="text-lg sm:text-xl font-bold mb-4">${battle.title}</h2>
       
-      <div class="flex items-center justify-center gap-4 mb-4">
+      <div class="flex items-center justify-center gap-2 sm:gap-4 mb-4">
         <div class="flex-1 text-center">
           <img src="${battle.image1 || 'https://via.placeholder.com/200'}" 
                alt="${battle.option1}" 
-               class="w-full h-40 object-cover rounded-lg mb-2">
-          <p class="option-title">${battle.option1}</p>
+               class="w-full h-32 sm:h-40 object-cover rounded-lg mb-2">
+          <p class="option-title text-sm sm:text-base">${battle.option1}</p>
           <button onclick="vote('${battle.id}', 'option1')" 
-                  class="mt-2 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="mt-2 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
                   ${!isActive ? 'disabled' : ''}>
             Vote
           </button>
         </div>
         
-        <div class="vs-circle bg-white w-12 h-12 flex items-center justify-center text-sm font-bold">
+        <div class="vs-circle bg-white w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xs sm:text-sm font-bold">
           VS
         </div>
         
         <div class="flex-1 text-center">
           <img src="${battle.image2 || 'https://via.placeholder.com/200'}" 
                alt="${battle.option2}" 
-               class="w-full h-40 object-cover rounded-lg mb-2">
-          <p class="option-title">${battle.option2}</p>
+               class="w-full h-32 sm:h-40 object-cover rounded-lg mb-2">
+          <p class="option-title text-sm sm:text-base">${battle.option2}</p>
           <button onclick="vote('${battle.id}', 'option2')" 
-                  class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
                   ${!isActive ? 'disabled' : ''}>
             Vote
           </button>
@@ -107,27 +107,28 @@ function createBattleCard(battle) {
       
       <div class="progress-bar-container">
         <div class="progress-segment progress-blue" style="width: ${percentage1}%;">
-          <span class="progress-text">${percentage1}%</span>
+          <span class="progress-text text-xs sm:text-sm">${percentage1}%</span>
         </div>
         <div class="progress-segment progress-green" style="width: ${percentage2}%;">
-          <span class="progress-text">${percentage2}%</span>
+          <span class="progress-text text-xs sm:text-sm">${percentage2}%</span>
         </div>
       </div>
       
       <div class="flex justify-between items-center mt-3">
-        <span class="text-sm text-gray-500">Total votes: ${totalVotes}</span>
-        <span id="timer-${battle.id}" class="text-sm text-gray-500">
+        <span class="text-xs sm:text-sm text-gray-500">Total votes: ${totalVotes}</span>
+        <span id="timer-${battle.id}" class="text-xs sm:text-sm text-gray-500">
           ${isActive ? 'Calculating...' : 'Finished'}
         </span>
       </div>
       
       <div class="mt-4 flex gap-2">
         <a href="battle.html?id=${battle.id}" 
-           class="flex-1 text-center bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition">
-          View Details
+           class="flex-1 text-center bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition text-sm">
+          <span class="hidden sm:inline">View Details</span>
+          <span class="sm:hidden">Details</span>
         </a>
         <button onclick="currentBattleForShare = ${JSON.stringify(battle).replace(/"/g, '&quot;')}; openShareModal()" 
-                class="flex-1 bg-blue-100 text-blue-600 py-2 rounded-lg hover:bg-blue-200 transition">
+                class="flex-1 bg-blue-100 text-blue-600 py-2 rounded-lg hover:bg-blue-200 transition text-sm">
           Share
         </button>
       </div>
