@@ -199,6 +199,78 @@
       box-shadow: none;
     }
     
+    /* Mobile responsive adjustments */
+    @media (max-width: 640px) {
+      /* Header adjustments */
+      header h1 {
+        font-size: 1.5rem;
+      }
+      
+      header button {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+      }
+      
+      /* Tab navigation */
+      nav .flex {
+        gap: 1rem;
+      }
+      
+      .tab-btn {
+        font-size: 0.875rem;
+        padding: 0.75rem 0.25rem;
+      }
+      
+      /* Battle cards */
+      .battle-container {
+        max-width: 100%;
+      }
+      
+      /* Hide sidebar on mobile */
+      aside {
+        display: none !important;
+      }
+      
+      /* Main content full width on mobile */
+      main > div:first-child {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      /* Battle card images */
+      .battle-card-images {
+        gap: 0.5rem;
+      }
+      
+      .battle-card-images img {
+        height: 120px;
+      }
+      
+      /* VS circle smaller on mobile */
+      .vs-circle {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 0.75rem;
+      }
+      
+      /* Progress bar on mobile */
+      .progress-bar-container {
+        height: 32px;
+        font-size: 0.75rem;
+      }
+      
+      /* Battle card padding */
+      .bg-white.rounded-lg {
+        padding: 1rem;
+      }
+      
+      /* Buttons in battle cards */
+      .battle-card button {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+      }
+    }
+    
     /* Adjust sidebar for narrow layout */
     @media (max-width: 900px) {
       aside {
@@ -216,9 +288,10 @@
     <!-- Header -->
     <header class="bg-white border-b">
       <div class="px-4 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-blue-600">FANSHARE</h1>
-        <button onclick="openCreateModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-          + Create Battle
+        <h1 class="text-xl sm:text-2xl font-bold text-blue-600">FANSHARE</h1>
+        <button onclick="openCreateModal()" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base">
+          <span class="hidden sm:inline">+ Create Battle</span>
+          <span class="sm:hidden">+ Create</span>
         </button>
       </div>
     </header>
@@ -226,14 +299,14 @@
     <!-- Navigation Tabs -->
     <nav class="bg-white border-b">
       <div class="px-4">
-        <div class="flex space-x-8">
-          <button onclick="showTab('featured')" class="tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium" data-tab="featured">
+        <div class="flex space-x-4 sm:space-x-8 overflow-x-auto">
+          <button onclick="showTab('featured')" class="tab-btn py-3 sm:py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium whitespace-nowrap text-sm sm:text-base" data-tab="featured">
             Featured
           </button>
-          <button onclick="showTab('active')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="active">
+          <button onclick="showTab('active')" class="tab-btn py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap text-sm sm:text-base" data-tab="active">
             Active
           </button>
-          <button onclick="showTab('finished')" class="tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="finished">
+          <button onclick="showTab('finished')" class="tab-btn py-3 sm:py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 whitespace-nowrap text-sm sm:text-base" data-tab="finished">
             Finished
           </button>
         </div>
