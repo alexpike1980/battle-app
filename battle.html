@@ -1,43 +1,4 @@
-document.getElementById('battleDetail').innerHTML = `
-          <h1 class="text-lg sm:text-2xl font-bold mb-4 sm:mb-6">${battle.title}</h1>
-          
-          <div class="flex items-center justify-center gap-2 sm:gap-8 mb-4 sm:mb-6">
-            <!-- Option 1 -->
-            <div class="flex flex-col items-center flex-1">
-              <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
-                   alt="${battle.option1}" 
-                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
-              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option1}</h3>
-              <button onclick="vote('${battle.id}', 'option1')" 
-                      class="w-full bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
-                      ${!active ? 'disabled' : ''}>
-                Vote
-              </button>
-            </div>
-            
-            <!-- VS Circle -->
-            <div class="vs-circle bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-base sm:text-lg font-bold">
-              VS
-            </div>
-            
-            <!-- Option 2 -->
-            <div class="flex flex-col items-center flex-1">
-              <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
-                   alt="${battle.option2}" 
-                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
-              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option2}</h3>
-              <button onclick="vote('${battle.id}', 'option2')" 
-                      class="w-full bg-green-600 text-white py-2 sm:py-3 rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
-                      ${!active ? 'disabled' : ''}>
-                Vote
-              </button>
-            </div>
-          </div>
-          
-          ${renderProgressBar(battle.votes1 || 0, battle.votes2 || 0)}
-          
-          <div id="timer-${battle.id}" class="text-center text-gray-500 mt-3 text-sm sm:text-base">
-            ${active ? `Time Left: ${calculateTimeLeft(battle.ends_at)}` : '<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -213,16 +174,16 @@ document.getElementById('battleDetail').innerHTML = `
     </header>
 
     <!-- Main Content -->
-    <main class="bg-white py-6 px-4 min-h-[calc(100vh-80px)] flex gap-4">
-      <div class="flex-1 max-w-[600px]">
+    <main class="bg-white py-4 sm:py-6 px-4 min-h-[calc(100vh-80px)] flex flex-col lg:flex-row gap-4">
+      <div class="flex-1 lg:max-w-[600px]">
         <!-- Battle Details -->
-        <div id="battleDetail" class="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        <div id="battleDetail" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
           <!-- Battle content will be loaded here -->
         </div>
         
         <!-- Comments Section -->
-        <div class="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 class="text-xl font-bold mb-4">Comments</h2>
+        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+          <h2 class="text-lg sm:text-xl font-bold mb-4">Comments</h2>
           
           <!-- Add Comment Form -->
           <div class="mb-6">
@@ -234,19 +195,19 @@ document.getElementById('battleDetail').innerHTML = `
             <textarea 
               id="commentText" 
               placeholder="Share your thoughts..." 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm sm:text-base"
               rows="3"
             ></textarea>
-            <div class="mt-3 flex gap-3" id="commentForm">
+            <div class="mt-3 flex flex-col sm:flex-row gap-3" id="commentForm">
               <input 
                 type="text" 
                 id="commentAuthor" 
                 placeholder="Your name (optional)" 
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
               >
               <button 
                 onclick="postComment()" 
-                class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+                class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base"
               >
                 Post Comment
               </button>
@@ -327,21 +288,23 @@ document.getElementById('battleDetail').innerHTML = `
       <p class="text-gray-600 mb-6">Share this battle with your friends to get more votes!</p>
       
       <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
+        <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition text-sm sm:text-base">
           <span>𝕏</span>
-          <span>Twitter</span>
+          <span class="hidden sm:inline">Twitter</span>
+          <span class="sm:hidden">X</span>
         </button>
-        <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+        <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
           <span>📘</span>
           <span>Facebook</span>
         </button>
-        <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition">
+        <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition text-sm sm:text-base">
           <span>🟠</span>
           <span>Reddit</span>
         </button>
-        <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+        <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition text-sm sm:text-base">
           <span>🔗</span>
-          <span>Copy Link</span>
+          <span class="hidden sm:inline">Copy Link</span>
+          <span class="sm:hidden">Copy</span>
         </button>
       </div>
       
@@ -400,22 +363,22 @@ document.getElementById('battleDetail').innerHTML = `
         userStatusEl.innerHTML = `
           <div class="text-center">
             <p class="text-sm text-gray-600 mb-3">Login to comment with your profile</p>
-            <div class="flex flex-wrap gap-2 justify-center">
-              <button onclick="loginWith('google')" class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 justify-center">
+              <button onclick="loginWith('google')" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
                 <img src="https://www.google.com/favicon.ico" alt="Google" class="w-4 h-4">
-                <span class="text-sm">Google</span>
+                <span>Google</span>
               </button>
-              <button onclick="loginWith('facebook')" class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+              <button onclick="loginWith('facebook')" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
                 <span class="text-blue-600">📘</span>
-                <span class="text-sm">Facebook</span>
+                <span>Facebook</span>
               </button>
-              <button onclick="loginWith('twitter')" class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+              <button onclick="loginWith('twitter')" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
                 <span>𝕏</span>
-                <span class="text-sm">X.com</span>
+                <span>X.com</span>
               </button>
-              <button onclick="loginWith('reddit')" class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+              <button onclick="loginWith('reddit')" class="flex items-center justify-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-sm">
                 <span class="text-orange-500">🟠</span>
-                <span class="text-sm">Reddit</span>
+                <span>Reddit</span>
               </button>
             </div>
             <p class="text-xs text-gray-500 mt-3">Or comment anonymously below</p>
@@ -428,11 +391,11 @@ document.getElementById('battleDetail').innerHTML = `
             type="text" 
             id="commentAuthor" 
             placeholder="Your name (optional)" 
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 sm:mb-0"
           >
           <button 
             onclick="postComment()" 
-            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
+            class="w-full sm:w-auto bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium"
           >
             Post Comment
           </button>
@@ -599,35 +562,35 @@ document.getElementById('battleDetail').innerHTML = `
         const active = new Date(battle.ends_at) > new Date();
         
         document.getElementById('battleDetail').innerHTML = `
-          <h1 class="text-2xl font-bold mb-6">${battle.title}</h1>
+          <h1 class="text-lg sm:text-2xl font-bold mb-4 sm:mb-6">${battle.title}</h1>
           
-          <div class="flex items-center justify-center gap-8 mb-6">
+          <div class="flex items-center justify-center gap-2 sm:gap-8 mb-4 sm:mb-6">
             <!-- Option 1 -->
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center flex-1">
               <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
                    alt="${battle.option1}" 
-                   class="w-56 h-48 object-cover rounded-lg">
-              <h3 class="option-title mt-3 mb-3">${battle.option1}</h3>
+                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
+              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option1}</h3>
               <button onclick="vote('${battle.id}', 'option1')" 
-                      class="w-full px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
+                      class="w-full bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
                       ${!active ? 'disabled' : ''}>
                 Vote
               </button>
             </div>
             
             <!-- VS Circle -->
-            <div class="vs-circle bg-white w-14 h-14 flex items-center justify-center text-lg font-bold">
+            <div class="vs-circle bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-base sm:text-lg font-bold">
               VS
             </div>
             
             <!-- Option 2 -->
-            <div class="flex flex-col items-center">
+            <div class="flex flex-col items-center flex-1">
               <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
                    alt="${battle.option2}" 
-                   class="w-56 h-48 object-cover rounded-lg">
-              <h3 class="option-title mt-3 mb-3">${battle.option2}</h3>
+                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
+              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option2}</h3>
               <button onclick="vote('${battle.id}', 'option2')" 
-                      class="w-full px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
+                      class="w-full bg-green-600 text-white py-2 sm:py-3 rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
                       ${!active ? 'disabled' : ''}>
                 Vote
               </button>
@@ -636,7 +599,7 @@ document.getElementById('battleDetail').innerHTML = `
           
           ${renderProgressBar(battle.votes1 || 0, battle.votes2 || 0)}
           
-          <div id="timer-${battle.id}" class="text-center text-gray-500 mt-3">
+          <div id="timer-${battle.id}" class="text-center text-gray-500 mt-3 text-sm sm:text-base">
             ${active ? `Time Left: ${calculateTimeLeft(battle.ends_at)}` : 'Finished'}
           </div>
         `;
@@ -711,73 +674,4 @@ document.getElementById('battleDetail').innerHTML = `
         const { data: comments, error } = await supabase
           .from('comments')
           .select('*')
-          .eq('battle_id', battleId)
-          .order('created_at', { ascending: false });
-          
-        if (error) throw error;
-        
-        const commentsHtml = comments.length ? comments.map(comment => `
-          <div class="comment-box">
-            <div class="flex items-start gap-3">
-              ${comment.user_avatar ? 
-                `<img src="${comment.user_avatar}" alt="Avatar" class="w-10 h-10 rounded-full">` : 
-                '<div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">👤</div>'
-              }
-              <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <div class="comment-author">${comment.author}</div>
-                  ${comment.user_id ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Verified</span>' : ''}
-                </div>
-                <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
-                <div class="comment-text mt-2">${comment.text}</div>
-              </div>
-            </div>
-          </div>
-        `).join('') : '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
-        
-        document.getElementById('commentsList').innerHTML = commentsHtml;
-        
-        // Update comments count in sidebar
-        document.getElementById('comments-count-sidebar').textContent = comments.length;
-      } catch (err) {
-        console.error('Error loading comments:', err);
-        document.getElementById('commentsList').innerHTML = '<p class="text-red-500">Error loading comments</p>';
-      }
-    }
-
-    // Load related battles
-    async function loadRelatedBattles() {
-      try {
-        const { data: battles, error } = await supabase
-          .from('battles')
-          .select('id, title, votes1, votes2')
-          .neq('id', battleId)
-          .order('created_at', { ascending: false })
-          .limit(3);
-          
-        if (error) throw error;
-        
-        const relatedHtml = battles.map(battle => {
-          const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
-          return `
-            <a href="battle.html?id=${battle.id}" class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-              <div class="font-medium text-sm text-gray-800 mb-1">${battle.title}</div>
-              <div class="text-xs text-gray-500">${totalVotes} votes</div>
-            </a>
-          `;
-        }).join('');
-        
-        document.getElementById('related-battles').innerHTML = relatedHtml || '<p class="text-sm text-gray-500">No related battles</p>';
-      } catch (err) {
-        console.error('Error loading related battles:', err);
-      }
-    }
-
-    // Initialize
-    checkAuth();
-    loadBattle();
-    loadComments();
-    loadRelatedBattles();
-  </script>
-</body>
-</html>
+          .eq('battle_i
