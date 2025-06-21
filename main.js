@@ -1,898 +1,909 @@
-// Enhanced FanShare Battle Platform
+// Initialize Supabase
+const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-(function() {
-  'use strict';
+// State
+let currentTab = 'featured';
+let durationType = 'minutes';
+let currentBattleForShare = null;
+
+// Tab Management
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.dataset.tab === tab) {
+      btn.classList.add('border-blue-600', 'text-blue-600');
+      btn.classList.remove('border-transparent', 'text-gray-500');
+    } else {
+      btn.classList.remove('border-blue-600', 'text-blue-600');
+      btn.classList.add('border-transparent', 'text-gray-500');
+    }
+  });
+  loadBattles();
+}
+
+// Load battles
+async function loadBattles() {
+  const container = document.getElementById('battles-container');
+  container.innerHTML = '<p class="text-center text-gray-500">Loading battles...</p>';
   
-  // App state
-  const state = {
-    currentTab: 'featured',
-    battles: [],
-    timers: {},
-    durationType: 'minutes'
-  };
-  
-  // Supabase configuration
-  let supabase;
-  
-  // Flag to use mock data
-  let useMockData = false;
-  
-  function initSupabase() {
-    if (typeof window.supabase === 'undefined') {
-      console.error('Supabase client is not loaded. Please include the script in your HTML.');
-      return false;
+  try {
+    let query = supabaseClient.from('battles').select('*');
+    
+    if (currentTab === 'active') {
+      query = query.gt('ends_at', new Date().toISOString());
+    } else if (currentTab === 'finished') {
+      query = query.lt('ends_at', new Date().toISOString());
     }
     
-    try {
-      // Updated with your actual Supabase credentials
-      supabase = window.supabase.createClient(
-        'https://oleqibxqfwnvaorqgflp.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA'
-      );
-      console.log('Supabase client created with your database credentials');
-      
-      // Test the connection immediately
-      return testSupabaseConnection();
-    } catch (error) {
-      console.error('Error initializing Supabase:', error);
-      return false;
+    const { data: battles, error } = await query.order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    if (battles.length === 0) {
+      container.innerHTML = '<p class="text-center text-gray-500">No battles found</p>';
+      return;
     }
-  }
-  
-  // Test Supabase connection
-  async function testSupabaseConnection() {
-    try {
-      console.log('Testing connection to your Supabase database...');
-      const { data, error } = await supabase
-        .from('battles')
-        .select('id')
-        .limit(1);
-      
-      if (error) {
-        console.error('Database connection test failed:', error);
-        return false;
+    
+    container.innerHTML = battles.map(battle => createBattleCard(battle)).join('');
+    
+    // Start countdown timers
+    battles.forEach(battle => {
+      if (new Date(battle.ends_at) > new Date()) {
+        startCountdown(battle.id, battle.ends_at);
       }
-      
-      console.log('✅ Successfully connected to your Supabase database!');
-      useMockData = false;
-      return true;
-    } catch (error) {
-      console.error('Database connection test error:', error);
-      return false;
-    }
+    });
+    
+    // Update stats
+    updateStats(battles);
+  } catch (error) {
+    console.error('Error loading battles:', error);
+    container.innerHTML = '<p class="text-center text-red-500">Error loading battles</p>';
   }
+}
+
+// Create battle card HTML
+function createBattleCard(battle) {
+  const isActive = new Date(battle.ends_at) > new Date();
+  const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
+  const percentage1 = totalVotes > 0 ? Math.round((battle.votes1 / totalVotes) * 100) : 50;
+  const percentage2 = 100 - percentage1;
   
-  // Database functions
-  async function getBattles() {
-    try {
-      const { data, error } = await supabase
-        .from('battles')
-        .select('*')
-        .order('created_at', { ascending: false });
+  return `
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-4">
+      <h2 class="text-xl font-bold mb-4">${battle.title}</h2>
       
-      if (error) throw error;
-      console.log('=== DATABASE BATTLES ===');
-      console.log('Total battles found:', data?.length || 0);
-      
-      if (data && data.length > 0) {
-        data.forEach((battle, index) => {
-          console.log(`\n--- Battle ${index + 1} ---`);
-          console.log('ID:', battle.id);
-          console.log('Title:', battle.title);
-          console.log('Option1:', battle.option1);
-          console.log('Option2:', battle.option2);
-          console.log('Image1 raw:', JSON.stringify(battle.image1));
-          console.log('Image2 raw:', JSON.stringify(battle.image2));
-          console.log('Image1 length:', battle.image1?.length || 0);
-          console.log('Image2 length:', battle.image2?.length || 0);
-          console.log('Votes1:', battle.votes1);
-          console.log('Votes2:', battle.votes2);
-        });
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="flex-1 text-center">
+          <img src="${battle.image1 || 'https://via.placeholder.com/200'}" 
+               alt="${battle.option1}" 
+               class="w-full h-40 object-cover rounded-lg mb-2">
+          <p class="option-title">${battle.option1}</p>
+          <button onclick="vote('${battle.id}', 'option1')" 
+                  class="mt-2 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
+                  ${!isActive ? 'disabled' : ''}>
+            Vote
+          </button>
+        </div>
         
-        // Show the first battle's full data structure
-        console.log('\n=== FIRST BATTLE FULL DATA ===');
-        console.log(JSON.stringify(data[0], null, 2));
-      }
+        <div class="vs-circle bg-white w-12 h-12 flex items-center justify-center text-sm font-bold">
+          VS
+        </div>
+        
+        <div class="flex-1 text-center">
+          <img src="${battle.image2 || 'https://via.placeholder.com/200'}" 
+               alt="${battle.option2}" 
+               class="w-full h-40 object-cover rounded-lg mb-2">
+          <p class="option-title">${battle.option2}</p>
+          <button onclick="vote('${battle.id}', 'option2')" 
+                  class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
+                  ${!isActive ? 'disabled' : ''}>
+            Vote
+          </button>
+        </div>
+      </div>
       
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching battles from database:', error);
-      return [];
-    }
-  }
-  
-  async function createBattle(battleData) {
-    try {
-      console.log('Creating battle in database:', battleData);
-      const { data, error } = await supabase
-        .from('battles')
-        .insert([battleData])
-        .select();
+      <div class="progress-bar-container">
+        <div class="progress-segment progress-blue" style="width: ${percentage1}%;">
+          <span class="progress-text">${percentage1}%</span>
+        </div>
+        <div class="progress-segment progress-green" style="width: ${percentage2}%;">
+          <span class="progress-text">${percentage2}%</span>
+        </div>
+      </div>
       
-      if (error) throw error;
-      console.log('Battle created successfully:', data[0]);
-      return data[0];
-    } catch (error) {
-      console.error('Error creating battle in database:', error);
-      throw error;
-    }
-  }
-  
-  async function vote(battleId, option) {
-    try {
-      console.log(`Voting for battle ${battleId}, option: ${option}`);
+      <div class="flex justify-between items-center mt-3">
+        <span class="text-sm text-gray-500">Total votes: ${totalVotes}</span>
+        <span id="timer-${battle.id}" class="text-sm text-gray-500">
+          ${isActive ? 'Calculating...' : 'Finished'}
+        </span>
+      </div>
       
-      // First, get the current battle data
-      const { data: battle, error: fetchError } = await supabase
-        .from('battles')
-        .select('*')
-        .eq('id', battleId)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      // Check if battle is still active
-      if (new Date(battle.ends_at) <= new Date()) {
-        throw new Error('This battle has ended');
-      }
-      
-      // Update the vote count
-      const currentVotes = parseInt(battle[option]) || 0;
-      const updateData = {};
-      updateData[option] = currentVotes + 1;
-      
-      const { data, error } = await supabase
-        .from('battles')
-        .update(updateData)
-        .eq('id', battleId)
-        .select();
-      
-      if (error) throw error;
-      console.log('Vote recorded successfully');
-      return data[0];
-    } catch (error) {
-      console.error('Error voting:', error);
-      throw error;
-    }
-  }
-  
-  // Utility functions
-  function calculateTimeLeft(endTime) {
+      <div class="mt-4 flex gap-2">
+        <a href="battle.html?id=${battle.id}" 
+           class="flex-1 text-center bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition">
+          View Details
+        </a>
+        <button onclick="currentBattleForShare = ${JSON.stringify(battle).replace(/"/g, '&quot;')}; openShareModal()" 
+                class="flex-1 bg-blue-100 text-blue-600 py-2 rounded-lg hover:bg-blue-200 transition">
+          Share
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Countdown timer
+function startCountdown(battleId, endTime) {
+  const updateTimer = () => {
     const now = new Date();
     const end = new Date(endTime);
     const diff = end - now;
     
-    if (diff <= 0) return null;
+    if (diff <= 0) {
+      const timerEl = document.getElementById(`timer-${battleId}`);
+      if (timerEl) {
+        timerEl.textContent = 'Finished';
+      }
+      clearInterval(interval);
+      return;
+    }
     
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
     
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
-  }
-  
-  function renderProgressBar(votes1, votes2) {
-    const v1 = parseInt(votes1) || 0;
-    const v2 = parseInt(votes2) || 0;
-    const total = v1 + v2;
+    let timeString = 'Time left: ';
+    if (days > 0) timeString += `${days}d `;
+    if (hours > 0) timeString += `${hours}h `;
+    if (minutes > 0) timeString += `${minutes}m `;
+    timeString += `${seconds}s`;
     
-    if (total === 0) {
-      return `
-        <div class="progress-bar-container">
-          <div class="progress-segment progress-blue" style="width: 50%;">
-            <span class="progress-text">0%</span>
-          </div>
-          <div class="progress-segment progress-green" style="width: 50%;">
-            <span class="progress-text">0%</span>
-          </div>
-        </div>
-      `;
+    const timerEl = document.getElementById(`timer-${battleId}`);
+    if (timerEl) {
+      timerEl.textContent = timeString;
     }
-    
-    const percent1 = Math.round((v1 / total) * 100);
-    const percent2 = 100 - percent1;
-    
-    return `
-      <div class="progress-bar-container">
-        <div class="progress-segment progress-blue" style="width: ${percent1}%;">
-          <span class="progress-text">${percent1}%</span>
-        </div>
-        <div class="progress-segment progress-green" style="width: ${percent2}%;">
-          <span class="progress-text">${percent2}%</span>
-        </div>
-      </div>
-    `;
-  }
+  };
   
-  // Render a single battle with FIXED mobile layout
-  function renderBattle(battle, container) {
-    console.log('=== RENDERING BATTLE ===');
-    console.log('Battle title:', battle.title);
-    console.log('Battle image1 raw:', battle.image1);
-    console.log('Battle image2 raw:', battle.image2);
-    
-    const isActive = new Date(battle.ends_at) > new Date();
-    const votes1 = parseInt(battle.votes1) || 0;
-    const votes2 = parseInt(battle.votes2) || 0;
-    const total = votes1 + votes2;
-    
-    // Check if we have real, valid image URLs
-    const hasRealImage1 = battle.image1 && battle.image1.trim() !== '' && battle.image1.startsWith('http');
-    const hasRealImage2 = battle.image2 && battle.image2.trim() !== '' && battle.image2.startsWith('http');
-    
-    console.log('Has real image1:', hasRealImage1);
-    console.log('Has real image2:', hasRealImage2);
-    
-    // Determine winner for finished battles
-    let winner = null;
-    if (!isActive && total > 0) {
-      if (votes1 > votes2) winner = 1;
-      else if (votes2 > votes1) winner = 2;
-    }
-    
-    const battleEl = document.createElement('div');
-    battleEl.className = 'bg-white py-6 px-4 flex flex-col gap-4 border-b border-gray-200 mb-4';
-    
-    // Generate button/badge content based on battle status
-    let option1Content, option2Content;
-    
-    if (isActive) {
-      option1Content = `<button class="bg-blue-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg transition hover:bg-blue-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes1">Vote</button>`;
-      option2Content = `<button class="bg-green-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg transition hover:bg-green-700 vote-btn cursor-pointer" data-battle="${battle.id}" data-opt="votes2">Vote</button>`;
-    } else {
-      if (winner === 1) {
-        option1Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg text-center shadow-lg">🏆 WINNER</div>`;
-        option2Content = `<div class="mt-3 h-12"></div>`;
-      } else if (winner === 2) {
-        option1Content = `<div class="mt-3 h-12"></div>`;
-        option2Content = `<div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 mt-3 rounded-lg font-bold w-full text-lg text-center shadow-lg">🏆 WINNER</div>`;
-      } else {
-        option1Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full text-lg text-center">TIE</div>`;
-        option2Content = `<div class="bg-gray-300 text-gray-600 py-3 mt-3 rounded-lg font-bold w-full text-lg text-center">TIE</div>`;
-      }
-    }
-    
-    // Create image content - either real img tag or CSS placeholder
-    const image1Content = hasRealImage1 
-      ? `<img src="${battle.image1.trim()}" alt="${battle.option1}" class="object-cover rounded-lg w-full h-[120px] sm:h-[180px]" 
-           onload="console.log('Image 1 loaded successfully')"
-           onerror="console.log('Image 1 failed, hiding'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-         <div class="hidden w-full h-[120px] sm:h-[180px] bg-blue-500 text-white rounded-lg items-center justify-center font-bold text-base sm:text-lg text-center p-2 sm:p-4">
-           ${battle.option1}
-         </div>`
-      : `<div class="w-full h-[120px] sm:h-[180px] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-base sm:text-xl text-center p-2 sm:p-4 shadow-lg">
-           ${battle.option1}
-         </div>`;
-         
-    const image2Content = hasRealImage2 
-      ? `<img src="${battle.image2.trim()}" alt="${battle.option2}" class="object-cover rounded-lg w-full h-[120px] sm:h-[180px]" 
-           onload="console.log('Image 2 loaded successfully')"
-           onerror="console.log('Image 2 failed, hiding'); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-         <div class="hidden w-full h-[120px] sm:h-[180px] bg-green-500 text-white rounded-lg items-center justify-center font-bold text-base sm:text-lg text-center p-2 sm:p-4">
-           ${battle.option2}
-         </div>`
-      : `<div class="w-full h-[120px] sm:h-[180px] bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg flex items-center justify-center font-bold text-base sm:text-xl text-center p-2 sm:p-4 shadow-lg">
-           ${battle.option2}
-         </div>`;
-    
-    battleEl.innerHTML = `
-      <div class="max-w-2xl mx-auto w-full">
-        <a href="battle.html?id=${battle.id}" class="text-xl md:text-2xl font-semibold mb-4 hover:text-blue-600 transition underline-offset-2 hover:underline inline-block">${battle.title}</a>
-        
-        <div class="relative flex flex-row gap-2 sm:gap-4 justify-center items-stretch">
-          <!-- Option 1 -->
-          <div class="flex flex-col items-center flex-1 max-w-[160px] sm:max-w-[240px]">
-            <div class="w-full">
-              ${image1Content}
-            </div>
-            <div class="option-title mt-2 font-semibold text-sm sm:text-lg text-center ${winner === 1 ? 'text-yellow-600' : ''}">${battle.option1}</div>
-            <div class="w-full">
-              ${option1Content}
-            </div>
-          </div>
-          
-          <!-- VS Circle -->
-          <div class="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 z-10">
-            <div class="bg-white flex items-center justify-center text-sm sm:text-lg font-bold w-10 h-10 sm:w-14 sm:h-14 border-2 border-gray-200 shadow-md rounded-full">VS</div>
-          </div>
-          
-          <!-- Option 2 -->
-          <div class="flex flex-col items-center flex-1 max-w-[160px] sm:max-w-[240px]">
-            <div class="w-full">
-              ${image2Content}
-            </div>
-            <div class="option-title mt-2 font-semibold text-sm sm:text-lg text-center ${winner === 2 ? 'text-yellow-600' : ''}">${battle.option2}</div>
-            <div class="w-full">
-              ${option2Content}
-            </div>
-          </div>
-        </div>
-        
-        <!-- Progress Bar -->
-        <div class="mt-6">
-          <div id="progress-${battle.id}" class="w-full max-w-lg mx-auto">
-            ${renderProgressBar(battle.votes1, battle.votes2)}
-          </div>
-        </div>
-        
-        <!-- Timer -->
-        <div id="timer-${battle.id}" class="text-sm text-gray-500 pt-2 text-center">${isActive ? 'Time Left: ' + calculateTimeLeft(battle.ends_at) : '🏁 Final Results'}</div>
-      </div>
-    `;
-    
-    console.log('Battle HTML created, appending to container');
-    container.appendChild(battleEl);
-    
-    // Set up timer for active battles
-    if (isActive) {
-      state.timers[battle.id] = setInterval(() => {
-        const timerEl = document.getElementById(`timer-${battle.id}`);
-        if (timerEl) {
-          const timeLeft = calculateTimeLeft(battle.ends_at);
-          if (timeLeft) {
-            timerEl.textContent = 'Time Left: ' + timeLeft;
-          } else {
-            timerEl.textContent = '🏁 Final Results';
-            clearInterval(state.timers[battle.id]);
-            setTimeout(() => loadBattles(), 1000);
-          }
-        } else {
-          clearInterval(state.timers[battle.id]);
-        }
-      }, 1000);
-    }
-  }
+  updateTimer();
+  const interval = setInterval(updateTimer, 1000);
+}
+
+// Vote function
+async function vote(battleId, option) {
+  const voteColumn = option === 'option1' ? 'votes1' : 'votes2';
   
-  // Load and display battles
-  function loadBattles() {
-    console.log('DEBUG: Looking for battles-container...');
-    const container = document.getElementById('battles-container');
-    console.log('DEBUG: Container found:', container);
+  try {
+    // Get current votes
+    const { data: battle, error: fetchError } = await supabaseClient
+      .from('battles')
+      .select(voteColumn)
+      .eq('id', battleId)
+      .single();
     
-    if (!container) {
-      console.error('ERROR: battles-container element not found in DOM');
-      return;
-    }
+    if (fetchError) throw fetchError;
     
-    container.innerHTML = '<div class="text-center py-8 text-gray-500">Loading battles...</div>';
+    // Update votes
+    const newVotes = (battle[voteColumn] || 0) + 1;
+    const { error: updateError } = await supabaseClient
+      .from('battles')
+      .update({ [voteColumn]: newVotes })
+      .eq('id', battleId);
     
-    // Clear existing timers
-    Object.values(state.timers).forEach(timer => clearInterval(timer));
-    state.timers = {};
+    if (updateError) throw updateError;
     
-    getBattles().then(battles => {
-      console.log('Battles loaded:', battles); // Debug log
-      
-      if (!battles || battles.length === 0) {
-        container.innerHTML = '<div class="text-center py-8 text-gray-500">No battles found.</div>';
-        updateSidebarStats(0, 0, 0);
-        return;
-      }
-      
-      state.battles = battles;
-      
-      // Filter battles based on current tab
-      let filteredBattles = battles;
-      if (state.currentTab === 'active') {
-        filteredBattles = battles.filter(battle => new Date(battle.ends_at) > new Date());
-      } else if (state.currentTab === 'finished') {
-        filteredBattles = battles.filter(battle => new Date(battle.ends_at) <= new Date());
-      }
-      
-      console.log('Filtered battles for display:', filteredBattles); // Debug log
-      
-      if (filteredBattles.length === 0) {
-        container.innerHTML = '<div class="text-center py-8 text-gray-500">No battles in this category.</div>';
-        updateSidebarStats(battles.length, battles.filter(b => new Date(b.ends_at) > new Date()).length, 0);
-        return;
-      }
-      
-      container.innerHTML = '';
-      filteredBattles.forEach(battle => {
-        console.log('Rendering battle:', battle); // Debug log
-        renderBattle(battle, container);
-      });
-      
-      // Update sidebar stats
-      const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
-      const totalVotes = battles.reduce((sum, b) => sum + (parseInt(b.votes1) || 0) + (parseInt(b.votes2) || 0), 0);
-      updateSidebarStats(battles.length, activeBattles, totalVotes);
-      
-      // Set up vote buttons after rendering
-      setupVoteButtons();
-    }).catch(error => {
-      console.error('Error loading battles:', error);
-      container.innerHTML = '<div class="text-center py-8 text-red-500">Error loading battles. Please try again.</div>';
-    });
-  }
-  
-  // Update sidebar statistics
-  function updateSidebarStats(total, active, votes) {
-    const totalEl = document.getElementById('total-battles');
-    const activeEl = document.getElementById('active-battles');
-    const votesEl = document.getElementById('total-votes');
-    
-    if (totalEl) totalEl.textContent = total.toLocaleString();
-    if (activeEl) activeEl.textContent = active.toLocaleString();
-    if (votesEl) votesEl.textContent = votes.toLocaleString();
-  }
-  
-  // Set up vote button event listeners
-  function setupVoteButtons() {
-    document.querySelectorAll('.vote-btn').forEach(btn => {
-      btn.addEventListener('click', async function() {
-        const battleId = this.dataset.battle;
-        const option = this.dataset.opt;
-        
-        if (!battleId || !option) return;
-        
-        // Disable all vote buttons for this battle
-        const battleButtons = document.querySelectorAll(`[data-battle="${battleId}"]`);
-        battleButtons.forEach(b => {
-          b.disabled = true;
-          b.textContent = 'Voting...';
-        });
-        
-        try {
-          await vote(battleId, option);
-          
-          // Show share modal instead of reloading
-          window.currentBattleId = battleId;
-          openShareModal();
-          
-          // Update the battle display
-          setTimeout(() => {
-            loadBattles();
-          }, 1000);
-          
-        } catch (error) {
-          alert('Error voting: ' + error.message);
-          
-          // Re-enable buttons on error
-          battleButtons.forEach(b => {
-            b.disabled = false;
-            b.textContent = 'Vote';
-          });
-        }
-      });
-    });
-  }
-  
-  // Tab switching
-  function showTab(tabName) {
-    state.currentTab = tabName;
-    
-    // Update tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      const isActive = btn.dataset.tab === tabName;
-      btn.className = isActive 
-        ? 'tab-btn py-4 px-2 border-b-2 border-blue-600 text-blue-600 font-medium'
-        : 'tab-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700';
-    });
-    
-    // Reload battles for the selected tab
+    // Reload battles to show updated votes
     loadBattles();
+    
+    // Show share modal
+    const { data: updatedBattle } = await supabaseClient
+      .from('battles')
+      .select('*')
+      .eq('id', battleId)
+      .single();
+    
+    currentBattleForShare = updatedBattle;
+    openShareModal();
+  } catch (error) {
+    console.error('Error voting:', error);
+    alert('Error recording vote. Please try again.');
+  }
+}
+
+// Update stats
+function updateStats(battles) {
+  const totalBattles = battles.length;
+  const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
+  const totalVotes = battles.reduce((sum, b) => sum + (b.votes1 || 0) + (b.votes2 || 0), 0);
+  
+  const totalBattlesEl = document.getElementById('total-battles');
+  const activeBattlesEl = document.getElementById('active-battles');
+  const totalVotesEl = document.getElementById('total-votes');
+  
+  if (totalBattlesEl) totalBattlesEl.textContent = totalBattles;
+  if (activeBattlesEl) activeBattlesEl.textContent = activeBattles;
+  if (totalVotesEl) totalVotesEl.textContent = totalVotes;
+}
+
+// Modal functions
+function openCreateModal() {
+  const modal = document.getElementById('createModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeCreateModal() {
+  const modal = document.getElementById('createModal');
+  if (modal) {
+    modal.style.display = 'none';
   }
   
-  // Modal functions
-  function openCreateModal() {
-    document.getElementById('createModal').style.display = 'flex';
-    
-    // Reset form
-    document.getElementById('battleTitle').value = '';
-    document.getElementById('option1').value = '';
-    document.getElementById('option2').value = '';
-    document.getElementById('image1').value = '';
-    document.getElementById('image2').value = '';
-    document.getElementById('duration').value = '60';
-    document.getElementById('customDate').style.display = 'none';
-    
-    // Hide previews
-    document.getElementById('preview1').classList.add('hidden');
-    document.getElementById('preview2').classList.add('hidden');
-    
-    // Reset duration type
-    setDurationType('minutes');
-  }
+  // Reset form
+  const fields = ['battleTitle', 'option1', 'option2', 'image1', 'image2', 'duration', 'customDate'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
   
-  function closeCreateModal() {
-    document.getElementById('createModal').style.display = 'none';
-  }
+  // Remove previews
+  removePreview('preview1', 'image1');
+  removePreview('preview2', 'image2');
   
-  function openShareModal() {
-    document.getElementById('shareModal').style.display = 'flex';
-  }
+  // Reset duration type
+  setDurationType('minutes');
+}
+
+// Duration type selection
+function setDurationType(type) {
+  durationType = type;
   
-  function closeShareModal() {
-    document.getElementById('shareModal').style.display = 'none';
-  }
+  // Update button styles
+  const buttons = {
+    minutes: document.getElementById('minutesBtn'),
+    hours: document.getElementById('hoursBtn'),
+    days: document.getElementById('daysBtn'),
+    custom: document.getElementById('customBtn')
+  };
   
-  function setDurationType(type) {
-    state.durationType = type;
-    
-    // Update button styles
-    const buttons = ['minutesBtn', 'hoursBtn', 'daysBtn', 'customBtn'];
-    buttons.forEach(btnId => {
-      const btn = document.getElementById(btnId);
-      const isActive = (btnId === type + 'Btn') || (btnId === 'customBtn' && type === 'custom');
-      btn.className = isActive
-        ? 'bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition'
-        : 'bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition';
-    });
-    
-    // Show/hide custom date input
-    const customDateInput = document.getElementById('customDate');
-    const durationInput = document.getElementById('duration');
-    
+  Object.entries(buttons).forEach(([key, btn]) => {
+    if (btn) {
+      if (key === type) {
+        btn.classList.remove('bg-gray-300', 'text-gray-700');
+        btn.classList.add('bg-blue-600', 'text-white');
+      } else {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-gray-300', 'text-gray-700');
+      }
+    }
+  });
+  
+  // Show/hide inputs
+  const durationInput = document.getElementById('duration');
+  const customDateInput = document.getElementById('customDate');
+  
+  if (durationInput && customDateInput) {
     if (type === 'custom') {
-      customDateInput.style.display = 'block';
-      durationInput.style.display = 'none';
+      durationInput.classList.add('hidden');
+      customDateInput.classList.remove('hidden');
     } else {
-      customDateInput.style.display = 'none';
-      durationInput.style.display = 'block';
+      durationInput.classList.remove('hidden');
+      customDateInput.classList.add('hidden');
     }
   }
+}
+
+function pickCustomDate() {
+  setDurationType('custom');
+}
+
+// Image handling
+function previewImage(inputId, previewId) {
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  const img = document.getElementById(previewId + '-img');
   
-  function pickCustomDate() {
-    setDurationType('custom');
-  }
-  
-  // Image preview functions
-  function previewImage(inputId, previewId) {
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    const img = document.getElementById(previewId + '-img');
-    
-    if (input.value.trim()) {
-      img.src = input.value;
+  if (input && preview && img) {
+    const url = input.value;
+    if (url) {
+      img.src = url;
       preview.classList.remove('hidden');
-      
-      // Handle image load errors
-      img.onerror = function() {
-        preview.classList.add('hidden');
-      };
     } else {
       preview.classList.add('hidden');
     }
   }
-  
-  function removePreview(previewId, inputId) {
-    document.getElementById(previewId).classList.add('hidden');
-    document.getElementById(inputId).value = '';
-  }
-  
-  // Debug function to check what buckets exist
-  async function listAllBuckets() {
-    try {
-      console.log('=== CHECKING ALL STORAGE BUCKETS ===');
-      const { data, error } = await supabase.storage.listBuckets();
-      
-      if (error) {
-        console.error('Cannot access storage:', error);
-        alert('Cannot access Supabase storage: ' + error.message);
-        return [];
-      }
-      
-      console.log('All available buckets:', data);
-      console.log('Bucket names:', data?.map(b => b.name));
-      
-      if (!data || data.length === 0) {
-        console.log('❌ NO BUCKETS FOUND AT ALL');
-        alert('No storage buckets exist in your Supabase project.\n\nGo to Supabase Dashboard → Storage → Create a bucket named "battle-images"');
-        return [];
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('Error listing buckets:', error);
-      return [];
-    }
-  }
-  
-  // Ultra-simple image upload that works with battle-images bucket
-  async function handleImageUpload(input, targetInputId) {
-    const file = input.files[0];
-    if (!file) return;
-    
-    const targetInput = document.getElementById(targetInputId);
-    targetInput.value = 'Uploading...';
-    targetInput.disabled = true;
-    
-    try {
-      // Check file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error('File too large. Maximum size is 10MB.');
-      }
-      
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `battles/${fileName}`;
-      
-      console.log('Uploading file:', fileName, 'Size:', (file.size / 1024).toFixed(2), 'KB');
-      
-      // Upload to battle-images bucket
-      const { data, error } = await supabase.storage
-        .from('battle-images')  // Using the correct bucket name
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-      
-      if (error) {
-        console.error('Upload error details:', error);
-        
-        // Provide specific error messages
-        if (error.message.includes('row-level security')) {
-          throw new Error('Storage permissions not configured. Please set up storage policies in Supabase dashboard.');
-        } else if (error.message.includes('Bucket not found')) {
-          throw new Error('Battle-images bucket not found. Please check Supabase dashboard.');
-        } else {
-          throw error;
-        }
-      }
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('battle-images')  // Using the correct bucket name
-        .getPublicUrl(filePath);
-      
-      console.log('Upload successful! Public URL:', publicUrl);
-      
-      // Set the URL in the input
-      targetInput.value = publicUrl;
-      targetInput.disabled = false;
-      
-      // Show preview
-      const previewId = targetInputId === 'image1' ? 'preview1' : 'preview2';
-      previewImage(targetInputId, previewId);
-      
-      alert('✅ Image uploaded successfully!');
-      
-    } catch (error) {
-      console.error('Upload failed:', error);
-      alert('Upload failed: ' + error.message);
-      
-      targetInput.value = '';
-      targetInput.disabled = false;
-      
-      // Reset file input
-      input.value = '';
-    }
-  }
-  
-  // Test function to create a battle with working images
-  async function createTestBattle() {
-    try {
-      const testBattle = {
-        title: "Cat vs Dog",
-        option1: "Cat",
-        option2: "Dog", 
-        image1: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=300&h=200&fit=crop",
-        image2: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=200&fit=crop",
-        votes1: 0,
-        votes2: 0,
-        ends_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
-      };
-      
-      console.log('Creating test battle:', testBattle);
-      const result = await createBattle(testBattle);
-      console.log('Test battle created:', result);
-      
-      // Reload battles to show the new one
-      loadBattles();
-      alert('Test battle created with real images!');
-    } catch (error) {
-      console.error('Error creating test battle:', error);
-      alert('Error creating test battle: ' + error.message);
-    }
-  }
+}
 
-  // Manual function to create storage bucket
-  async function createStorageBucket() {
-    try {
-      console.log('Attempting to create storage bucket...');
-      
-      const { data, error } = await supabase.storage.createBucket('battle-images', {
-        public: true,
-        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-        fileSizeLimit: 10485760 // 10MB
-      });
-      
-      if (error) {
-        console.error('Failed to create bucket:', error);
-        alert('Failed to create bucket: ' + error.message + '\n\nPlease create it manually in Supabase dashboard:\n1. Go to Storage\n2. New Bucket\n3. Name: "battle-images"\n4. Public: ON');
-      } else {
-        console.log('Bucket created successfully!', data);
-        alert('✅ Storage bucket "battle-images" created successfully!\n\nYou can now upload images to your battles.');
-        
-        // Test storage again
-        await testStorageAccess();
-      }
-    } catch (error) {
-      console.error('Error creating bucket:', error);
-      alert('Error creating bucket: ' + error.message);
-    }
+function removePreview(previewId, inputId) {
+  const preview = document.getElementById(previewId);
+  const input = document.getElementById(inputId);
+  
+  if (preview) preview.classList.add('hidden');
+  if (input) input.value = '';
+}
+
+async function handleImageUpload(input, targetInputId) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  // Check file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image size must be less than 5MB');
+    return;
   }
   
-  // Submit battle
-  async function submitBattle() {
-    const title = document.getElementById('battleTitle').value.trim();
-    const option1 = document.getElementById('option1').value.trim();
-    const option2 = document.getElementById('option2').value.trim();
-    const image1 = document.getElementById('image1').value.trim();
-    const image2 = document.getElementById('image2').value.trim();
-    
-    if (!title || !option1 || !option2) {
-      alert('Please fill in all required fields');
+  // Check file type
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file');
+    return;
+  }
+  
+  try {
+    // For production, upload to Supabase Storage
+    // For now, we'll use data URL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const targetInput = document.getElementById(targetInputId);
+      if (targetInput) {
+        targetInput.value = e.target.result;
+        previewImage(targetInputId, targetInputId === 'image1' ? 'preview1' : 'preview2');
+      }
+    };
+    reader.readAsDataURL(file);
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    alert('Error uploading image. Please try again.');
+  }
+}
+
+// Submit battle
+async function submitBattle() {
+  // Get form values
+  const title = document.getElementById('battleTitle')?.value.trim();
+  const option1 = document.getElementById('option1')?.value.trim();
+  const option2 = document.getElementById('option2')?.value.trim();
+  const image1 = document.getElementById('image1')?.value.trim();
+  const image2 = document.getElementById('image2')?.value.trim();
+  
+  // Validation
+  if (!title || !option1 || !option2) {
+    alert('Please fill in all required fields');
+    return;
+  }
+  
+  // Calculate end time
+  let endsAt;
+  if (durationType === 'custom') {
+    const customDate = document.getElementById('customDate')?.value;
+    if (!customDate) {
+      alert('Please select an end date');
       return;
     }
+    endsAt = new Date(customDate).toISOString();
+  } else {
+    const durationValue = document.getElementById('duration')?.value;
+    const duration = parseInt(durationValue) || 60;
+    const now = new Date();
     
-    // Calculate end time
-    let endsAt;
-    if (state.durationType === 'custom') {
-      const customDate = document.getElementById('customDate').value;
-      if (!customDate) {
-        alert('Please select an end date');
-        return;
-      }
-      endsAt = new Date(customDate);
-    } else {
-      const duration = parseInt(document.getElementById('duration').value);
-      if (!duration || duration < 1) {
-        alert('Please enter a valid duration');
-        return;
-      }
-      
-      const now = new Date();
-      const multiplier = state.durationType === 'minutes' ? 1 : 
-                        state.durationType === 'hours' ? 60 : 1440; // 1440 minutes = 1 day
-      endsAt = new Date(now.getTime() + (duration * multiplier * 60 * 1000));
+    switch (durationType) {
+      case 'minutes':
+        endsAt = new Date(now.getTime() + duration * 60 * 1000).toISOString();
+        break;
+      case 'hours':
+        endsAt = new Date(now.getTime() + duration * 60 * 60 * 1000).toISOString();
+        break;
+      case 'days':
+        endsAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000).toISOString();
+        break;
+      default:
+        endsAt = new Date(now.getTime() + 60 * 60 * 1000).toISOString(); // Default 1 hour
     }
-    
-    const battleData = {
+  }
+  
+  // Ensure end time is in the future
+  if (new Date(endsAt) <= new Date()) {
+    alert('End time must be in the future');
+    return;
+  }
+  
+  try {
+    // Create battle
+    const { data, error } = await supabaseClient.from('battles').insert([{
       title,
       option1,
       option2,
       image1: image1 || null,
       image2: image2 || null,
-      ends_at: endsAt.toISOString(),
       votes1: 0,
-      votes2: 0
-    };
+      votes2: 0,
+      ends_at: endsAt,
+      created_at: new Date().toISOString()
+    }]).select();
     
-    try {
-      await createBattle(battleData);
-      closeCreateModal();
-      loadBattles();
-      alert('Battle created successfully!');
-    } catch (error) {
-      alert('Error creating battle: ' + error.message);
+    if (error) throw error;
+    
+    // Success
+    closeCreateModal();
+    await loadBattles();
+    
+    // Show success message
+    showToast('Battle created successfully!', 'success');
+  } catch (error) {
+    console.error('Error creating battle:', error);
+    alert('Error creating battle. Please try again.');
+  }
+}
+
+// Toast notification
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-gray-800';
+  toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Fade in
+  setTimeout(() => {
+    toast.style.opacity = '1';
+  }, 10);
+  
+  // Remove after delay
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3000);
+}
+
+// Random Battle Generator
+function createTestBattle() {
+  const battleTemplates = [
+    // Sports
+    {
+      category: 'sports',
+      battles: [
+        { title: 'Football vs Basketball', option1: 'Football', option2: 'Basketball', 
+          image1: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400', 
+          image2: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400' },
+        { title: 'Messi vs Ronaldo', option1: 'Messi', option2: 'Ronaldo',
+          image1: 'https://images.unsplash.com/photo-1570698473651-b2de99bae12f?w=400',
+          image2: 'https://images.unsplash.com/photo-1535901925915-0b1dc8a2e2e1?w=400' },
+        { title: 'Tennis vs Golf', option1: 'Tennis', option2: 'Golf',
+          image1: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=400',
+          image2: 'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=400' },
+        { title: 'NBA vs NFL', option1: 'NBA', option2: 'NFL',
+          image1: 'https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=400',
+          image2: 'https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=400' },
+        { title: 'Boxing vs MMA', option1: 'Boxing', option2: 'MMA',
+          image1: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=400',
+          image2: 'https://images.unsplash.com/photo-1565033003741-2002cc2e68fd?w=400' },
+        { title: 'Olympics vs World Cup', option1: 'Olympics', option2: 'World Cup',
+          image1: 'https://images.unsplash.com/photo-1569517282132-25d22f4573e6?w=400',
+          image2: 'https://images.unsplash.com/photo-1606924842535-fcc79fe7bdb4?w=400' }
+      ]
+    },
+    // Food
+    {
+      category: 'food',
+      battles: [
+        { title: 'Pizza vs Burger', option1: 'Pizza', option2: 'Burger',
+          image1: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
+          image2: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400' },
+        { title: 'Coffee vs Tea', option1: 'Coffee', option2: 'Tea',
+          image1: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400',
+          image2: 'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=400' },
+        { title: 'Sushi vs Tacos', option1: 'Sushi', option2: 'Tacos',
+          image1: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400',
+          image2: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=400' },
+        { title: 'Ice Cream vs Cake', option1: 'Ice Cream', option2: 'Cake',
+          image1: 'https://images.unsplash.com/photo-1488900128323-21503983a07e?w=400',
+          image2: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400' },
+        { title: 'Pasta vs Rice', option1: 'Pasta', option2: 'Rice',
+          image1: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400',
+          image2: 'https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?w=400' },
+        { title: 'Steak vs Seafood', option1: 'Steak', option2: 'Seafood',
+          image1: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400',
+          image2: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=400' }
+      ]
+    },
+    // Music
+    {
+      category: 'music',
+      battles: [
+        { title: 'Rock vs Hip Hop', option1: 'Rock', option2: 'Hip Hop',
+          image1: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+          image2: 'https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=400' },
+        { title: 'Beatles vs Queen', option1: 'The Beatles', option2: 'Queen',
+          image1: 'https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=400',
+          image2: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400' },
+        { title: 'Spotify vs Apple Music', option1: 'Spotify', option2: 'Apple Music',
+          image1: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=400',
+          image2: 'https://images.unsplash.com/photo-1588444837495-c6cfeb53f32d?w=400' },
+        { title: 'Vinyl vs Digital', option1: 'Vinyl Records', option2: 'Digital Music',
+          image1: 'https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?w=400',
+          image2: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400' },
+        { title: 'Classical vs EDM', option1: 'Classical', option2: 'EDM',
+          image1: 'https://images.unsplash.com/photo-1465821185615-20b3c2fbf41b?w=400',
+          image2: 'https://images.unsplash.com/photo-1574482620811-1aa16ffe3c82?w=400' },
+        { title: 'Live Concert vs Studio Album', option1: 'Live Concert', option2: 'Studio Album',
+          image1: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+          image2: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400' }
+      ]
+    },
+    // Tech
+    {
+      category: 'tech',
+      battles: [
+        { title: 'iPhone vs Android', option1: 'iPhone', option2: 'Android',
+          image1: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400',
+          image2: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400' },
+        { title: 'PlayStation vs Xbox', option1: 'PlayStation', option2: 'Xbox',
+          image1: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400',
+          image2: 'https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=400' },
+        { title: 'Windows vs Mac', option1: 'Windows', option2: 'Mac',
+          image1: 'https://images.unsplash.com/photo-1629654291663-b91ad427698f?w=400',
+          image2: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca4?w=400' },
+        { title: 'Tesla vs Traditional Cars', option1: 'Tesla', option2: 'Traditional Cars',
+          image1: 'https://images.unsplash.com/photo-1561580125-028ee3bd62eb?w=400',
+          image2: 'https://images.unsplash.com/photo-1550355291-bbee04a92027?w=400' },
+        { title: 'AI vs Human Intelligence', option1: 'AI', option2: 'Human Intelligence',
+          image1: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400',
+          image2: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400' },
+        { title: 'VR vs AR', option1: 'Virtual Reality', option2: 'Augmented Reality',
+          image1: 'https://images.unsplash.com/photo-1617802690992-15d93263d3a9?w=400',
+          image2: 'https://images.unsplash.com/photo-1605647540924-852290f6b0d5?w=400' }
+      ]
+    },
+    // Movies/TV
+    {
+      category: 'entertainment',
+      battles: [
+        { title: 'Marvel vs DC', option1: 'Marvel', option2: 'DC',
+          image1: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400',
+          image2: 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=400' },
+        { title: 'Netflix vs Disney+', option1: 'Netflix', option2: 'Disney+',
+          image1: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=400',
+          image2: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400' },
+        { title: 'Star Wars vs Star Trek', option1: 'Star Wars', option2: 'Star Trek',
+          image1: 'https://images.unsplash.com/photo-1547700055-b61cacebece9?w=400',
+          image2: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400' },
+        { title: 'Friends vs The Office', option1: 'Friends', option2: 'The Office',
+          image1: 'https://images.unsplash.com/photo-1542204625-ca960ca44635?w=400',
+          image2: 'https://images.unsplash.com/photo-1568876694728-451bbf694b83?w=400' },
+        { title: 'Cinema vs Streaming', option1: 'Cinema', option2: 'Streaming',
+          image1: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400',
+          image2: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=400' },
+        { title: 'Action vs Comedy', option1: 'Action Movies', option2: 'Comedy Movies',
+          image1: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400',
+          image2: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400' }
+      ]
+    },
+    // Lifestyle
+    {
+      category: 'lifestyle',
+      battles: [
+        { title: 'Beach vs Mountains', option1: 'Beach', option2: 'Mountains',
+          image1: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400',
+          image2: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400' },
+        { title: 'Summer vs Winter', option1: 'Summer', option2: 'Winter',
+          image1: 'https://images.unsplash.com/photo-1527004760551-13de3ffd8d3f?w=400',
+          image2: 'https://images.unsplash.com/photo-1491002052546-bf38f186af56?w=400' },
+        { title: 'City Life vs Country Life', option1: 'City Life', option2: 'Country Life',
+          image1: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400',
+          image2: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400' },
+        { title: 'Working from Home vs Office', option1: 'Work from Home', option2: 'Work from Office',
+          image1: 'https://images.unsplash.com/photo-1565843248736-8c41e6db117b?w=400',
+          image2: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400' },
+        { title: 'Minimalism vs Maximalism', option1: 'Minimalism', option2: 'Maximalism',
+          image1: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
+          image2: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=400' },
+        { title: 'Gym vs Home Workout', option1: 'Gym', option2: 'Home Workout',
+          image1: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400',
+          image2: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400' }
+      ]
+    },
+    // Classic debates
+    {
+      category: 'classic',
+      battles: [
+        { title: 'Cats vs Dogs', option1: 'Cats', option2: 'Dogs',
+          image1: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400',
+          image2: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=400' },
+        { title: 'Morning Person vs Night Owl', option1: 'Morning Person', option2: 'Night Owl',
+          image1: 'https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=400',
+          image2: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400' },
+        { title: 'Books vs Movies', option1: 'Books', option2: 'Movies',
+          image1: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          image2: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400' },
+        { title: 'Chocolate vs Vanilla', option1: 'Chocolate', option2: 'Vanilla',
+          image1: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400',
+          image2: 'https://images.unsplash.com/photo-1567653418876-5bb0e566e1c2?w=400' },
+        { title: 'Introvert vs Extrovert', option1: 'Introvert', option2: 'Extrovert',
+          image1: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+          image2: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400' },
+        { title: 'Sweet vs Savory', option1: 'Sweet', option2: 'Savory',
+          image1: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400',
+          image2: 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=400' }
+      ]
+    },
+    // Trending
+    {
+      category: 'trending',
+      battles: [
+        { title: 'TikTok vs Instagram Reels', option1: 'TikTok', option2: 'Instagram Reels',
+          image1: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=400',
+          image2: 'https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400' },
+        { title: 'ChatGPT vs Google', option1: 'ChatGPT', option2: 'Google',
+          image1: 'https://images.unsplash.com/photo-1676299081847-824916de030a?w=400',
+          image2: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400' },
+        { title: 'Remote Work vs Office Work', option1: 'Remote Work', option2: 'Office Work',
+          image1: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400',
+          image2: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400' },
+        { title: 'Crypto vs Traditional Banking', option1: 'Cryptocurrency', option2: 'Traditional Banking',
+          image1: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400',
+          image2: 'https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?w=400' },
+        { title: 'Influencers vs Celebrities', option1: 'Influencers', option2: 'Celebrities',
+          image1: 'https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=400',
+          image2: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400' },
+        { title: 'Metaverse vs Real World', option1: 'Metaverse', option2: 'Real World',
+          image1: 'https://images.unsplash.com/photo-1633355444132-695d5876159c?w=400',
+          image2: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=400' }
+      ]
+    },
+    // Fashion
+    {
+      category: 'fashion',
+      battles: [
+        { title: 'Sneakers vs Heels', option1: 'Sneakers', option2: 'Heels',
+          image1: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
+          image2: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400' },
+        { title: 'Vintage vs Modern Fashion', option1: 'Vintage', option2: 'Modern',
+          image1: 'https://images.unsplash.com/photo-1544441893-675973e31985?w=400',
+          image2: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400' },
+        { title: 'Comfort vs Style', option1: 'Comfort', option2: 'Style',
+          image1: 'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=400',
+          image2: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=400' }
+      ]
+    },
+    // Gaming
+    {
+      category: 'gaming',
+      battles: [
+        { title: 'PC Gaming vs Console Gaming', option1: 'PC Gaming', option2: 'Console Gaming',
+          image1: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400',
+          image2: 'https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=400' },
+        { title: 'Single Player vs Multiplayer', option1: 'Single Player', option2: 'Multiplayer',
+          image1: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400',
+          image2: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400' },
+        { title: 'RPG vs FPS', option1: 'RPG Games', option2: 'FPS Games',
+          image1: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400',
+          image2: 'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=400' }
+      ]
     }
-  }
+  ];
+
+  // Select random category
+  const randomCategory = battleTemplates[Math.floor(Math.random() * battleTemplates.length)];
   
-  // Share functions
-  function shareToTwitter() {
-    const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
-    const text = encodeURIComponent('I just voted in this epic battle! Cast your vote too: ');
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(battleUrl)}`;
-    window.open(twitterUrl, '_blank');
-  }
+  // Select random battle from that category
+  const randomBattle = randomCategory.battles[Math.floor(Math.random() * randomCategory.battles.length)];
   
-  function shareToFacebook() {
-    const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(battleUrl)}`;
-    window.open(facebookUrl, '_blank');
-  }
+  // Pre-fill the form
+  const fields = {
+    battleTitle: randomBattle.title,
+    option1: randomBattle.option1,
+    option2: randomBattle.option2,
+    image1: randomBattle.image1,
+    image2: randomBattle.image2
+  };
   
-  function shareToReddit() {
-    const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
-    const title = encodeURIComponent('Epic Battle - Vote Now!');
-    const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(battleUrl)}&title=${title}`;
-    window.open(redditUrl, '_blank');
-  }
+  Object.entries(fields).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  });
   
-  function copyLink() {
-    const battleUrl = window.location.origin + '/battle.html?id=' + window.currentBattleId;
-    navigator.clipboard.writeText(battleUrl).then(() => {
-      alert('Link copied to clipboard!');
+  // Set random duration
+  const durations = [
+    { type: 'minutes', value: 30 },
+    { type: 'hours', value: 1 },
+    { type: 'hours', value: 6 },
+    { type: 'hours', value: 12 },
+    { type: 'hours', value: 24 },
+    { type: 'days', value: 3 },
+    { type: 'days', value: 7 }
+  ];
+  
+  const randomDuration = durations[Math.floor(Math.random() * durations.length)];
+  setDurationType(randomDuration.type);
+  const durationEl = document.getElementById('duration');
+  if (durationEl) durationEl.value = randomDuration.value;
+  
+  // Show preview images
+  previewImage('image1', 'preview1');
+  previewImage('image2', 'preview2');
+  
+  // Open modal
+  openCreateModal();
+  
+  // Add a fun message
+  const messages = [
+    `🎲 Random ${randomCategory.category} battle generated!`,
+    `🔥 Hot ${randomCategory.category} debate ready!`,
+    `⚡ Epic ${randomCategory.category} showdown!`,
+    `🎯 Fresh ${randomCategory.category} battle loaded!`,
+    `✨ Exciting ${randomCategory.category} matchup created!`,
+    `🚀 New ${randomCategory.category} battle prepared!`,
+    `💥 Awesome ${randomCategory.category} versus ready!`
+  ];
+  
+  const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+  showToast(randomMessage, 'success');
+}
+
+// Share modal functions
+function openShareModal() {
+  const modal = document.getElementById('shareModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+}
+
+function closeShareModal() {
+  const modal = document.getElementById('shareModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function shareToTwitter() {
+  if (!currentBattleForShare) return;
+  
+  const text = `Check out this battle: ${currentBattleForShare.title} - ${currentBattleForShare.option1} vs ${currentBattleForShare.option2}! Vote now! 🔥`;
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  
+  window.open(shareUrl, '_blank', 'width=550,height=420');
+}
+
+function shareToFacebook() {
+  if (!currentBattleForShare) return;
+  
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  
+  window.open(shareUrl, '_blank', 'width=550,height=420');
+}
+
+function shareToReddit() {
+  if (!currentBattleForShare) return;
+  
+  const title = `${currentBattleForShare.title} - ${currentBattleForShare.option1} vs ${currentBattleForShare.option2}`;
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  const shareUrl = `https://www.reddit.com/submit?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+  
+  window.open(shareUrl, '_blank', 'width=550,height=850');
+}
+
+function copyLink() {
+  if (!currentBattleForShare) return;
+  
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  
+  // Try modern API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied to clipboard!', 'success');
     }).catch(() => {
-      alert('Could not copy link. Please copy manually: ' + battleUrl);
+      fallbackCopyToClipboard(url);
+    });
+  } else {
+    fallbackCopyToClipboard(url);
+  }
+}
+
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showToast('Link copied to clipboard!', 'success');
+  } catch (err) {
+    showToast('Failed to copy link', 'error');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+// Error handling
+window.addEventListener('error', (event) => {
+  console.error('Global error:', event.error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Load battles
+  loadBattles();
+  
+  // Set up modal event listeners
+  const createModal = document.getElementById('createModal');
+  const shareModal = document.getElementById('shareModal');
+  
+  if (createModal) {
+    createModal.addEventListener('click', (e) => {
+      if (e.target === createModal) {
+        closeCreateModal();
+      }
     });
   }
   
-  // Initialize the app
-  async function init() {
-    console.log('🚀 Initializing FanShare Battle App...');
-    
-    // Check if Supabase is available and test connection
-    const dbReady = await initSupabase();
-    if (!dbReady) {
-      document.getElementById('battles-container').innerHTML = '<div class="text-center py-8 text-red-500">❌ Error: Could not connect to database. Please try again later.</div>';
-      return;
-    }
-    
-    // Test storage access
-    await testStorageAccess();
-    
-    // Debug: List all elements with IDs
-    console.log('DEBUG: All elements with IDs:', Array.from(document.querySelectorAll('[id]')).map(el => el.id));
-    
-    // Load battles on page load
-    loadBattles();
-    
-    // Set up modal event listeners
-    const modal = document.getElementById('createModal');
-    if (modal) {
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          closeCreateModal();
-        }
-      });
-    }
-    
-    const shareModal = document.getElementById('shareModal');
-    if (shareModal) {
-      shareModal.addEventListener('click', function(e) {
-        if (e.target === shareModal) {
-          closeShareModal();
-        }
-      });
-    }
-    
-    console.log('✅ App initialized successfully!');
+  if (shareModal) {
+    shareModal.addEventListener('click', (e) => {
+      if (e.target === shareModal) {
+        closeShareModal();
+      }
+    });
   }
   
-  // Simple storage test - don't try to create buckets automatically
-  async function testStorageAccess() {
-    try {
-      console.log('Testing storage access...');
-      const { data, error } = await supabase.storage.listBuckets();
-      
-      if (error) {
-        console.log('Storage not accessible:', error.message);
-        return;
-      }
-      
-      console.log('Available buckets:', data?.map(b => b.name) || []);
-      
-      if (data?.find(bucket => bucket.name === 'battle-images')) {
-        console.log('✅ battle-images bucket ready');
-      } else if (data?.find(bucket => bucket.name === 'images')) {
-        console.log('⚠️ Found "images" bucket but expected "battle-images"');
-      } else if (data?.find(bucket => bucket.name === 'avatars')) {
-        console.log('✅ Avatars bucket available as fallback');
-      } else {
-        console.log('ℹ️ No storage buckets found - you may need to create one');
-      }
-    } catch (error) {
-      console.log('Storage test skipped:', error.message);
+  // Set up keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // ESC to close modals
+    if (e.key === 'Escape') {
+      closeCreateModal();
+      closeShareModal();
     }
-  }
+    
+    // Ctrl/Cmd + K to create new battle
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      openCreateModal();
+    }
+  });
   
-  // Make functions globally available
-  window.showTab = showTab;
-  window.openCreateModal = openCreateModal;
-  window.closeCreateModal = closeCreateModal;
-  window.openShareModal = openShareModal;
-  window.closeShareModal = closeShareModal;
-  window.setDurationType = setDurationType;
-  window.pickCustomDate = pickCustomDate;
-  window.handleImageUpload = handleImageUpload;
-  window.submitBattle = submitBattle;
-  window.shareToTwitter = shareToTwitter;
-  window.shareToFacebook = shareToFacebook;
-  window.shareToReddit = shareToReddit;
-  window.copyLink = copyLink;
-  window.previewImage = previewImage;
-  window.removePreview = removePreview;
-  window.createTestBattle = createTestBattle;
-  window.createStorageBucket = createStorageBucket;
-  window.listAllBuckets = listAllBuckets;
+  // Auto-refresh battles every 30 seconds
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      loadBattles();
+    }
+  }, 30000);
   
-  // Run when DOM is loaded
-  document.addEventListener('DOMContentLoaded', init);
-  
-})();
+  // Handle visibility change
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      loadBattles();
+    }
+  });
+});
+
+// Export functions for global access
+window.showTab = showTab;
+window.vote = vote;
+window.openCreateModal = openCreateModal;
+window.closeCreateModal = closeCreateModal;
+window.openShareModal = openShareModal;
+window.closeShareModal = closeShareModal;
+window.setDurationType = setDurationType;
+window.pickCustomDate = pickCustomDate;
+window.previewImage = previewImage;
+window.removePreview = removePreview;
+window.handleImageUpload = handleImageUpload;
+window.submitBattle = submitBattle;
+window.createTestBattle = createTestBattle;
+window.shareToTwitter = shareToTwitter;
+window.shareToFacebook = shareToFacebook;
+window.shareToReddit = shareToReddit;
+window.copyLink = copyLink;
