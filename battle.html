@@ -674,4 +674,73 @@
         const { data: comments, error } = await supabase
           .from('comments')
           .select('*')
-          .eq('battle_i
+          .eq('battle_id', battleId)
+          .order('created_at', { ascending: false });
+          
+        if (error) throw error;
+        
+        const commentsHtml = comments.length ? comments.map(comment => `
+          <div class="comment-box">
+            <div class="flex items-start gap-3">
+              ${comment.user_avatar ? 
+                `<img src="${comment.user_avatar}" alt="Avatar" class="w-10 h-10 rounded-full">` : 
+                '<div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">👤</div>'
+              }
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <div class="comment-author">${comment.author}</div>
+                  ${comment.user_id ? '<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded">Verified</span>' : ''}
+                </div>
+                <div class="comment-time">${new Date(comment.created_at).toLocaleString()}</div>
+                <div class="comment-text mt-2">${comment.text}</div>
+              </div>
+            </div>
+          </div>
+        `).join('') : '<p class="text-gray-500 text-center">No comments yet. Be the first to comment!</p>';
+        
+        document.getElementById('commentsList').innerHTML = commentsHtml;
+        
+        // Update comments count in sidebar
+        document.getElementById('comments-count-sidebar').textContent = comments.length;
+      } catch (err) {
+        console.error('Error loading comments:', err);
+        document.getElementById('commentsList').innerHTML = '<p class="text-red-500">Error loading comments</p>';
+      }
+    }
+
+    // Load related battles
+    async function loadRelatedBattles() {
+      try {
+        const { data: battles, error } = await supabase
+          .from('battles')
+          .select('id, title, votes1, votes2')
+          .neq('id', battleId)
+          .order('created_at', { ascending: false })
+          .limit(3);
+          
+        if (error) throw error;
+        
+        const relatedHtml = battles.map(battle => {
+          const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
+          return `
+            <a href="battle.html?id=${battle.id}" class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+              <div class="font-medium text-sm text-gray-800 mb-1">${battle.title}</div>
+              <div class="text-xs text-gray-500">${totalVotes} votes</div>
+            </a>
+          `;
+        }).join('');
+        
+        document.getElementById('related-battles').innerHTML = relatedHtml || '<p class="text-sm text-gray-500">No related battles</p>';
+      } catch (err) {
+        console.error('Error loading related battles:', err);
+      }
+    }
+
+    // Initialize
+    checkAuth();
+    loadBattle();
+    loadComments();
+    loadRelatedBattles();
+  </script>
+</body>
+</html>
