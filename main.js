@@ -73,7 +73,9 @@ function createBattleCard(battle) {
   
   return `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4">
-      <h2 class="text-lg sm:text-xl font-bold mb-4">${battle.title}</h2>
+      <a href="battle.html?id=${battle.id}" class="block mb-4 hover:text-blue-600 transition">
+        <h2 class="text-lg sm:text-xl font-bold">${battle.title}</h2>
+      </a>
       
       <div class="flex items-center justify-center gap-2 sm:gap-4 mb-4">
         <div class="flex-1 text-center">
