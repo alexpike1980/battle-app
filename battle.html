@@ -713,7 +713,7 @@
       try {
         const { data: battles, error } = await supabase
           .from('battles')
-          .select('id, title, votes1, votes2')
+          .select('id, title, votes1, votes2, image1, image2')
           .neq('id', battleId)
           .order('created_at', { ascending: false })
           .limit(3);
@@ -724,8 +724,20 @@
           const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
           return `
             <a href="battle.html?id=${battle.id}" class="block p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-              <div class="font-medium text-sm text-gray-800 mb-1">${battle.title}</div>
-              <div class="text-xs text-gray-500">${totalVotes} votes</div>
+              <div class="flex items-center gap-3">
+                <div class="flex -space-x-3">
+                  <img src="${battle.image1 || 'https://via.placeholder.com/40'}" 
+                       alt="${battle.title}" 
+                       class="w-10 h-10 rounded-full border-2 border-white object-cover">
+                  <img src="${battle.image2 || 'https://via.placeholder.com/40'}" 
+                       alt="${battle.title}" 
+                       class="w-10 h-10 rounded-full border-2 border-white object-cover">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-sm text-gray-800 mb-1 truncate">${battle.title}</div>
+                  <div class="text-xs text-gray-500">${totalVotes} votes</div>
+                </div>
+              </div>
             </a>
           `;
         }).join('');
