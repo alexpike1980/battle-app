@@ -77,30 +77,49 @@ function createBattleCard(battle) {
         <h2 class="text-lg sm:text-xl font-bold">${battle.title}</h2>
       </a>
       
-      <div class="flex items-center justify-center gap-2 sm:gap-4 mb-4">
+      <div class="relative mb-4">
+        <div class="flex">
+          <div class="flex-1">
+            <img src="${battle.image1 || 'https://via.placeholder.com/200'}" 
+                 alt="${battle.option1}" 
+                 class="w-full h-32 sm:h-40 object-cover rounded-l-lg">
+          </div>
+          
+          <div class="flex-1">
+            <img src="${battle.image2 || 'https://via.placeholder.com/200'}" 
+                 alt="${battle.option2}" 
+                 class="w-full h-32 sm:h-40 object-cover rounded-r-lg">
+          </div>
+        </div>
+        
+        <!-- VS Circle positioned absolutely in center -->
+        <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 vs-circle bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-sm sm:text-base font-bold">
+          VS
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-between gap-4">
         <div class="flex-1 text-center">
-          <img src="${battle.image1 || 'https://via.placeholder.com/200'}" 
-               alt="${battle.option1}" 
-               class="w-full h-32 sm:h-40 object-cover rounded-lg mb-2">
-          <p class="option-title text-sm sm:text-base">${battle.option1}</p>
+          <p class="option-title text-sm sm:text-base mb-2">${battle.option1}</p>
+        </div>
+        
+        <div class="flex-1 text-center">
+          <p class="option-title text-sm sm:text-base mb-2">${battle.option2}</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-between gap-4 mb-3">
+        <div class="flex-1">
           <button onclick="vote('${battle.id}', 'option1')" 
-                  class="mt-2 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
                   ${!isActive ? 'disabled' : ''}>
             Vote
           </button>
         </div>
         
-        <div class="vs-circle bg-white w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-xs sm:text-sm font-bold">
-          VS
-        </div>
-        
-        <div class="flex-1 text-center">
-          <img src="${battle.image2 || 'https://via.placeholder.com/200'}" 
-               alt="${battle.option2}" 
-               class="w-full h-32 sm:h-40 object-cover rounded-lg mb-2">
-          <p class="option-title text-sm sm:text-base">${battle.option2}</p>
+        <div class="flex-1">
           <button onclick="vote('${battle.id}', 'option2')" 
-                  class="mt-2 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
+                  class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
                   ${!isActive ? 'disabled' : ''}>
             Vote
           </button>
