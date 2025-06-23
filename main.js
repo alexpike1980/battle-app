@@ -6,49 +6,8 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // State
 let currentTab = 'featured';
-let currentCategory = '';
 let durationType = 'minutes';
 let currentBattleForShare = null;
-
-// Category configuration
-const categories = {
-  sports: { emoji: '🏈', name: 'Sports' },
-  food: { emoji: '🍔', name: 'Food & Drink' },
-  tech: { emoji: '💻', name: 'Technology' },
-  entertainment: { emoji: '🎬', name: 'Entertainment' },
-  music: { emoji: '🎵', name: 'Music' },
-  gaming: { emoji: '🎮', name: 'Gaming' },
-  fashion: { emoji: '👗', name: 'Fashion' },
-  lifestyle: { emoji: '🏠', name: 'Lifestyle' },
-  politics: { emoji: '🏛️', name: 'Politics' },
-  classic: { emoji: '⚔️', name: 'Classic Debates' },
-  trending: { emoji: '🔥', name: 'Trending' },
-  other: { emoji: '📦', name: 'Other' }
-};
-
-// Get category display info
-function getCategoryDisplay(categoryKey) {
-  const cat = categories[categoryKey];
-  return cat ? `${cat.emoji} ${cat.name}` : '';
-}
-
-// Filter by category
-function filterByCategory(category) {
-  currentCategory = category;
-  
-  // Update button styles
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    if (btn.dataset.category === category) {
-      btn.classList.remove('bg-gray-100', 'text-gray-600');
-      btn.classList.add('bg-blue-100', 'text-blue-600');
-    } else {
-      btn.classList.remove('bg-blue-100', 'text-blue-600');
-      btn.classList.add('bg-gray-100', 'text-gray-600');
-    }
-  });
-  
-  loadBattles();
-}
 
 // Tab Management
 function showTab(tab) {
@@ -306,7 +265,7 @@ function closeCreateModal() {
   }
   
   // Reset form
-  const fields = ['battleTitle', 'option1', 'option2', 'image1', 'image2', 'duration', 'customDate', 'battleCategory'];
+  const fields = ['battleTitle', 'option1', 'option2', 'image1', 'image2', 'duration', 'customDate'];
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -430,7 +389,6 @@ async function submitBattle() {
   const option2 = document.getElementById('option2')?.value.trim();
   const image1 = document.getElementById('image1')?.value.trim();
   const image2 = document.getElementById('image2')?.value.trim();
-  const category = document.getElementById('battleCategory')?.value || null;
   
   // Validation
   if (!title || !option1 || !option2) {
@@ -474,8 +432,8 @@ async function submitBattle() {
   }
   
   try {
-    // Create battle object
-    const battleData = {
+    // Create battle
+    const { data, error } = await supabaseClient.from('battles').insert([{
       title,
       option1,
       option2,
@@ -485,14 +443,7 @@ async function submitBattle() {
       votes2: 0,
       ends_at: endsAt,
       created_at: new Date().toISOString()
-    };
-    
-    // Only add category if it exists in the database
-    if (category) {
-      battleData.category = category;
-    }
-    
-    const { data, error } = await supabaseClient.from('battles').insert([battleData]).select();
+    }]).select();
     
     if (error) throw error;
     
@@ -504,9 +455,6 @@ async function submitBattle() {
     showToast('Battle created successfully!', 'success');
   } catch (error) {
     console.error('Error creating battle:', error);
-    alert('Error creating battle. Please try again.');
-  }
-}:', error);
     alert('Error creating battle. Please try again.');
   }
 }
@@ -539,7 +487,6 @@ function createTestBattle() {
     // Sports
     {
       category: 'sports',
-      categoryKey: 'sports',
       battles: [
         { title: 'Football vs Basketball', option1: 'Football', option2: 'Basketball', 
           image1: 'https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400', 
@@ -564,7 +511,6 @@ function createTestBattle() {
     // Food
     {
       category: 'food',
-      categoryKey: 'food',
       battles: [
         { title: 'Pizza vs Burger', option1: 'Pizza', option2: 'Burger',
           image1: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
@@ -589,7 +535,6 @@ function createTestBattle() {
     // Music
     {
       category: 'music',
-      categoryKey: 'music',
       battles: [
         { title: 'Rock vs Hip Hop', option1: 'Rock', option2: 'Hip Hop',
           image1: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
@@ -614,7 +559,6 @@ function createTestBattle() {
     // Tech
     {
       category: 'tech',
-      categoryKey: 'tech',
       battles: [
         { title: 'iPhone vs Android', option1: 'iPhone', option2: 'Android',
           image1: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=400',
@@ -639,7 +583,6 @@ function createTestBattle() {
     // Movies/TV
     {
       category: 'entertainment',
-      categoryKey: 'entertainment',
       battles: [
         { title: 'Marvel vs DC', option1: 'Marvel', option2: 'DC',
           image1: 'https://images.unsplash.com/photo-1635805737707-575885ab0820?w=400',
@@ -664,7 +607,6 @@ function createTestBattle() {
     // Lifestyle
     {
       category: 'lifestyle',
-      categoryKey: 'lifestyle',
       battles: [
         { title: 'Beach vs Mountains', option1: 'Beach', option2: 'Mountains',
           image1: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400',
@@ -689,7 +631,6 @@ function createTestBattle() {
     // Classic debates
     {
       category: 'classic',
-      categoryKey: 'classic',
       battles: [
         { title: 'Cats vs Dogs', option1: 'Cats', option2: 'Dogs',
           image1: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400',
@@ -714,7 +655,6 @@ function createTestBattle() {
     // Trending
     {
       category: 'trending',
-      categoryKey: 'trending',
       battles: [
         { title: 'TikTok vs Instagram Reels', option1: 'TikTok', option2: 'Instagram Reels',
           image1: 'https://images.unsplash.com/photo-1611162616305-c69b3fa7fbe0?w=400',
@@ -739,7 +679,6 @@ function createTestBattle() {
     // Fashion
     {
       category: 'fashion',
-      categoryKey: 'fashion',
       battles: [
         { title: 'Sneakers vs Heels', option1: 'Sneakers', option2: 'Heels',
           image1: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400',
@@ -755,7 +694,6 @@ function createTestBattle() {
     // Gaming
     {
       category: 'gaming',
-      categoryKey: 'gaming',
       battles: [
         { title: 'PC Gaming vs Console Gaming', option1: 'PC Gaming', option2: 'Console Gaming',
           image1: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=400',
@@ -782,8 +720,7 @@ function createTestBattle() {
     option1: randomBattle.option1,
     option2: randomBattle.option2,
     image1: randomBattle.image1,
-    image2: randomBattle.image2,
-    battleCategory: randomCategory.categoryKey || 'other'
+    image2: randomBattle.image2
   };
   
   Object.entries(fields).forEach(([id, value]) => {
@@ -976,7 +913,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export functions for global access
 window.showTab = showTab;
-window.filterByCategory = filterByCategory;
 window.vote = vote;
 window.openCreateModal = openCreateModal;
 window.closeCreateModal = closeCreateModal;
