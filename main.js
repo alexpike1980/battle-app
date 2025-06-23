@@ -79,17 +79,12 @@ async function loadBattles() {
       query = query.lt('ends_at', new Date().toISOString());
     }
     
-    // Apply category filter
-    if (currentCategory) {
-      query = query.eq('category', currentCategory);
-    }
-    
     const { data: battles, error } = await query.order('created_at', { ascending: false });
     
     if (error) throw error;
     
     if (battles.length === 0) {
-      container.innerHTML = `<p class="text-center text-gray-500">No battles found${currentCategory ? ' in this category' : ''}</p>`;
+      container.innerHTML = '<p class="text-center text-gray-500">No battles found</p>';
       return;
     }
     
@@ -116,16 +111,12 @@ function createBattleCard(battle) {
   const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
   const percentage1 = totalVotes > 0 ? Math.round((battle.votes1 / totalVotes) * 100) : 50;
   const percentage2 = 100 - percentage1;
-  const categoryDisplay = getCategoryDisplay(battle.category);
   
   return `
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <a href="battle.html?id=${battle.id}" class="block hover:text-blue-600 transition flex-1">
-          <h2 class="text-lg sm:text-xl font-bold">${battle.title}</h2>
-        </a>
-        ${categoryDisplay ? `<span class="text-xs px-2 py-1 bg-gray-100 rounded-full">${categoryDisplay}</span>` : ''}
-      </div>
+      <a href="battle.html?id=${battle.id}" class="block mb-4 hover:text-blue-600 transition">
+        <h2 class="text-lg sm:text-xl font-bold">${battle.title}</h2>
+      </a>
       
       <div class="relative mb-4">
         <div class="flex">
@@ -439,16 +430,11 @@ async function submitBattle() {
   const option2 = document.getElementById('option2')?.value.trim();
   const image1 = document.getElementById('image1')?.value.trim();
   const image2 = document.getElementById('image2')?.value.trim();
-  const category = document.getElementById('battleCategory')?.value;
+  const category = document.getElementById('battleCategory')?.value || null;
   
   // Validation
   if (!title || !option1 || !option2) {
     alert('Please fill in all required fields');
-    return;
-  }
-  
-  if (!category) {
-    alert('Please select a category');
     return;
   }
   
@@ -488,19 +474,25 @@ async function submitBattle() {
   }
   
   try {
-    // Create battle
-    const { data, error } = await supabaseClient.from('battles').insert([{
+    // Create battle object
+    const battleData = {
       title,
       option1,
       option2,
-      category,
       image1: image1 || null,
       image2: image2 || null,
       votes1: 0,
       votes2: 0,
       ends_at: endsAt,
       created_at: new Date().toISOString()
-    }]).select();
+    };
+    
+    // Only add category if it exists in the database
+    if (category) {
+      battleData.category = category;
+    }
+    
+    const { data, error } = await supabaseClient.from('battles').insert([battleData]).select();
     
     if (error) throw error;
     
