@@ -19,7 +19,9 @@
     
     .vs-circle {
       border-radius: 50%;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border: 3px solid white;
+      z-index: 10;
     }
 
     /* Progress Bar Styles */
@@ -564,13 +566,41 @@
         document.getElementById('battleDetail').innerHTML = `
           <h1 class="text-lg sm:text-2xl font-bold mb-4 sm:mb-6">${battle.title}</h1>
           
-          <div class="flex items-center justify-center gap-2 sm:gap-8 mb-4 sm:mb-6">
-            <!-- Option 1 -->
-            <div class="flex flex-col items-center flex-1">
-              <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
-                   alt="${battle.option1}" 
-                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
-              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option1}</h3>
+          <div class="relative mb-4 sm:mb-6">
+            <div class="flex">
+              <!-- Option 1 -->
+              <div class="flex-1">
+                <img src="${battle.image1 || 'https://via.placeholder.com/300'}" 
+                     alt="${battle.option1}" 
+                     class="w-full h-36 sm:h-48 object-cover rounded-l-lg">
+              </div>
+              
+              <!-- Option 2 -->
+              <div class="flex-1">
+                <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
+                     alt="${battle.option2}" 
+                     class="w-full h-36 sm:h-48 object-cover rounded-r-lg">
+              </div>
+            </div>
+            
+            <!-- VS Circle -->
+            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 vs-circle bg-white w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-base sm:text-xl font-bold">
+              VS
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between gap-4 mb-3">
+            <div class="flex-1 text-center">
+              <h3 class="option-title text-sm sm:text-base">${battle.option1}</h3>
+            </div>
+            
+            <div class="flex-1 text-center">
+              <h3 class="option-title text-sm sm:text-base">${battle.option2}</h3>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between gap-4 mb-4">
+            <div class="flex-1">
               <button onclick="vote('${battle.id}', 'option1')" 
                       class="w-full bg-blue-600 text-white py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
                       ${!active ? 'disabled' : ''}>
@@ -578,17 +608,7 @@
               </button>
             </div>
             
-            <!-- VS Circle -->
-            <div class="vs-circle bg-white w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center text-base sm:text-lg font-bold">
-              VS
-            </div>
-            
-            <!-- Option 2 -->
-            <div class="flex flex-col items-center flex-1">
-              <img src="${battle.image2 || 'https://via.placeholder.com/300'}" 
-                   alt="${battle.option2}" 
-                   class="w-full h-36 sm:h-48 object-cover rounded-lg">
-              <h3 class="option-title mt-2 sm:mt-3 mb-2 sm:mb-3 text-sm sm:text-base">${battle.option2}</h3>
+            <div class="flex-1">
               <button onclick="vote('${battle.id}', 'option2')" 
                       class="w-full bg-green-600 text-white py-2 sm:py-3 rounded-lg hover:bg-green-700 transition font-medium text-sm sm:text-base ${!active ? 'opacity-50 cursor-not-allowed' : ''}"
                       ${!active ? 'disabled' : ''}>
