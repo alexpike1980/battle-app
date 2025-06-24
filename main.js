@@ -151,7 +151,7 @@ function createBattleCard(battle) {
       
       <div class="flex items-center justify-between gap-4 mb-3">
         <div class="flex-1">
-          <button onclick="event.preventDefault(); vote('${battle.id}', 'option1'); return false;" 
+          <button type="button" onclick="vote('${battle.id}', 'option1'); return false;" 
                   class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
                   ${!isActive ? 'disabled' : ''}>
             Vote
@@ -159,7 +159,7 @@ function createBattleCard(battle) {
         </div>
         
         <div class="flex-1">
-          <button onclick="event.preventDefault(); vote('${battle.id}', 'option2'); return false;" 
+          <button type="button" onclick="vote('${battle.id}', 'option2'); return false;" 
                   class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
                   ${!isActive ? 'disabled' : ''}>
             Vote
@@ -236,19 +236,30 @@ function startCountdown(battleId, endTime) {
 }
 
 // Vote function
-async function vote(battleId, option) {
+window.vote = async function(battleId, option) {
   // Prevent any default behavior
-  event?.preventDefault();
-  event?.stopPropagation();
+  if (window.event) {
+    window.event.preventDefault();
+    window.event.stopPropagation();
+  }
   
   const voteColumn = option === 'option1' ? 'votes1' : 'votes2';
   
-  // Disable all vote buttons for this battle temporarily
-  const battleCard = document.querySelector(`#timer-${battleId}`).closest('.bg-white');
+  // Find the battle card element more reliably
+  const timerEl = document.getElementById(`timer-${battleId}`);
+  if (!timerEl) {
+    console.error('Could not find battle card');
+    return false;
+  }
+  
+  const battleCard = timerEl.closest('.bg-white');
   const voteButtons = battleCard.querySelectorAll('button');
+  
+  // Disable vote buttons temporarily
   voteButtons.forEach(btn => {
     if (btn.textContent.trim() === 'Vote') {
       btn.disabled = true;
+      btn.classList.add('opacity-75');
       btn.textContent = 'Voting...';
     }
   });
@@ -297,13 +308,14 @@ async function vote(battleId, option) {
     voteButtons.forEach(btn => {
       if (btn.textContent.trim() === 'Voting...') {
         btn.disabled = false;
+        btn.classList.remove('opacity-75');
         btn.textContent = 'Vote';
       }
     });
   }
   
   return false; // Prevent any form submission
-}
+};
 
 // Update stats
 function updateStats(battles) {
@@ -1006,7 +1018,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export functions for global access
 window.showTab = showTab;
 window.filterByCategory = filterByCategory;
-window.vote = vote;
 window.openCreateModal = openCreateModal;
 window.closeCreateModal = closeCreateModal;
 window.openShareModal = openShareModal;
