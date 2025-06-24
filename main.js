@@ -236,7 +236,7 @@ function startCountdown(battleId, endTime) {
 }
 
 // Vote function
-window.vote = async function(battleId, option) {
+async function vote(battleId, option) {
   // Prevent any default behavior
   if (window.event) {
     window.event.preventDefault();
@@ -315,7 +315,7 @@ window.vote = async function(battleId, option) {
   }
   
   return false; // Prevent any form submission
-};
+}
 
 // Update stats
 function updateStats(battles) {
@@ -1018,6 +1018,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Export functions for global access
 window.showTab = showTab;
 window.filterByCategory = filterByCategory;
+window.vote = vote;
 window.openCreateModal = openCreateModal;
 window.closeCreateModal = closeCreateModal;
 window.openShareModal = openShareModal;
