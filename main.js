@@ -6,49 +6,8 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // State
 let currentTab = 'featured';
-let currentCategory = '';
 let durationType = 'minutes';
 let currentBattleForShare = null;
-
-// Category configuration
-const categories = {
-  sports: { emoji: '🏈', name: 'Sports' },
-  food: { emoji: '🍔', name: 'Food & Drink' },
-  tech: { emoji: '💻', name: 'Technology' },
-  entertainment: { emoji: '🎬', name: 'Entertainment' },
-  music: { emoji: '🎵', name: 'Music' },
-  gaming: { emoji: '🎮', name: 'Gaming' },
-  fashion: { emoji: '👗', name: 'Fashion' },
-  lifestyle: { emoji: '🏠', name: 'Lifestyle' },
-  politics: { emoji: '🏛️', name: 'Politics' },
-  classic: { emoji: '⚔️', name: 'Classic Debates' },
-  trending: { emoji: '🔥', name: 'Trending' },
-  other: { emoji: '📦', name: 'Other' }
-};
-
-// Get category display info
-function getCategoryDisplay(categoryKey) {
-  const cat = categories[categoryKey];
-  return cat ? `${cat.emoji} ${cat.name}` : '';
-}
-
-// Filter by category
-function filterByCategory(category) {
-  currentCategory = category;
-  
-  // Update button styles
-  document.querySelectorAll('.category-btn').forEach(btn => {
-    if (btn.dataset.category === category) {
-      btn.classList.remove('bg-gray-100', 'text-gray-600');
-      btn.classList.add('bg-blue-100', 'text-blue-600');
-    } else {
-      btn.classList.remove('bg-blue-100', 'text-blue-600');
-      btn.classList.add('bg-gray-100', 'text-gray-600');
-    }
-  });
-  
-  loadBattles();
-}
 
 // Tab Management
 function showTab(tab) {
@@ -308,7 +267,7 @@ function closeCreateModal() {
   }
   
   // Reset form
-  const fields = ['battleTitle', 'option1', 'option2', 'image1', 'image2', 'duration', 'customDate', 'battleCategory'];
+  const fields = ['battleTitle', 'option1', 'option2', 'image1', 'image2', 'duration', 'customDate'];
   fields.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -432,7 +391,6 @@ async function submitBattle() {
   const option2 = document.getElementById('option2')?.value.trim();
   const image1 = document.getElementById('image1')?.value.trim();
   const image2 = document.getElementById('image2')?.value.trim();
-  const category = document.getElementById('battleCategory')?.value || null;
   
   // Validation
   if (!title || !option1 || !option2) {
@@ -476,8 +434,8 @@ async function submitBattle() {
   }
   
   try {
-    // Create battle object
-    const battleData = {
+    // Create battle
+    const { data, error } = await supabaseClient.from('battles').insert([{
       title,
       option1,
       option2,
@@ -487,14 +445,7 @@ async function submitBattle() {
       votes2: 0,
       ends_at: endsAt,
       created_at: new Date().toISOString()
-    };
-    
-    // Only add category if it exists in the database
-    if (category) {
-      battleData.category = category;
-    }
-    
-    const { data, error } = await supabaseClient.from('battles').insert([battleData]).select();
+    }]).select();
     
     if (error) throw error;
     
@@ -784,8 +735,7 @@ function createTestBattle() {
     option1: randomBattle.option1,
     option2: randomBattle.option2,
     image1: randomBattle.image1,
-    image2: randomBattle.image2,
-    battleCategory: randomCategory.categoryKey || 'other'
+    image2: randomBattle.image2
   };
   
   Object.entries(fields).forEach(([id, value]) => {
@@ -978,7 +928,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export functions for global access
 window.showTab = showTab;
-window.filterByCategory = filterByCategory;
 window.vote = vote;
 window.openCreateModal = openCreateModal;
 window.closeCreateModal = closeCreateModal;
