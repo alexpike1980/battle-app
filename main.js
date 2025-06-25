@@ -151,17 +151,19 @@ function createBattleCard(battle) {
       
       <div class="flex items-center justify-between gap-4 mb-3">
         <div class="flex-1">
-          <button type="button" onclick="vote('${battle.id}', 'option1'); return false;" 
+          <button onclick="vote('${battle.id}', 'option1')" 
                   class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
-                  ${!isActive ? 'disabled' : ''}>
+                  ${!isActive ? 'disabled' : ''}
+                  type="button">
             Vote
           </button>
         </div>
         
         <div class="flex-1">
-          <button type="button" onclick="vote('${battle.id}', 'option2'); return false;" 
+          <button onclick="vote('${battle.id}', 'option2')" 
                   class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm sm:text-base ${!isActive ? 'opacity-50 cursor-not-allowed' : ''}"
-                  ${!isActive ? 'disabled' : ''}>
+                  ${!isActive ? 'disabled' : ''}
+                  type="button">
             Vote
           </button>
         </div>
@@ -237,32 +239,7 @@ function startCountdown(battleId, endTime) {
 
 // Vote function
 async function vote(battleId, option) {
-  // Prevent any default behavior
-  if (window.event) {
-    window.event.preventDefault();
-    window.event.stopPropagation();
-  }
-  
   const voteColumn = option === 'option1' ? 'votes1' : 'votes2';
-  
-  // Find the battle card element more reliably
-  const timerEl = document.getElementById(`timer-${battleId}`);
-  if (!timerEl) {
-    console.error('Could not find battle card');
-    return false;
-  }
-  
-  const battleCard = timerEl.closest('.bg-white');
-  const voteButtons = battleCard.querySelectorAll('button');
-  
-  // Disable vote buttons temporarily
-  voteButtons.forEach(btn => {
-    if (btn.textContent.trim() === 'Vote') {
-      btn.disabled = true;
-      btn.classList.add('opacity-75');
-      btn.textContent = 'Voting...';
-    }
-  });
   
   try {
     // Get current votes
@@ -283,38 +260,22 @@ async function vote(battleId, option) {
     
     if (updateError) throw updateError;
     
-    // Show success animation
-    showToast('Vote recorded successfully!', 'success');
-    
     // Reload battles to show updated votes
-    await loadBattles();
+    loadBattles();
     
-    // Get updated battle for share modal
+    // Show share modal
     const { data: updatedBattle } = await supabaseClient
       .from('battles')
       .select('*')
       .eq('id', battleId)
       .single();
     
-    if (updatedBattle) {
-      currentBattleForShare = updatedBattle;
-      setTimeout(() => openShareModal(), 500); // Small delay for better UX
-    }
+    currentBattleForShare = updatedBattle;
+    openShareModal();
   } catch (error) {
     console.error('Error voting:', error);
     alert('Error recording vote. Please try again.');
-    
-    // Re-enable buttons on error
-    voteButtons.forEach(btn => {
-      if (btn.textContent.trim() === 'Voting...') {
-        btn.disabled = false;
-        btn.classList.remove('opacity-75');
-        btn.textContent = 'Vote';
-      }
-    });
   }
-  
-  return false; // Prevent any form submission
 }
 
 // Update stats
