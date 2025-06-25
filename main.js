@@ -459,9 +459,6 @@ async function submitBattle() {
     console.error('Error creating battle:', error);
     alert('Error creating battle. Please try again.');
   }
-}:', error);
-    alert('Error creating battle. Please try again.');
-  }
 }
 
 // Toast notification
