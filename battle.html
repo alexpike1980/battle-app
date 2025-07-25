@@ -1,322 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Battle Details - FanShare</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    .option-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #374151;
-    }
-    
-    .vs-circle {
-      border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      border: 3px solid white;
-      z-index: 10;
-    }
-
-    /* Progress Bar Styles */
-    .progress-bar-container {
-      display: flex;
-      width: 100%;
-      height: 40px;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-top: 12px;
-      position: relative;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .progress-segment {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      transition: width 0.3s ease;
-    }
-    
-    .progress-blue {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    }
-    
-    .progress-green {
-      background: linear-gradient(135deg, #10b981, #059669);
-    }
-    
-    .progress-text {
-      color: white;
-      font-weight: 600;
-      font-size: 0.875rem;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Site wrapper */
-    .site-wrapper {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      min-height: 100vh;
-    }
-
-    /* Share Modal Styles */
-    .share-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1001;
-      padding: 20px;
-    }
-    
-    .share-modal-content {
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-    }
-    
-    /* Comments section */
-    .comment-box {
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 12px;
-      background: white;
-    }
-    
-    .comment-author {
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 4px;
-    }
-    
-    .comment-time {
-      font-size: 0.75rem;
-      color: #9ca3af;
-      margin-bottom: 8px;
-    }
-    
-    .comment-text {
-      color: #4b5563;
-      line-height: 1.5;
-    }
-    
-    /* Mobile responsive */
-    @media (max-width: 640px) {
-      .site-wrapper {
-        width: 100%;
-      }
-      
-      header h1 {
-        font-size: 1.5rem;
-      }
-      
-      header button {
-        font-size: 0.875rem;
-        padding: 0.5rem 1rem;
-      }
-      
-      main {
-        padding: 1rem;
-      }
-      
-      .vs-circle {
-        width: 3rem;
-        height: 3rem;
-        font-size: 1rem;
-      }
-      
-      .option-title {
-        font-size: 1rem;
-      }
-      
-      .comment-box {
-        padding: 12px;
-      }
-      
-      .share-modal-content {
-        padding: 16px;
-      }
-      
-      /* Hide sidebar on mobile */
-      aside {
-        display: none !important;
-      }
-    }
-  </style>
-</head>
-
-<body class="bg-white">
-  <div class="site-wrapper">
-    <!-- Header -->
-    <header class="bg-white border-b">
-      <div class="px-4 py-4 flex justify-between items-center">
-        <h1 class="text-xl sm:text-2xl font-bold text-blue-600">FANSHARE</h1>
-        <button onclick="location.href='index.html'" class="bg-gray-200 text-gray-700 px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-300 transition font-medium text-sm sm:text-base">
-          <span class="hidden sm:inline">← Back to Battles</span>
-          <span class="sm:hidden">← Back</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="bg-white py-4 sm:py-6 px-4 min-h-[calc(100vh-80px)] flex flex-col lg:flex-row gap-4">
-      <div class="flex-1 lg:max-w-[600px]">
-        <!-- Battle Details -->
-        <div id="battleDetail" class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
-          <!-- Battle content will be loaded here -->
-        </div>
-        
-        <!-- Comments Section -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-          <h2 class="text-lg sm:text-xl font-bold mb-4">Comments</h2>
-          
-          <!-- Add Comment Form -->
-          <div class="mb-6">
-            <!-- Login/User Status -->
-            <div id="userStatus" class="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <!-- User status will be shown here -->
-            </div>
-            
-            <textarea 
-              id="commentText" 
-              placeholder="Share your thoughts..." 
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm sm:text-base"
-              rows="3"
-            ></textarea>
-            <div class="mt-3 flex flex-col sm:flex-row gap-3" id="commentForm">
-              <input 
-                type="text" 
-                id="commentAuthor" 
-                placeholder="Your name (optional)" 
-                class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-              >
-              <button 
-                onclick="postComment()" 
-                class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm sm:text-base"
-              >
-                Post Comment
-              </button>
-            </div>
-          </div>
-          
-          <!-- Comments List -->
-          <div id="commentsList">
-            <!-- Comments will be loaded here -->
-          </div>
-        </div>
-      </div>
-      
-      <!-- Right Sidebar -->
-      <aside class="hidden lg:block w-[280px] flex-shrink-0 border-l border-gray-200 pl-4">
-        <div class="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 class="text-lg font-semibold mb-4">🔥 Trending Topics</h3>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-gray-600">#TechBattles</span>
-              <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs">124 battles</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-gray-600">#MovieVsMovie</span>
-              <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">89 battles</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-gray-600">#FoodFight</span>
-              <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-full text-xs">67 battles</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-gray-600">#SportsFace</span>
-              <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">45 battles</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-          <h3 class="text-lg font-semibold mb-4">📊 Battle Stats</h3>
-          <div class="space-y-3">
-            <div class="flex justify-between">
-              <span class="text-gray-600 text-sm">Total Votes</span>
-              <span class="font-semibold text-sm" id="total-votes-sidebar">-</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600 text-sm">Time Remaining</span>
-              <span class="font-semibold text-green-600 text-sm" id="time-remaining-sidebar">-</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-gray-600 text-sm">Comments</span>
-              <span class="font-semibold text-sm" id="comments-count-sidebar">-</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg border border-gray-200 p-4 mt-4 text-white">
-          <h3 class="text-base font-semibold mb-2">💡 Share This Battle!</h3>
-          <p class="text-blue-100 text-xs mb-3">Help your favorite win by sharing with friends.</p>
-          <button onclick="document.getElementById('shareModal').style.display='flex'" class="w-full bg-white text-blue-600 py-2 px-3 rounded-lg hover:bg-blue-50 transition font-medium text-sm">
-            Share Battle
-          </button>
-        </div>
-        
-        <div class="bg-white rounded-lg border border-gray-200 p-4 mt-4">
-          <h3 class="text-base font-semibold mb-3">🏆 Related Battles</h3>
-          <div id="related-battles" class="space-y-2">
-            <!-- Related battles will be loaded here -->
-          </div>
-        </div>
-      </aside>
-    </main>
-  </div>
-
-  <!-- Share Modal -->
-  <div id="shareModal" class="share-modal">
-    <div class="share-modal-content">
-      <h3 class="text-xl font-bold mb-4">🎉 Vote Recorded!</h3>
-      <p class="text-gray-600 mb-6">Share this battle with your friends to get more votes!</p>
-      
-      <div class="grid grid-cols-2 gap-3 mb-4">
-        <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition text-sm sm:text-base">
-          <span>𝕏</span>
-          <span class="hidden sm:inline">Twitter</span>
-          <span class="sm:hidden">X</span>
-        </button>
-        <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
-          <span>📘</span>
-          <span>Facebook</span>
-        </button>
-        <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition text-sm sm:text-base">
-          <span>🟠</span>
-          <span>Reddit</span>
-        </button>
-        <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition text-sm sm:text-base">
-          <span>🔗</span>
-          <span class="hidden sm:inline">Copy Link</span>
-          <span class="sm:hidden">Copy</span>
-        </button>
-      </div>
-      
-      <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
-        Close
-      </button>
-    </div>
-  </div>
-
-  <script type="module">
+<script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
     const SUPABASE_URL = 'https://oleqibxqfwnvaorqgflp.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sZXFpYnhxZndudmFvcnFnZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjExMTQsImV4cCI6MjA2MTkzNzExNH0.AdpIio7ZnNpQRMeY_8Sb1bXqKpmYDeR7QYvAfnssdCA';
@@ -325,6 +7,8 @@
     const params = new URLSearchParams(location.search);
     const battleId = params.get('id');
     let currentUser = null;
+    let pendingVote = null; // Store pending vote info
+    let currentBattle = null; // Store current battle data
 
     // Check authentication status
     async function checkAuth() {
@@ -487,61 +171,200 @@
     // Share functions
     window.shareToTwitter = () => {
       const url = encodeURIComponent(window.location.href);
-      const text = encodeURIComponent('Check out this battle on FanShare!');
+      const text = encodeURIComponent(currentBattle ? 
+        `Check out this battle: ${currentBattle.title} - ${currentBattle.option1} vs ${currentBattle.option2}! Vote now! 🔥` : 
+        'Check out this battle on FanShare!'
+      );
       window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank');
+      
+      // Process vote if pending
+      if (pendingVote) {
+        setTimeout(() => processVote(), 1000);
+      }
     };
 
     window.shareToFacebook = () => {
       const url = encodeURIComponent(window.location.href);
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+      
+      // Process vote if pending
+      if (pendingVote) {
+        setTimeout(() => processVote(), 1000);
+      }
     };
 
     window.shareToReddit = () => {
       const url = encodeURIComponent(window.location.href);
-      const title = encodeURIComponent('Check out this battle on FanShare!');
+      const title = encodeURIComponent(currentBattle ? 
+        `${currentBattle.title} - ${currentBattle.option1} vs ${currentBattle.option2}` : 
+        'Check out this battle on FanShare!'
+      );
       window.open(`https://www.reddit.com/submit?url=${url}&title=${title}`, '_blank');
+      
+      // Process vote if pending
+      if (pendingVote) {
+        setTimeout(() => processVote(), 1000);
+      }
     };
 
     window.copyLink = () => {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        alert('Link copied to clipboard!');
+        // Process vote if pending
+        if (pendingVote) {
+          setTimeout(() => processVote(), 1000);
+        }
+      }).catch(() => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          alert('Link copied to clipboard!');
+          // Process vote if pending
+          if (pendingVote) {
+            setTimeout(() => processVote(), 1000);
+          }
+        } catch (err) {
+          alert('Failed to copy link');
+        }
+        document.body.removeChild(textArea);
+      });
     };
 
     window.closeShareModal = () => {
       document.getElementById('shareModal').style.display = 'none';
+      // Clear pending vote if user closes without sharing
+      if (pendingVote) {
+        pendingVote = null;
+        showToast('Vote cancelled - you need to share to vote!');
+      }
     };
 
-    // Vote function
-    window.vote = async (battleId, option) => {
-      const col = option === 'option1' ? 'votes1' : 'votes2';
+    window.cancelVote = () => {
+      pendingVote = null;
+      closeShareModal();
+    };
+
+    // Process vote after sharing
+    async function processVote() {
+      if (!pendingVote) return;
       
       try {
         // Get current votes
         const { data: battle, error: fetchError } = await supabase
           .from('battles')
-          .select(col)
-          .eq('id', battleId)
+          .select(pendingVote.voteColumn)
+          .eq('id', pendingVote.battleId)
           .single();
           
         if (fetchError) throw fetchError;
         
         // Update votes
-        const newVotes = (battle[col] || 0) + 1;
+        const newVotes = (battle[pendingVote.voteColumn] || 0) + 1;
         const { error: updateError } = await supabase
           .from('battles')
-          .update({ [col]: newVotes })
-          .eq('id', battleId);
+          .update({ [pendingVote.voteColumn]: newVotes })
+          .eq('id', pendingVote.battleId);
           
         if (updateError) throw updateError;
         
-        // Reload battle to show new votes
-        await loadBattle();
+        // Clear pending vote
+        pendingVote = null;
         
-        // Show share modal
-        document.getElementById('shareModal').style.display = 'flex';
+        // Update modal to success message
+        const modal = document.getElementById('shareModal');
+        if (modal) {
+          const modalContent = modal.querySelector('.share-modal-content');
+          if (modalContent) {
+            modalContent.innerHTML = `
+              <h3 class="text-xl font-bold mb-4">🎉 Vote Successfully Recorded!</h3>
+              <p class="text-gray-600 mb-6">Thank you for sharing! Your vote has been counted.</p>
+              <button onclick="closeShareModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                Continue
+              </button>
+            `;
+          }
+        }
+        
+        // Reload battle to show new votes
+        setTimeout(() => {
+          loadBattle();
+        }, 500);
+        
       } catch (err) {
-        console.error('Error voting:', err);
+        console.error('Error recording vote:', err);
         alert('Error recording vote. Please try again.');
+      }
+    }
+
+    // Toast notification
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    // Vote function - Modified to require sharing
+    window.vote = async (battleId, option) => {
+      try {
+        // Store pending vote
+        pendingVote = {
+          battleId: battleId,
+          option: option,
+          voteColumn: option === 'option1' ? 'votes1' : 'votes2'
+        };
+        
+        // Update share modal content
+        const modal = document.getElementById('shareModal');
+        if (modal) {
+          const modalContent = modal.querySelector('.share-modal-content');
+          if (modalContent) {
+            modalContent.innerHTML = `
+              <h3 class="text-xl font-bold mb-4">🗳️ Share to Complete Your Vote!</h3>
+              <p class="text-gray-600 mb-2">Your vote for <strong>${option === 'option1' ? currentBattle.option1 : currentBattle.option2}</strong> will be counted after you share this battle.</p>
+              <p class="text-sm text-gray-500 mb-6">Help spread the word and make your vote count!</p>
+              
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition text-sm sm:text-base">
+                  <span>𝕏</span>
+                  <span class="hidden sm:inline">Twitter</span>
+                  <span class="sm:hidden">X</span>
+                </button>
+                <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base">
+                  <span>📘</span>
+                  <span>Facebook</span>
+                </button>
+                <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition text-sm sm:text-base">
+                  <span>🟠</span>
+                  <span>Reddit</span>
+                </button>
+                <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition text-sm sm:text-base">
+                  <span>🔗</span>
+                  <span class="hidden sm:inline">Copy Link</span>
+                  <span class="sm:hidden">Copy</span>
+                </button>
+              </div>
+              
+              <button onclick="cancelVote()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
+                Cancel Vote
+              </button>
+            `;
+          }
+          modal.style.display = 'flex';
+        }
+      } catch (err) {
+        console.error('Error preparing vote:', err);
+        alert('Error preparing vote. Please try again.');
       }
     };
 
@@ -561,6 +384,7 @@
           
         if (error) throw error;
         
+        currentBattle = battle; // Store battle data
         const active = new Date(battle.ends_at) > new Date();
         
         document.getElementById('battleDetail').innerHTML = `
@@ -774,5 +598,3 @@
     loadComments();
     loadRelatedBattles();
   </script>
-</body>
-</html>
