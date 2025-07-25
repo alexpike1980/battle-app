@@ -8,6 +8,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentTab = 'featured';
 let durationType = 'minutes';
 let currentBattleForShare = null;
+let pendingVote = null; // Store pending vote info
 
 // Tab Management
 function showTab(tab) {
@@ -196,45 +197,126 @@ function startCountdown(battleId, endTime) {
   const interval = setInterval(updateTimer, 1000);
 }
 
-// Vote function
+// Vote function - Modified to require sharing
 async function vote(battleId, option) {
-  const voteColumn = option === 'option1' ? 'votes1' : 'votes2';
-  
   try {
-    // Get current votes
-    const { data: battle, error: fetchError } = await supabaseClient
-      .from('battles')
-      .select(voteColumn)
-      .eq('id', battleId)
-      .single();
-    
-    if (fetchError) throw fetchError;
-    
-    // Update votes
-    const newVotes = (battle[voteColumn] || 0) + 1;
-    const { error: updateError } = await supabaseClient
-      .from('battles')
-      .update({ [voteColumn]: newVotes })
-      .eq('id', battleId);
-    
-    if (updateError) throw updateError;
-    
-    // Reload battles to show updated votes
-    loadBattles();
-    
-    // Show share modal
-    const { data: updatedBattle } = await supabaseClient
+    // Get battle details
+    const { data: battle, error } = await supabaseClient
       .from('battles')
       .select('*')
       .eq('id', battleId)
       .single();
     
-    currentBattleForShare = updatedBattle;
-    openShareModal();
+    if (error) throw error;
+    
+    // Store pending vote
+    pendingVote = {
+      battleId: battleId,
+      option: option,
+      voteColumn: option === 'option1' ? 'votes1' : 'votes2'
+    };
+    
+    currentBattleForShare = battle;
+    
+    // Open share modal with special message
+    const modal = document.getElementById('shareModal');
+    if (modal) {
+      // Update modal content for vote requirement
+      const modalContent = modal.querySelector('.share-modal-content');
+      if (modalContent) {
+        modalContent.innerHTML = `
+          <h3 class="text-xl font-bold mb-4">🗳️ Share to Complete Your Vote!</h3>
+          <p class="text-gray-600 mb-2">Your vote for <strong>${option === 'option1' ? battle.option1 : battle.option2}</strong> will be counted after you share this battle.</p>
+          <p class="text-sm text-gray-500 mb-6">Help spread the word and make your vote count!</p>
+          
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
+              <span>𝕏</span>
+              <span>Twitter</span>
+            </button>
+            <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+              <span>📘</span>
+              <span>Facebook</span>
+            </button>
+            <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition">
+              <span>🟠</span>
+              <span>Reddit</span>
+            </button>
+            <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+              <span>🔗</span>
+              <span>Copy Link</span>
+            </button>
+          </div>
+          
+          <button onclick="cancelVote()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
+            Cancel Vote
+          </button>
+        `;
+      }
+      modal.style.display = 'flex';
+    }
   } catch (error) {
-    console.error('Error voting:', error);
+    console.error('Error preparing vote:', error);
+    alert('Error preparing vote. Please try again.');
+  }
+}
+
+// Process vote after sharing
+async function processVote() {
+  if (!pendingVote) return;
+  
+  try {
+    // Get current votes
+    const { data: battle, error: fetchError } = await supabaseClient
+      .from('battles')
+      .select(pendingVote.voteColumn)
+      .eq('id', pendingVote.battleId)
+      .single();
+    
+    if (fetchError) throw fetchError;
+    
+    // Update votes
+    const newVotes = (battle[pendingVote.voteColumn] || 0) + 1;
+    const { error: updateError } = await supabaseClient
+      .from('battles')
+      .update({ [pendingVote.voteColumn]: newVotes })
+      .eq('id', pendingVote.battleId);
+    
+    if (updateError) throw updateError;
+    
+    // Clear pending vote
+    pendingVote = null;
+    
+    // Update modal to success message
+    const modal = document.getElementById('shareModal');
+    if (modal) {
+      const modalContent = modal.querySelector('.share-modal-content');
+      if (modalContent) {
+        modalContent.innerHTML = `
+          <h3 class="text-xl font-bold mb-4">🎉 Vote Successfully Recorded!</h3>
+          <p class="text-gray-600 mb-6">Thank you for sharing! Your vote has been counted.</p>
+          <button onclick="closeShareModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+            Continue
+          </button>
+        `;
+      }
+    }
+    
+    // Reload battles to show updated votes
+    setTimeout(() => {
+      loadBattles();
+    }, 500);
+    
+  } catch (error) {
+    console.error('Error recording vote:', error);
     alert('Error recording vote. Please try again.');
   }
+}
+
+// Cancel vote
+function cancelVote() {
+  pendingVote = null;
+  closeShareModal();
 }
 
 // Update stats
@@ -483,7 +565,150 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
-// Random Battle Generator
+// Share modal functions
+function openShareModal() {
+  const modal = document.getElementById('shareModal');
+  if (modal) {
+    // If not from a vote, show regular share modal
+    if (!pendingVote) {
+      const modalContent = modal.querySelector('.share-modal-content');
+      if (modalContent) {
+        modalContent.innerHTML = `
+          <h3 class="text-xl font-bold mb-4">📢 Share This Battle!</h3>
+          <p class="text-gray-600 mb-6">Help this battle reach more people!</p>
+          
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <button onclick="shareToTwitter()" class="flex items-center justify-center gap-2 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
+              <span>𝕏</span>
+              <span>Twitter</span>
+            </button>
+            <button onclick="shareToFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+              <span>📘</span>
+              <span>Facebook</span>
+            </button>
+            <button onclick="shareToReddit()" class="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition">
+              <span>🟠</span>
+              <span>Reddit</span>
+            </button>
+            <button onclick="copyLink()" class="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition">
+              <span>🔗</span>
+              <span>Copy Link</span>
+            </button>
+          </div>
+          
+          <button onclick="closeShareModal()" class="mt-4 text-gray-500 hover:text-gray-700 transition">
+            Close
+          </button>
+        `;
+      }
+    }
+    modal.style.display = 'flex';
+  }
+}
+
+function closeShareModal() {
+  const modal = document.getElementById('shareModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  // Clear any pending vote if user closes without sharing
+  if (pendingVote) {
+    pendingVote = null;
+    showToast('Vote cancelled - you need to share to vote!', 'error');
+  }
+}
+
+// Modified share functions to process vote after sharing
+function shareToTwitter() {
+  if (!currentBattleForShare) return;
+  
+  const text = `Check out this battle: ${currentBattleForShare.title} - ${currentBattleForShare.option1} vs ${currentBattleForShare.option2}! Vote now! 🔥`;
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  
+  window.open(shareUrl, '_blank', 'width=550,height=420');
+  
+  // Process vote if pending
+  if (pendingVote) {
+    setTimeout(() => processVote(), 1000);
+  }
+}
+
+function shareToFacebook() {
+  if (!currentBattleForShare) return;
+  
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+  
+  window.open(shareUrl, '_blank', 'width=550,height=420');
+  
+  // Process vote if pending
+  if (pendingVote) {
+    setTimeout(() => processVote(), 1000);
+  }
+}
+
+function shareToReddit() {
+  if (!currentBattleForShare) return;
+  
+  const title = `${currentBattleForShare.title} - ${currentBattleForShare.option1} vs ${currentBattleForShare.option2}`;
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  const shareUrl = `https://www.reddit.com/submit?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+  
+  window.open(shareUrl, '_blank', 'width=550,height=850');
+  
+  // Process vote if pending
+  if (pendingVote) {
+    setTimeout(() => processVote(), 1000);
+  }
+}
+
+function copyLink() {
+  if (!currentBattleForShare) return;
+  
+  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
+  
+  // Try modern API first
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied to clipboard!', 'success');
+      // Process vote if pending
+      if (pendingVote) {
+        setTimeout(() => processVote(), 1000);
+      }
+    }).catch(() => {
+      fallbackCopyToClipboard(url);
+    });
+  } else {
+    fallbackCopyToClipboard(url);
+  }
+}
+
+function fallbackCopyToClipboard(text) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    document.execCommand('copy');
+    showToast('Link copied to clipboard!', 'success');
+    // Process vote if pending
+    if (pendingVote) {
+      setTimeout(() => processVote(), 1000);
+    }
+  } catch (err) {
+    showToast('Failed to copy link', 'error');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+// Random Battle Generator (keeping the same)
 function createTestBattle() {
   const battleTemplates = [
     // Sports
@@ -778,87 +1003,6 @@ function createTestBattle() {
   showToast(randomMessage, 'success');
 }
 
-// Share modal functions
-function openShareModal() {
-  const modal = document.getElementById('shareModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  }
-}
-
-function closeShareModal() {
-  const modal = document.getElementById('shareModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
-
-function shareToTwitter() {
-  if (!currentBattleForShare) return;
-  
-  const text = `Check out this battle: ${currentBattleForShare.title} - ${currentBattleForShare.option1} vs ${currentBattleForShare.option2}! Vote now! 🔥`;
-  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
-  const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-  
-  window.open(shareUrl, '_blank', 'width=550,height=420');
-}
-
-function shareToFacebook() {
-  if (!currentBattleForShare) return;
-  
-  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
-  const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-  
-  window.open(shareUrl, '_blank', 'width=550,height=420');
-}
-
-function shareToReddit() {
-  if (!currentBattleForShare) return;
-  
-  const title = `${currentBattleForShare.title} - ${currentBattleForShare.option1} vs ${currentBattleForShare.option2}`;
-  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
-  const shareUrl = `https://www.reddit.com/submit?title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
-  
-  window.open(shareUrl, '_blank', 'width=550,height=850');
-}
-
-function copyLink() {
-  if (!currentBattleForShare) return;
-  
-  const url = `${window.location.origin}/battle.html?id=${currentBattleForShare.id}`;
-  
-  // Try modern API first
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('Link copied to clipboard!', 'success');
-    }).catch(() => {
-      fallbackCopyToClipboard(url);
-    });
-  } else {
-    fallbackCopyToClipboard(url);
-  }
-}
-
-function fallbackCopyToClipboard(text) {
-  const textArea = document.createElement('textarea');
-  textArea.value = text;
-  textArea.style.position = 'fixed';
-  textArea.style.left = '-999999px';
-  textArea.style.top = '-999999px';
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-  
-  try {
-    document.execCommand('copy');
-    showToast('Link copied to clipboard!', 'success');
-  } catch (err) {
-    showToast('Failed to copy link', 'error');
-  }
-  
-  document.body.removeChild(textArea);
-}
-
 // Error handling
 window.addEventListener('error', (event) => {
   console.error('Global error:', event.error);
@@ -941,3 +1085,4 @@ window.shareToTwitter = shareToTwitter;
 window.shareToFacebook = shareToFacebook;
 window.shareToReddit = shareToReddit;
 window.copyLink = copyLink;
+window.cancelVote = cancelVote;
