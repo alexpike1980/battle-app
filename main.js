@@ -708,7 +708,7 @@ function fallbackCopyToClipboard(text) {
   document.body.removeChild(textArea);
 }
 
-// Random Battle Generator (keeping the same)
+// Random Battle Generator
 function createTestBattle() {
   const battleTemplates = [
     // Sports
