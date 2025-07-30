@@ -9,10 +9,17 @@ let currentTab = 'featured';
 let durationType = 'minutes';
 let currentBattleForShare = null;
 let pendingVote = null; // Store pending vote info
+let currentPage = 0;
+let isLoading = false;
+let hasMore = true;
+const BATTLES_PER_PAGE = 10;
 
 // Tab Management
 function showTab(tab) {
   currentTab = tab;
+  currentPage = 0; // Reset page when switching tabs
+  hasMore = true;
+  
   document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === tab) {
       btn.classList.add('border-blue-600', 'text-blue-600');
@@ -22,16 +29,46 @@ function showTab(tab) {
       btn.classList.add('border-transparent', 'text-gray-500');
     }
   });
-  loadBattles();
+  
+  // Clear existing battles
+  const container = document.getElementById('battles-container');
+  container.innerHTML = '';
+  
+  loadBattles(true);
 }
 
-// Load battles
-async function loadBattles() {
+// Load battles with pagination
+async function loadBattles(reset = false) {
+  if (isLoading || (!reset && !hasMore)) return;
+  
+  isLoading = true;
   const container = document.getElementById('battles-container');
-  container.innerHTML = '<p class="text-center text-gray-500">Loading battles...</p>';
+  
+  if (reset) {
+    currentPage = 0;
+    hasMore = true;
+    container.innerHTML = '';
+  }
+  
+  // Show loading indicator
+  if (currentPage === 0) {
+    container.innerHTML = '<p class="text-center text-gray-500 py-8">Loading battles...</p>';
+  } else {
+    // Add loading indicator at the bottom
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading-indicator';
+    loadingDiv.className = 'text-center py-4';
+    loadingDiv.innerHTML = '<p class="text-gray-500">Loading more battles...</p>';
+    container.appendChild(loadingDiv);
+  }
   
   try {
-    let query = supabaseClient.from('battles').select('*');
+    const from = currentPage * BATTLES_PER_PAGE;
+    const to = from + BATTLES_PER_PAGE - 1;
+    
+    let query = supabaseClient
+      .from('battles')
+      .select('*', { count: 'exact' });
     
     if (currentTab === 'active') {
       query = query.gt('ends_at', new Date().toISOString());
@@ -39,33 +76,110 @@ async function loadBattles() {
       query = query.lt('ends_at', new Date().toISOString());
     }
     
-    const { data: battles, error } = await query.order('created_at', { ascending: false });
+    const { data: battles, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to);
     
     if (error) throw error;
     
-    if (battles.length === 0) {
-      container.innerHTML = '<p class="text-center text-gray-500">No battles found</p>';
+    // Remove loading indicator
+    if (currentPage === 0) {
+      container.innerHTML = '';
+    } else {
+      const loadingIndicator = document.getElementById('loading-indicator');
+      if (loadingIndicator) loadingIndicator.remove();
+    }
+    
+    if (battles.length === 0 && currentPage === 0) {
+      container.innerHTML = '<p class="text-center text-gray-500 py-8">No battles found</p>';
+      hasMore = false;
+      isLoading = false;
       return;
     }
     
-    container.innerHTML = battles.map(battle => createBattleCard(battle)).join('');
+    // Append new battles
+    const battlesHTML = battles.map(battle => createBattleCard(battle)).join('');
+    container.insertAdjacentHTML('beforeend', battlesHTML);
     
-    // Start countdown timers
+    // Start countdown timers for new battles
     battles.forEach(battle => {
       if (new Date(battle.ends_at) > new Date()) {
         startCountdown(battle.id, battle.ends_at);
       }
     });
     
-    // Update stats
-    updateStats(battles);
+    // Update pagination state
+    currentPage++;
+    hasMore = (from + battles.length) < count;
+    
+    // Update stats only on first load
+    if (currentPage === 1) {
+      updateStats(battles, count);
+    }
+    
   } catch (error) {
     console.error('Error loading battles:', error);
-    container.innerHTML = '<p class="text-center text-red-500">Error loading battles</p>';
+    if (currentPage === 0) {
+      container.innerHTML = '<p class="text-center text-red-500 py-8">Error loading battles</p>';
+    }
+  } finally {
+    isLoading = false;
   }
 }
 
-// Create battle card HTML
+// Infinite scroll handler
+function handleScroll() {
+  if (isLoading || !hasMore) return;
+  
+  const scrollPosition = window.innerHeight + window.scrollY;
+  const threshold = document.body.offsetHeight - 200; // Load 200px before bottom
+  
+  if (scrollPosition >= threshold) {
+    loadBattles();
+  }
+}
+
+// Debounce scroll handler
+let scrollTimeout;
+function debounceScroll() {
+  clearTimeout(scrollTimeout);
+  scrollTimeout = setTimeout(handleScroll, 100);
+}
+
+// Update a single battle card
+async function updateSingleBattle(battleId) {
+  try {
+    const { data: battle, error } = await supabaseClient
+      .from('battles')
+      .select('*')
+      .eq('id', battleId)
+      .single();
+    
+    if (error) throw error;
+    
+    // Find the battle card container
+    const container = document.getElementById('battles-container');
+    const existingCards = container.querySelectorAll('.bg-white.rounded-lg');
+    
+    // Find and replace the specific battle card
+    existingCards.forEach(card => {
+      if (card.innerHTML.includes(`vote('${battleId}'`)) {
+        const newCard = document.createElement('div');
+        newCard.innerHTML = createBattleCard(battle);
+        card.replaceWith(newCard.firstElementChild);
+        
+        // Restart countdown if active
+        if (new Date(battle.ends_at) > new Date()) {
+          startCountdown(battle.id, battle.ends_at);
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error updating battle:', error);
+  }
+}
+
+// Create battle card HTML with data attribute
 function createBattleCard(battle) {
   const isActive = new Date(battle.ends_at) > new Date();
   const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
@@ -73,7 +187,7 @@ function createBattleCard(battle) {
   const percentage2 = 100 - percentage1;
   
   return `
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4" data-battle-id="${battle.id}">
       <a href="battle.html?id=${battle.id}" class="block mb-4 hover:text-blue-600 transition">
         <h2 class="text-lg sm:text-xl font-bold">${battle.title}</h2>
       </a>
@@ -320,8 +434,8 @@ function cancelVote() {
 }
 
 // Update stats
-function updateStats(battles) {
-  const totalBattles = battles.length;
+function updateStats(battles, totalCount) {
+  const totalBattles = totalCount || battles.length;
   const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
   const totalVotes = battles.reduce((sum, b) => sum + (b.votes1 || 0) + (b.votes2 || 0), 0);
   
@@ -329,7 +443,7 @@ function updateStats(battles) {
   const activeBattlesEl = document.getElementById('active-battles');
   const totalVotesEl = document.getElementById('total-votes');
   
-  if (totalBattlesEl) totalBattlesEl.textContent = totalBattles;
+  if (totalBattlesEl) totalBattlesEl.textContent = totalCount || '-';
   if (activeBattlesEl) activeBattlesEl.textContent = activeBattles;
   if (totalVotesEl) totalVotesEl.textContent = totalVotes;
 }
@@ -533,7 +647,11 @@ async function submitBattle() {
     
     // Success
     closeCreateModal();
-    await loadBattles();
+    
+    // Reset pagination and reload
+    currentPage = 0;
+    hasMore = true;
+    await loadBattles(true);
     
     // Show success message
     showToast('Battle created successfully!', 'success');
@@ -1014,8 +1132,11 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-  // Load battles
-  loadBattles();
+  // Load initial battles
+  loadBattles(true);
+  
+  // Set up infinite scroll
+  window.addEventListener('scroll', debounceScroll);
   
   // Set up modal event listeners
   const createModal = document.getElementById('createModal');
@@ -1052,17 +1173,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // Auto-refresh battles every 30 seconds
+  // Auto-refresh battles every 30 seconds (only visible battles)
   setInterval(() => {
     if (document.visibilityState === 'visible') {
-      loadBattles();
+      // Update only visible battles
+      const visibleBattles = document.querySelectorAll('[data-battle-id]');
+      visibleBattles.forEach(battleEl => {
+        const battleId = battleEl.getAttribute('data-battle-id');
+        if (battleId) updateSingleBattle(battleId);
+      });
     }
   }, 30000);
   
   // Handle visibility change
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      loadBattles();
+      // Update only visible battles
+      const visibleBattles = document.querySelectorAll('[data-battle-id]');
+      visibleBattles.forEach(battleEl => {
+        const battleId = battleEl.getAttribute('data-battle-id');
+        if (battleId) updateSingleBattle(battleId);
+      });
     }
   });
 });
