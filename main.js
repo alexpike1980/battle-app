@@ -13,12 +13,20 @@ let currentPage = 0;
 let isLoading = false;
 let hasMore = true;
 const BATTLES_PER_PAGE = 10;
+let lastCheckTime = new Date().toISOString();
+let newBattlesCount = 0;
 
 // Tab Management
 function showTab(tab) {
   currentTab = tab;
   currentPage = 0; // Reset page when switching tabs
   hasMore = true;
+  lastCheckTime = new Date().toISOString(); // Reset check time for new tab
+  newBattlesCount = 0;
+  
+  // Remove any existing notification
+  const notification = document.getElementById('new-battles-notification');
+  if (notification) notification.remove();
   
   document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === tab) {
@@ -1173,27 +1181,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
   
-  // Auto-refresh battles every 30 seconds (only visible battles)
+  // Check for new battles every 30 seconds
   setInterval(() => {
     if (document.visibilityState === 'visible') {
-      // Update only visible battles
-      const visibleBattles = document.querySelectorAll('[data-battle-id]');
-      visibleBattles.forEach(battleEl => {
-        const battleId = battleEl.getAttribute('data-battle-id');
-        if (battleId) updateSingleBattle(battleId);
-      });
+      checkNewBattles();
     }
   }, 30000);
   
-  // Handle visibility change
+  // Handle visibility change - check for new battles when tab becomes visible
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      // Update only visible battles
-      const visibleBattles = document.querySelectorAll('[data-battle-id]');
-      visibleBattles.forEach(battleEl => {
-        const battleId = battleEl.getAttribute('data-battle-id');
-        if (battleId) updateSingleBattle(battleId);
-      });
+      checkNewBattles();
     }
   });
 });
