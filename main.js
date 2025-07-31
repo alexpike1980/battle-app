@@ -843,9 +843,9 @@ function shareToTwitter() {
   
   window.open(shareUrl, '_blank', 'width=550,height=420');
   
-  // Process vote if pending
+  // Process vote if pending - no delay needed
   if (pendingVote) {
-    setTimeout(() => processVote(), 1000);
+    processVote();
   }
 }
 
@@ -857,9 +857,9 @@ function shareToFacebook() {
   
   window.open(shareUrl, '_blank', 'width=550,height=420');
   
-  // Process vote if pending
+  // Process vote if pending - no delay needed
   if (pendingVote) {
-    setTimeout(() => processVote(), 1000);
+    processVote();
   }
 }
 
@@ -872,9 +872,9 @@ function shareToReddit() {
   
   window.open(shareUrl, '_blank', 'width=550,height=850');
   
-  // Process vote if pending
+  // Process vote if pending - no delay needed
   if (pendingVote) {
-    setTimeout(() => processVote(), 1000);
+    processVote();
   }
 }
 
@@ -887,9 +887,9 @@ function copyLink() {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(url).then(() => {
       showToast('Link copied to clipboard!', 'success');
-      // Process vote if pending
+      // Process vote if pending - no delay needed
       if (pendingVote) {
-        setTimeout(() => processVote(), 1000);
+        processVote();
       }
     }).catch(() => {
       fallbackCopyToClipboard(url);
@@ -912,9 +912,9 @@ function fallbackCopyToClipboard(text) {
   try {
     document.execCommand('copy');
     showToast('Link copied to clipboard!', 'success');
-    // Process vote if pending
+    // Process vote if pending - no delay needed
     if (pendingVote) {
-      setTimeout(() => processVote(), 1000);
+      processVote();
     }
   } catch (err) {
     showToast('Failed to copy link', 'error');
