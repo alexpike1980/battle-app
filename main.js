@@ -252,23 +252,25 @@ async function updateSingleBattle(battleId) {
     
     if (error) throw error;
     
-    // Find the battle card container
-    const container = document.getElementById('battles-container');
-    const existingCards = container.querySelectorAll('.bg-white.rounded-lg');
+    // Find the battle card element
+    const battleCard = document.querySelector(`[data-battle-id="${battleId}"]`);
     
-    // Find and replace the specific battle card
-    existingCards.forEach(card => {
-      if (card.innerHTML.includes(`vote('${battleId}'`)) {
-        const newCard = document.createElement('div');
-        newCard.innerHTML = createBattleCard(battle);
-        card.replaceWith(newCard.firstElementChild);
-        
-        // Restart countdown if active
-        if (new Date(battle.ends_at) > new Date()) {
-          startCountdown(battle.id, battle.ends_at);
-        }
+    if (battleCard) {
+      // Create new card HTML
+      const newCardHTML = createBattleCard(battle);
+      
+      // Create temporary container
+      const temp = document.createElement('div');
+      temp.innerHTML = newCardHTML;
+      
+      // Replace the old card with the new one
+      battleCard.replaceWith(temp.firstElementChild);
+      
+      // Restart countdown if active
+      if (new Date(battle.ends_at) > new Date()) {
+        startCountdown(battle.id, battle.ends_at);
       }
-    });
+    }
   } catch (error) {
     console.error('Error updating battle:', error);
   }
