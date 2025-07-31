@@ -23,7 +23,26 @@
       border: 3px solid white;
       z-index: 10;
     }
+/* New battles notification styles */
+#new-battles-notification {
+  animation: slideIn 0.3s ease-out;
+}
 
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Ensure notification appears above other elements */
+#new-battles-notification {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
     /* Progress Bar Styles */
     .progress-bar-container {
       display: flex;
