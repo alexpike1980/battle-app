@@ -56,6 +56,8 @@ async function loadBattles(reset = false) {
     currentPage = 0;
     hasMore = true;
     container.innerHTML = '';
+    // Update last check time when resetting
+    lastCheckTime = new Date().toISOString();
   }
   
   // Show loading indicator
@@ -152,6 +154,91 @@ let scrollTimeout;
 function debounceScroll() {
   clearTimeout(scrollTimeout);
   scrollTimeout = setTimeout(handleScroll, 100);
+}
+
+// Check for new battles
+async function checkNewBattles() {
+  try {
+    let query = supabaseClient
+      .from('battles')
+      .select('id', { count: 'exact', head: true })
+      .gt('created_at', lastCheckTime);
+    
+    if (currentTab === 'active') {
+      query = query.gt('ends_at', new Date().toISOString());
+    } else if (currentTab === 'finished') {
+      query = query.lt('ends_at', new Date().toISOString());
+    }
+    
+    const { count, error } = await query;
+    
+    if (error) throw error;
+    
+    if (count > 0) {
+      newBattlesCount = count;
+      showNewBattlesNotification();
+    }
+  } catch (error) {
+    console.error('Error checking for new battles:', error);
+  }
+}
+
+// Show new battles notification
+function showNewBattlesNotification() {
+  // Remove existing notification if any
+  const existingNotification = document.getElementById('new-battles-notification');
+  if (existingNotification) existingNotification.remove();
+  
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.id = 'new-battles-notification';
+  notification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg z-50 cursor-pointer hover:bg-blue-700 transition-all duration-300 flex items-center gap-2';
+  notification.style.transform = 'translateX(-50%) translateY(-20px)';
+  notification.style.opacity = '0';
+  notification.innerHTML = `
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+    </svg>
+    <span>${newBattlesCount} new battle${newBattlesCount > 1 ? 's' : ''}</span>
+  `;
+  
+  // Add click handler
+  notification.onclick = () => {
+    loadNewBattles();
+    notification.remove();
+  };
+  
+  document.body.appendChild(notification);
+  
+  // Animate in
+  setTimeout(() => {
+    notification.style.transform = 'translateX(-50%) translateY(0)';
+    notification.style.opacity = '1';
+  }, 10);
+}
+
+// Load new battles when notification is clicked
+async function loadNewBattles() {
+  // Reset and reload from the beginning
+  currentPage = 0;
+  hasMore = true;
+  newBattlesCount = 0;
+  lastCheckTime = new Date().toISOString();
+  
+  const container = document.getElementById('battles-container');
+  
+  // Smooth scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Add a flash effect to indicate new content
+  container.style.transition = 'opacity 0.3s';
+  container.style.opacity = '0.7';
+  
+  await loadBattles(true);
+  
+  setTimeout(() => {
+    container.style.opacity = '1';
+  }, 100);
 }
 
 // Update a single battle card
