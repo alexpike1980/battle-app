@@ -241,11 +241,10 @@ async function loadNewBattles() {
   }, 100);
 }
 
-// Update a single battle card
+// Update a single battle card - Simplified version
 async function updateSingleBattle(battleId) {
-  console.log('Updating battle:', battleId);
-  
   try {
+    // Get fresh battle data
     const { data: battle, error } = await supabaseClient
       .from('battles')
       .select('*')
@@ -254,44 +253,35 @@ async function updateSingleBattle(battleId) {
     
     if (error) throw error;
     
-    console.log('Fetched updated battle:', battle);
+    // Find the battle card
+    const oldCard = document.querySelector(`[data-battle-id="${battleId}"]`);
     
-    // Find the battle card element
-    const battleCard = document.querySelector(`[data-battle-id="${battleId}"]`);
-    
-    if (battleCard) {
-      console.log('Found battle card element');
-      
-      // Create new card HTML
-      const newCardHTML = createBattleCard(battle);
-      
-      // Create temporary container
-      const temp = document.createElement('div');
-      temp.innerHTML = newCardHTML;
-      
-      // Get the new card element
-      const newCard = temp.firstElementChild;
-      
-      // Copy over any existing timers
-      const existingTimer = battleCard.querySelector(`#timer-${battleId}`);
-      if (existingTimer) {
-        clearInterval(window[`timer_${battleId}`]);
-      }
-      
-      // Replace the old card with the new one
-      battleCard.parentNode.replaceChild(newCard, battleCard);
-      
-      console.log('Replaced battle card');
-      
-      // Restart countdown if active
-      if (new Date(battle.ends_at) > new Date()) {
-        startCountdown(battle.id, battle.ends_at);
-      }
-    } else {
-      console.log('Battle card not found in DOM');
+    if (!oldCard) {
+      console.log('Battle card not found, reloading all battles');
+      loadBattles(true);
+      return;
     }
+    
+    // Create new card HTML
+    const newCardHTML = createBattleCard(battle);
+    
+    // Create a temporary container
+    const temp = document.createElement('div');
+    temp.innerHTML = newCardHTML;
+    const newCard = temp.firstElementChild;
+    
+    // Replace the entire card
+    oldCard.parentNode.replaceChild(newCard, oldCard);
+    
+    // Restart countdown if needed
+    if (new Date(battle.ends_at) > new Date()) {
+      startCountdown(battle.id, battle.ends_at);
+    }
+    
   } catch (error) {
     console.error('Error updating battle:', error);
+    // Fallback: reload all battles
+    loadBattles(true);
   }
 }
 
@@ -1328,3 +1318,4 @@ window.shareToFacebook = shareToFacebook;
 window.shareToReddit = shareToReddit;
 window.copyLink = copyLink;
 window.cancelVote = cancelVote;
+window.updateSingleBattle = updateSingleBattle;
