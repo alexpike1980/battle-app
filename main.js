@@ -243,6 +243,8 @@ async function loadNewBattles() {
 
 // Update a single battle card
 async function updateSingleBattle(battleId) {
+  console.log('Updating battle:', battleId);
+  
   try {
     const { data: battle, error } = await supabaseClient
       .from('battles')
@@ -252,10 +254,14 @@ async function updateSingleBattle(battleId) {
     
     if (error) throw error;
     
+    console.log('Fetched updated battle:', battle);
+    
     // Find the battle card element
     const battleCard = document.querySelector(`[data-battle-id="${battleId}"]`);
     
     if (battleCard) {
+      console.log('Found battle card element');
+      
       // Create new card HTML
       const newCardHTML = createBattleCard(battle);
       
@@ -263,13 +269,26 @@ async function updateSingleBattle(battleId) {
       const temp = document.createElement('div');
       temp.innerHTML = newCardHTML;
       
+      // Get the new card element
+      const newCard = temp.firstElementChild;
+      
+      // Copy over any existing timers
+      const existingTimer = battleCard.querySelector(`#timer-${battleId}`);
+      if (existingTimer) {
+        clearInterval(window[`timer_${battleId}`]);
+      }
+      
       // Replace the old card with the new one
-      battleCard.replaceWith(temp.firstElementChild);
+      battleCard.parentNode.replaceChild(newCard, battleCard);
+      
+      console.log('Replaced battle card');
       
       // Restart countdown if active
       if (new Date(battle.ends_at) > new Date()) {
         startCountdown(battle.id, battle.ends_at);
       }
+    } else {
+      console.log('Battle card not found in DOM');
     }
   } catch (error) {
     console.error('Error updating battle:', error);
@@ -373,6 +392,11 @@ function createBattleCard(battle) {
 
 // Countdown timer
 function startCountdown(battleId, endTime) {
+  // Clear any existing timer for this battle
+  if (window[`timer_${battleId}`]) {
+    clearInterval(window[`timer_${battleId}`]);
+  }
+  
   const updateTimer = () => {
     const now = new Date();
     const end = new Date(endTime);
@@ -383,7 +407,7 @@ function startCountdown(battleId, endTime) {
       if (timerEl) {
         timerEl.textContent = 'Finished';
       }
-      clearInterval(interval);
+      clearInterval(window[`timer_${battleId}`]);
       return;
     }
     
@@ -405,7 +429,7 @@ function startCountdown(battleId, endTime) {
   };
   
   updateTimer();
-  const interval = setInterval(updateTimer, 1000);
+  window[`timer_${battleId}`] = setInterval(updateTimer, 1000);
 }
 
 // Vote function - Modified to require sharing
