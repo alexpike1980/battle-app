@@ -241,7 +241,7 @@ async function loadNewBattles() {
   }, 100);
 }
 
-// Update a single battle card - Simplified version
+// Update a single battle card - Match battle.html approach
 async function updateSingleBattle(battleId) {
   try {
     // Get fresh battle data
@@ -253,35 +253,37 @@ async function updateSingleBattle(battleId) {
     
     if (error) throw error;
     
-    // Find the battle card
-    const oldCard = document.querySelector(`[data-battle-id="${battleId}"]`);
+    // Find all battle cards in the container
+    const container = document.getElementById('battles-container');
+    const battleCards = container.getElementsByClassName('bg-white rounded-lg shadow-sm border');
     
-    if (!oldCard) {
-      console.log('Battle card not found, reloading all battles');
-      loadBattles(true);
-      return;
-    }
-    
-    // Create new card HTML
-    const newCardHTML = createBattleCard(battle);
-    
-    // Create a temporary container
-    const temp = document.createElement('div');
-    temp.innerHTML = newCardHTML;
-    const newCard = temp.firstElementChild;
-    
-    // Replace the entire card
-    oldCard.parentNode.replaceChild(newCard, oldCard);
-    
-    // Restart countdown if needed
-    if (new Date(battle.ends_at) > new Date()) {
-      startCountdown(battle.id, battle.ends_at);
+    // Find the specific battle card by checking its content
+    for (let card of battleCards) {
+      if (card.innerHTML.includes(`data-battle-id="${battleId}"`) || 
+          card.innerHTML.includes(`vote('${battleId}'`)) {
+        
+        // Create new card HTML
+        const newCardHTML = createBattleCard(battle);
+        
+        // Create temporary container
+        const temp = document.createElement('div');
+        temp.innerHTML = newCardHTML;
+        const newCard = temp.firstElementChild;
+        
+        // Replace the card
+        card.parentNode.replaceChild(newCard, card);
+        
+        // Restart countdown if active
+        if (new Date(battle.ends_at) > new Date()) {
+          startCountdown(battle.id, battle.ends_at);
+        }
+        
+        break; // Found and updated the card
+      }
     }
     
   } catch (error) {
     console.error('Error updating battle:', error);
-    // Fallback: reload all battles
-    loadBattles(true);
   }
 }
 
