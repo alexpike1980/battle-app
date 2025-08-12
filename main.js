@@ -241,6 +241,53 @@ async function loadNewBattles() {
   }, 100);
 }
 
+// Update a single battle card in the DOM without reloading
+function updateBattleCard(battle) {
+  // Find the battle card in the DOM
+  const battleCards = document.querySelectorAll(`[data-battle-id="${battle.id}"]`);
+  
+  battleCards.forEach(card => {
+    // Calculate new percentages
+    const totalVotes = (battle.votes1 || 0) + (battle.votes2 || 0);
+    const percentage1 = totalVotes > 0 ? Math.round((battle.votes1 / totalVotes) * 100) : 50;
+    const percentage2 = 100 - percentage1;
+    
+    // Update progress bar
+    const progressBar = card.querySelector('.progress-bar-container');
+    if (progressBar) {
+      progressBar.innerHTML = `
+        <div class="progress-segment progress-blue" style="width: ${percentage1}%;">
+          <span class="progress-text text-xs sm:text-sm">${percentage1}%</span>
+        </div>
+        <div class="progress-segment progress-green" style="width: ${percentage2}%;">
+          <span class="progress-text text-xs sm:text-sm">${percentage2}%</span>
+        </div>
+      `;
+    }
+    
+    // Update total votes count
+    const votesElements = card.querySelectorAll('.text-gray-500');
+    votesElements.forEach(el => {
+      if (el.textContent.includes('Total votes:')) {
+        el.textContent = `Total votes: ${totalVotes}`;
+      }
+    });
+    
+    // Add a subtle animation to show the update
+    card.style.transition = 'transform 0.2s, box-shadow 0.2s';
+    card.style.transform = 'scale(1.02)';
+    card.style.boxShadow = '0 4px 20px rgba(59, 130, 246, 0.2)';
+    
+    setTimeout(() => {
+      card.style.transform = 'scale(1)';
+      card.style.boxShadow = '';
+    }, 300);
+  });
+  
+  // Also update stats if it's in the current view
+  updateStats();
+}
+
 // Update a single battle card - Match battle.html approach
 async function updateSingleBattle(battleId) {
   try {
@@ -496,20 +543,26 @@ async function processVote() {
     // Get current votes
     const { data: battle, error: fetchError } = await supabaseClient
       .from('battles')
-      .select(pendingVote.voteColumn)
+      .select('*')
       .eq('id', pendingVote.battleId)
       .single();
     
     if (fetchError) throw fetchError;
     
-    // Update votes
+    // Update votes in database
     const newVotes = (battle[pendingVote.voteColumn] || 0) + 1;
+    const updatedBattle = { ...battle };
+    updatedBattle[pendingVote.voteColumn] = newVotes;
+    
     const { error: updateError } = await supabaseClient
       .from('battles')
       .update({ [pendingVote.voteColumn]: newVotes })
       .eq('id', pendingVote.battleId);
     
     if (updateError) throw updateError;
+    
+    // Immediately update the UI without reloading
+    updateBattleCard(updatedBattle);
     
     // Clear pending vote
     pendingVote = null;
@@ -529,11 +582,6 @@ async function processVote() {
       }
     }
     
-    // Reload battles to show updated votes
-    setTimeout(() => {
-      loadBattles();
-    }, 500);
-    
   } catch (error) {
     console.error('Error recording vote:', error);
     alert('Error recording vote. Please try again.');
@@ -547,18 +595,34 @@ function cancelVote() {
 }
 
 // Update stats
-function updateStats(battles, totalCount) {
-  const totalBattles = totalCount || battles.length;
-  const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
-  const totalVotes = battles.reduce((sum, b) => sum + (b.votes1 || 0) + (b.votes2 || 0), 0);
-  
-  const totalBattlesEl = document.getElementById('total-battles');
-  const activeBattlesEl = document.getElementById('active-battles');
-  const totalVotesEl = document.getElementById('total-votes');
-  
-  if (totalBattlesEl) totalBattlesEl.textContent = totalCount || '-';
-  if (activeBattlesEl) activeBattlesEl.textContent = activeBattles;
-  if (totalVotesEl) totalVotesEl.textContent = totalVotes;
+async function updateStats(battles, totalCount) {
+  try {
+    // If no battles provided, fetch current stats
+    if (!battles) {
+      const { data: statsData, error } = await supabaseClient
+        .from('battles')
+        .select('votes1, votes2, ends_at');
+      
+      if (error) throw error;
+      
+      battles = statsData || [];
+      totalCount = battles.length;
+    }
+    
+    const totalBattles = totalCount || battles.length;
+    const activeBattles = battles.filter(b => new Date(b.ends_at) > new Date()).length;
+    const totalVotes = battles.reduce((sum, b) => sum + (b.votes1 || 0) + (b.votes2 || 0), 0);
+    
+    const totalBattlesEl = document.getElementById('total-battles');
+    const activeBattlesEl = document.getElementById('active-battles');
+    const totalVotesEl = document.getElementById('total-votes');
+    
+    if (totalBattlesEl) totalBattlesEl.textContent = totalCount || '-';
+    if (activeBattlesEl) activeBattlesEl.textContent = activeBattles;
+    if (totalVotesEl) totalVotesEl.textContent = totalVotes;
+  } catch (error) {
+    console.error('Error updating stats:', error);
+  }
 }
 
 // Modal functions
@@ -1321,3 +1385,4 @@ window.shareToReddit = shareToReddit;
 window.copyLink = copyLink;
 window.cancelVote = cancelVote;
 window.updateSingleBattle = updateSingleBattle;
+window.updateBattleCard = updateBattleCard;
